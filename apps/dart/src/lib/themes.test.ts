@@ -34,6 +34,7 @@ describe("generated themes", () => {
       const where = `${theme.id} ${theme.mood} ${theme.warmth}`;
       expect(ratio(tokens, "foreground", "background"), where).toBeGreaterThanOrEqual(7);
       expect(ratio(tokens, "muted-foreground", "background"), where).toBeGreaterThanOrEqual(3);
+      expect(ratio(tokens, "muted-foreground", "muted"), where).toBeGreaterThanOrEqual(3);
       for (const tone of ["pink", "mint", "butter", "destructive"] as const) {
         expect(ratio(tokens, `${tone}-ink`, `${tone}-soft`), `${where} ${tone}`).toBeGreaterThanOrEqual(3);
       }

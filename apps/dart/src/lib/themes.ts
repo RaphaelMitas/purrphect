@@ -21,7 +21,7 @@ export const ROLES = [
 ] as const;
 
 export type RoleInfo = (typeof ROLES)[number];
-export type Role = RoleInfo["key"];
+type Role = RoleInfo["key"];
 
 export const isAuto = (theme: Theme, role: Role) => theme[role] === undefined;
 

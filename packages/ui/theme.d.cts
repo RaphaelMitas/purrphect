@@ -16,7 +16,7 @@ export interface Theme {
 
 type ToneName = "pink" | "mint" | "butter" | "destructive";
 
-export type TokenName =
+type TokenName =
   | "background"
   | "foreground"
   | "card"

@@ -196,7 +196,7 @@ function themeTokens(theme) {
     secondary: triplet(soft(accent)),
     "secondary-foreground": triplet(ink(accent)),
     muted: triplet(muted),
-    "muted-foreground": triplet(readable(mix(text, page, dark ? 0.35 : 0.45), page, 3)),
+    "muted-foreground": triplet(readable(mix(text, page, dark ? 0.35 : 0.45), muted, 3)),
     accent: triplet(muted),
     "accent-foreground": triplet(text),
     ...tone("destructive", theme.danger),
