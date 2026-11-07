@@ -1,0 +1,45 @@
+appId: com.purrphect.dart
+---
+- runFlow: ../subflows/open-lobby.yaml
+- runFlow:
+    file: ../subflows/add-player.yaml
+    env:
+      NAME: Mira
+- runFlow:
+    file: ../subflows/add-player.yaml
+    env:
+      NAME: Theo
+- scrollUntilVisible:
+    element: "Start · 2 players"
+- tapOn: "Start · 2 players"
+- extendedWaitUntil:
+    visible: "Leg 1"
+    timeout: 10000
+- assertVisible: "501 · double out · first to 3"
+- tapOn: "Tiles"
+
+# Phone tiles need Triple armed for every dart; tablet tiles accept it too.
+- tapOn: "Triple"
+- runFlow:
+    file: ../subflows/tap-key.yaml
+    env:
+      KEY: T20
+- tapOn: "Triple"
+- runFlow:
+    file: ../subflows/tap-key.yaml
+    env:
+      KEY: T20
+- tapOn: "Triple"
+- runFlow:
+    file: ../subflows/tap-key.yaml
+    env:
+      KEY: T20
+- assertVisible: "321"
+
+- tapOn: "20"
+- tapOn: "Miss"
+- tapOn: "Undo"
+- tapOn: "25"
+- tapOn: "Bull"
+- assertVisible: "406"
+- assertVisible: "321"

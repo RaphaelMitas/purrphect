@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run && jest",
+    "e2e": "maestro test --format junit --output e2e/results/report.xml --debug-output e2e/results e2e/flows",
     "clean": "git clean -xdf .expo .turbo ios android node_modules"
   },
   "dependencies": {
@@ -41,7 +42,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@jest/globals": "~30.5.2",
+    "@testing-library/react-native": "^14.1.0",
     "@types/react": "catalog:",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
