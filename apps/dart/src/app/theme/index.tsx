@@ -27,6 +27,7 @@ export default function ThemeScreen() {
   const [focus, setFocus] = useState<Slot>(system);
   const inSlot = { light: slotTheme(themes, "light"), dark: slotTheme(themes, "dark") };
   const focused = inSlot[focus];
+  const labelTint = (slot: Slot) => (focus === slot ? "text-foreground" : "text-muted-foreground");
 
   const fork = (theme: Theme, name: string) => {
     const copy = { ...theme, id: randomUUID(), name };
@@ -56,18 +57,8 @@ export default function ThemeScreen() {
                 )}
               >
                 <View className="flex-row items-center gap-1.5">
-                  <Icon
-                    as={icon}
-                    className={cn("size-4", focus === slot ? "text-foreground" : "text-muted-foreground")}
-                  />
-                  <Text
-                    className={cn(
-                      "flex-1 font-nunito-black text-xs",
-                      focus === slot ? "text-foreground" : "text-muted-foreground",
-                    )}
-                  >
-                    {label}
-                  </Text>
+                  <Icon as={icon} className={cn("size-4", labelTint(slot))} />
+                  <Text className={cn("flex-1 font-nunito-black text-xs", labelTint(slot))}>{label}</Text>
                   {system === slot && (
                     <View className="rounded-full bg-mint-soft px-2">
                       <Text className="font-nunito-black text-[10px] text-mint-ink">NOW</Text>

@@ -33,7 +33,6 @@ export function navigationTheme(p: Palette): NavigationTheme {
   const base = p.dark ? DarkTheme : DefaultTheme;
   return {
     ...base,
-    dark: p.dark,
     colors: {
       ...base.colors,
       background: p.background,
