@@ -8,6 +8,7 @@
     "./tokens": "./tokens.js",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
+    "./cat-paths": "./src/cat-paths.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {
