@@ -1,6 +1,6 @@
 import { bestRoute } from "./checkout";
 import type { Rules } from "./rules";
-import { BOARD_NUMBERS, type Segment, segmentFor } from "./segments";
+import type { Segment } from "./segments";
 import { replay, threeDartAverage } from "./x01";
 
 export interface PlayedMatch {
@@ -63,13 +63,7 @@ const RANGES: [string, number, number][] = [
   ["121-170", 121, 170],
 ];
 
-function targetDouble(scoreBefore: number): Segment | undefined {
-  if (scoreBefore === 50) return "Bull";
-  const n = BOARD_NUMBERS.find((b) => b * 2 === scoreBefore);
-  return n ? segmentFor(n, 2) : undefined;
-}
-
-export function emptyStats(): PlayerStats {
+function emptyStats(): PlayerStats {
   return {
     matches: 0,
     playedAt: [],
@@ -146,7 +140,7 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
       st.heat[d.segment] = (st.heat[d.segment] ?? 0) + 1;
       if (!d.atFinish) continue;
       st.finishAttempts++;
-      const target = m.rules.out === "double" ? targetDouble(d.scoreBefore) : undefined;
+      const target = m.rules.out === "double" ? bestRoute(d.scoreBefore, 1, "double")?.darts[0] : undefined;
       if (target) {
         const entry = st.doubles[target] ?? { attempts: 0, hits: 0 };
         entry.attempts++;
@@ -183,9 +177,19 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
   return st;
 }
 
+const rateRow = (label: string, hits: number, attempts: number) => ({
+  label,
+  rate: attempts ? hits / attempts : 0,
+  detail: `${hits}/${attempts}`,
+});
+
 export function doubleRates(stats: PlayerStats, limit = 6) {
   return Object.entries(stats.doubles)
     .sort(([, a], [, b]) => b.attempts - a.attempts)
     .slice(0, limit)
-    .map(([label, d]) => ({ label, rate: d.hits / d.attempts, detail: `${d.hits}/${d.attempts}` }));
+    .map(([label, d]) => rateRow(label, d.hits, d.attempts));
+}
+
+export function rangeRates(stats: PlayerStats) {
+  return stats.byRange.map((r) => rateRow(r.label, r.hits, r.chances));
 }

@@ -12,7 +12,7 @@ import { RateBars, TrendChart } from "@/components/StatCharts";
 import { Text } from "@/components/ui/text";
 import { byId, loadPlayersAndMatches } from "@/db/repo";
 import { BADGES, LEVELS, progressFor, XP_RULES } from "@/game/levels";
-import { doubleRates, playerStats } from "@/game/stats";
+import { doubleRates, playerStats, rangeRates } from "@/game/stats";
 import { replay, standings } from "@/game/x01";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
@@ -143,13 +143,7 @@ export default function PlayerCard() {
         <DartBoard size={wide ? 320 : 300} heat={stats.heat} />
       </Panel>
       <Panel title="Checkout by range" hint="finishable visits">
-        <RateBars
-          rows={stats.byRange.map((r) => ({
-            label: r.label,
-            rate: r.chances ? r.hits / r.chances : 0,
-            detail: `${r.hits}/${r.chances}`,
-          }))}
-        />
+        <RateBars rows={rangeRates(stats)} />
         {doubleRates(stats, 1).map((d) => (
           <Text key={d.label} className="text-xs text-muted-foreground">
             Most tried double <Text className="font-nunito-black text-xs">{d.label}</Text> · {percent(d.rate)}

@@ -1,8 +1,8 @@
 import { View } from "react-native";
 import { Cat } from "@/components/Cat";
+import type { QueueEntry } from "@/components/match/UpNext";
 import { SegmentChip } from "@/components/SegmentChip";
 import { Text } from "@/components/ui/text";
-import type { Player } from "@/db/repo";
 import type { Suggestion } from "@/game/predict";
 import { label, type Segment } from "@/game/segments";
 import { percent } from "@/lib/format";
@@ -18,21 +18,19 @@ function Route({ darts }: { darts: readonly Segment[] }) {
   );
 }
 
-function names(players: Player[], remaining: (p: Player) => number): string {
-  const shown = players.slice(0, 2).map((p) => `${p.name} (${remaining(p)})`);
-  const more = players.length - shown.length;
+function names(entries: QueueEntry[]): string {
+  const shown = entries.slice(0, 2).map((e) => `${e.player.name} (${e.remaining})`);
+  const more = entries.length - shown.length;
   return more > 0 ? `${shown.join(", ")} +${more} more` : shown.join(" and ");
 }
 
 export function CatBubble({
   suggestion,
   onFinish,
-  remainingOf,
   compact,
 }: {
   suggestion: Suggestion;
-  onFinish: Player[];
-  remainingOf: (p: Player) => number;
+  onFinish: QueueEntry[];
   compact?: boolean;
 }) {
   const { route, setup, fallback, remaining, chance } = suggestion;
@@ -77,7 +75,7 @@ export function CatBubble({
           </View>
         )}
         {onFinish.length > 0 && (
-          <Text className="text-xs text-butter-ink">{names(onFinish, remainingOf)} can finish before you're back.</Text>
+          <Text className="text-xs text-butter-ink">{names(onFinish)} can finish before you're back.</Text>
         )}
       </View>
     </View>

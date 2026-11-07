@@ -16,7 +16,7 @@ export interface QueueEntry {
 
 export function UpNextList({ entries }: { entries: QueueEntry[] }) {
   return (
-    <Panel title="Up next" hint={`${entries.length + 1} players`} className="flex-1 gap-1 px-3 py-2">
+    <Panel title="Up next" hint={`${entries.length + 1} left`} className="flex-1 gap-1 px-3 py-2">
       <ScrollView>
         {entries.map((e, i) => (
           <RankRow key={e.player.id} rank={i + 1} color={e.player.color} name={e.player.name} highlight={i === 0}>

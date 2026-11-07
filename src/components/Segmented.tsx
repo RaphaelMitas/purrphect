@@ -4,7 +4,7 @@ import { Text } from "@/components/ui/text";
 import { usePalette } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-export interface SegmentedOption<T extends string> {
+interface SegmentedOption<T extends string> {
   value: T;
   label: string;
 }

@@ -28,7 +28,7 @@ all.push({ segment: "25", value: 25, number: 25, multiplier: 1 });
 all.push({ segment: "Bull", value: 50, number: 25, multiplier: 2 });
 
 export const SCORING_SEGMENTS: readonly SegmentInfo[] = all;
-export const MISS: SegmentInfo = { segment: "Miss", value: 0, number: 0, multiplier: 0 };
+const MISS: SegmentInfo = { segment: "Miss", value: 0, number: 0, multiplier: 0 };
 
 const BY_SEGMENT = new Map<string, SegmentInfo>([...all, MISS].map((s) => [s.segment, s]));
 

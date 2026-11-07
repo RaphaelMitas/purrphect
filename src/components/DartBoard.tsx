@@ -5,6 +5,7 @@ import Svg, { Circle, G, Path, Rect, Text as SvgText } from "react-native-svg";
 import { SegmentChip } from "@/components/SegmentChip";
 import { Text } from "@/components/ui/text";
 import { BOARD_RADIUS, hitTest, polar, RINGS, ringBands, SEGMENT_DEGREES, segmentCenter } from "@/game/board";
+import { planOrder } from "@/game/predict";
 import { BOARD_ORDER, info, type Segment, segmentFor } from "@/game/segments";
 import { type Palette, usePalette } from "@/lib/theme";
 
@@ -50,6 +51,7 @@ function SegmentShape({
 type Heat = Partial<Record<Segment, number>>;
 
 const LOUPE_WIDTH = 130;
+const NO_PLAN: readonly Segment[] = [];
 
 const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; plan: readonly Segment[]; heat?: Heat }) {
   const max = Math.max(1, ...Object.entries(heat ?? {}).flatMap(([s, n]) => (s === "Miss" ? [] : [n])));
@@ -110,7 +112,7 @@ const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; pla
       ))}
       {[...new Set(plan)].map((segment) => {
         const [x, y] = segmentCenter(segment);
-        const order = plan.flatMap((s, i) => (s === segment ? [i + 1] : [])).join("·");
+        const order = planOrder(plan, (s) => s === segment);
         const width = 12 + order.length * 7;
         return (
           <G key={segment} transform={`translate(${x + 14} ${y - 16})`}>
@@ -133,7 +135,7 @@ interface Press {
 
 export function DartBoard({
   size,
-  plan = [],
+  plan = NO_PLAN,
   heat,
   onDart,
 }: {

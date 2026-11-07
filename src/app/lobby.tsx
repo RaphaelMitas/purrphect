@@ -80,6 +80,7 @@ export default function Lobby() {
   const [adding, setAdding] = useState(false);
   const [preloaded, setPreloaded] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [addingGuest, setAddingGuest] = useState(false);
 
   const players = useMemo(() => byId(data?.players ?? []), [data?.players]);
 
@@ -185,14 +186,20 @@ export default function Lobby() {
           {
             label: "Guest",
             tint: "text-muted-foreground",
-            onPress: () => void addGuest(db).then(added).catch(console.error),
+            onPress: () => {
+              setAddingGuest(true);
+              void addGuest(db)
+                .then(added)
+                .catch(console.error)
+                .finally(() => setAddingGuest(false));
+            },
           },
         ].map((b) => (
           <Pressable
             key={b.label}
             accessibilityRole="button"
             accessibilityLabel={`Add ${b.label.toLowerCase()}`}
-            disabled={full}
+            disabled={full || addingGuest}
             onPress={b.onPress}
             className={cn(
               "w-20 items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border p-2",

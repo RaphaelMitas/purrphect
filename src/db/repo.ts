@@ -5,7 +5,7 @@ import type { Segment } from "@/game/segments";
 import type { PlayedMatch } from "@/game/stats";
 import { parseIds, parseRules, parseSegment } from "./parse";
 
-export const PLAYER_COLORS = [
+const PLAYER_COLORS = [
   "#FF6FA3",
   "#5FCFAE",
   "#F2B84B",
@@ -219,7 +219,7 @@ export function byId(players: readonly Player[]): Map<string, Player> {
   return new Map(players.map((p) => [p.id, p]));
 }
 
-export async function finishedMatches(db: SQLiteDatabase): Promise<PlayedMatch[]> {
+async function finishedMatches(db: SQLiteDatabase): Promise<PlayedMatch[]> {
   const rows = await db.getAllAsync<MatchRow>(
     `SELECT ${MATCH_COLUMNS} FROM matches WHERE finished_at IS NOT NULL ORDER BY finished_at`,
   );

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import type { Player } from "@/db/repo";
 
-export interface Standing {
+interface Standing {
   player: Player;
   legsWon: number;
   average: number;

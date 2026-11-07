@@ -6,7 +6,7 @@ import type { Player } from "@/db/repo";
 import { label, type Segment } from "@/game/segments";
 import { cn } from "@/lib/utils";
 
-export function DartSlots({
+function DartSlots({
   thrown,
   plan,
   compact,

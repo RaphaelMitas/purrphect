@@ -26,6 +26,7 @@ import {
   type Player,
   playerColor,
   saveDarts,
+  savesSettled,
   setInputMode,
 } from "@/db/repo";
 import { bestRoute } from "@/game/checkout";
@@ -76,7 +77,8 @@ export default function MatchScreen() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getMatch(db, id), listPlayers(db), getInputMode(db)])
+    savesSettled()
+      .then(() => Promise.all([getMatch(db, id), listPlayers(db), getInputMode(db)]))
       .then(([m, all, inputMode]) => {
         if (!active) return;
         if (!m) {
@@ -149,7 +151,6 @@ export default function MatchScreen() {
   };
 
   const thrower = players[state.current];
-  const remainingOf = (p: Player) => state.remaining[players.indexOf(p)] ?? 0;
   const queue: QueueEntry[] = upNext(state).flatMap((i) => {
     const player = players[i];
     const remaining = state.remaining[i] ?? 0;
@@ -157,7 +158,7 @@ export default function MatchScreen() {
       ? [{ player, remaining, average: matchAverage(state, i), out: bestRoute(remaining, 3, match.rules.out) }]
       : [];
   });
-  const onFinish = queue.filter((q) => q.out).map((q) => q.player);
+  const onFinish = queue.filter((q) => q.out);
   const finalStandings = standings(state).flatMap((i) => {
     const player = players[i];
     return player ? [{ player, legsWon: state.legsWon[i] ?? 0, average: matchAverage(state, i) }] : [];
@@ -175,7 +176,7 @@ export default function MatchScreen() {
       compact={!tablet}
     />
   );
-  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} remainingOf={remainingOf} compact={!tablet} />;
+  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} compact={!tablet} />;
   const boardButtons = (
     <View className="flex-row gap-2">
       {[

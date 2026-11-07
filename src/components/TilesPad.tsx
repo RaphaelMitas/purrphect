@@ -2,6 +2,7 @@ import * as Haptics from "expo-haptics";
 import { type ReactNode, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { planOrder } from "@/game/predict";
 import {
   BOARD_NUMBERS,
   type BoardNumber,
@@ -20,11 +21,11 @@ const ARMED = {
   3: { tile: "bg-pink-soft", text: "text-pink-ink" },
 } as const;
 
-function PlanBadge({ index, suffix }: { index: number; suffix?: string }) {
+function PlanBadge({ order, suffix }: { order: string; suffix?: string }) {
   return (
     <View className="absolute right-1 top-1 rounded-full bg-foreground px-1.5">
       <Text className="font-nunito-black text-[10px] text-background">
-        {index + 1}
+        {order}
         {suffix ? ` · ${suffix}` : ""}
       </Text>
     </View>
@@ -80,38 +81,37 @@ export function TilesPad({
     onDart(segment);
   };
   const toggle = (m: Multiplier) => setMultiplier((cur) => (cur === m ? 1 : m));
-  const planIndex = (segment: Segment) => plan.indexOf(segment);
-  const numberPlan = (n: BoardNumber) => plan.findIndex((s) => info(s).number === n);
+  const orderOf = (segment: Segment) => planOrder(plan, (s) => s === segment);
 
   const tile = (n: BoardNumber) => {
     const main = segmentFor(n, multiplier);
     if (direct) {
-      const mainIndex = planIndex(main);
+      const mainOrder = orderOf(main);
       return (
         <View key={n} className="flex-1 overflow-hidden rounded-2xl bg-card">
           <Key
             label={label(main)}
             onPress={() => hit(main)}
-            highlighted={mainIndex >= 0}
+            highlighted={mainOrder !== ""}
             className={cn("flex-[3] rounded-2xl", armed.tile)}
           >
             <Text className={cn("font-nunito-black text-2xl", armed.text)}>{label(main)}</Text>
-            {mainIndex >= 0 && <PlanBadge index={mainIndex} />}
+            {mainOrder && <PlanBadge order={mainOrder} />}
           </Key>
           <View className="min-h-10 flex-[2] flex-row">
             {([2, 3] as const).map((m) => {
               const s = segmentFor(n, m);
-              const i = planIndex(s);
+              const order = orderOf(s);
               return (
                 <Key
                   key={m}
                   label={s}
                   onPress={() => hit(s)}
-                  highlighted={i >= 0}
+                  highlighted={order !== ""}
                   className={cn("flex-1 rounded-xl", ARMED[m].tile)}
                 >
                   <Text className={cn("font-nunito-black text-sm", ARMED[m].text)}>{s[0]}</Text>
-                  {i >= 0 && <PlanBadge index={i} />}
+                  {order && <PlanBadge order={order} />}
                 </Key>
               );
             })}
@@ -119,19 +119,19 @@ export function TilesPad({
         </View>
       );
     }
-    const i = numberPlan(n);
-    const planned = plan[i];
+    const order = planOrder(plan, (s) => info(s).number === n);
+    const planned = plan.find((s) => info(s).number === n);
     const suffix = planned && tone(planned) !== "single" ? planned[0] : undefined;
     return (
       <Key
         key={n}
         label={label(main)}
         onPress={() => hit(main)}
-        highlighted={i >= 0}
+        highlighted={order !== ""}
         className={cn("flex-1 rounded-2xl", armed.tile)}
       >
         <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(main)}</Text>
-        {i >= 0 && <PlanBadge index={i} suffix={suffix} />}
+        {order && <PlanBadge order={order} suffix={suffix} />}
       </Key>
     );
   };
@@ -161,17 +161,17 @@ export function TilesPad({
       ))}
       <View className="h-12 flex-row gap-2">
         {(["25", "Bull"] as const).map((s) => {
-          const i = planIndex(s);
+          const order = orderOf(s);
           return (
             <Key
               key={s}
               label={s}
               onPress={() => hit(s)}
-              highlighted={i >= 0}
+              highlighted={order !== ""}
               className="flex-1 rounded-2xl bg-butter-soft"
             >
               <Text className="font-nunito-black text-base text-butter-ink">{s}</Text>
-              {i >= 0 && <PlanBadge index={i} />}
+              {order && <PlanBadge order={order} />}
             </Key>
           );
         })}
