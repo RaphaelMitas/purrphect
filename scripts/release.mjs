@@ -38,11 +38,12 @@ if (run("git", ["ls-remote", "--tags", "origin", `refs/tags/v${next}`]) !== "") 
 console.log(`Releasing v${next} (from v${current})`);
 if (dryRun) process.exit(0);
 
-// A text edit keeps app.json formatted the way Biome wants it.
-writeFileSync(appJson, source.replace(`"version": "${current}"`, `"version": "${next}"`));
 const branch = `release/v${next}`;
+if (run("git", ["branch", "--list", branch]) !== "") fail(`Delete the local ${branch} branch from a failed run first.`);
 run("git", ["switch", "-c", branch]);
 try {
+  // A text edit keeps app.json formatted the way Biome wants it.
+  writeFileSync(appJson, source.replace(`"version": "${current}"`, `"version": "${next}"`));
   run("git", ["commit", "-am", `Release v${next}`]);
   run("git", ["push", "-u", "origin", branch]);
   console.log(
@@ -57,5 +58,6 @@ try {
   );
   run("gh", ["pr", "merge", "--auto", "--squash"]);
 } finally {
+  run("git", ["checkout", "--", appJson]);
   run("git", ["switch", "main"]);
 }

@@ -6,14 +6,14 @@ import { fileURLToPath } from "node:url";
 import { CAT_ASPECT, catSvg } from "@purrphect/ui/cat-svg";
 import tokens from "@purrphect/ui/tokens";
 import { chromium } from "playwright";
+import { DEVICE_NAMES, type Device, type Entry, isRecord, parseManifest } from "./manifest.ts";
 
 const DEVICES = {
   iphone: { width: 1320, height: 2868, frame: "iphone", bezel: 0.035, radius: 0.13 },
   ipad: { width: 2064, height: 2752, frame: "tablet", bezel: 0.035, radius: 0.035 },
   "android-phone": { width: 1440, height: 2560, frame: "android", bezel: 0.03, radius: 0.09 },
   "android-tablet": { width: 2560, height: 1440, frame: "tablet", bezel: 0.035, radius: 0.035 },
-} as const;
-type Device = keyof typeof DEVICES;
+} as const satisfies Record<Device, unknown>;
 type Spec = (typeof DEVICES)[Device];
 
 interface Caption {
@@ -21,18 +21,8 @@ interface Caption {
   caption: string;
   cat: string;
 }
-interface Entry {
-  file: string;
-  caption: string;
-  width: number;
-  height: number;
-}
-interface Manifest {
-  devices: Partial<Record<Device, Entry[]>>;
-}
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-const isDevice = (name: string): name is Device => name in DEVICES;
 
 const [capturesArg] = process.argv.slice(2);
 if (!capturesArg) {
@@ -42,15 +32,8 @@ if (!capturesArg) {
 const capturesDir = resolve(capturesArg);
 const outDir = here("../../apps/dart-web/public/screenshots");
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isCaption = (v: unknown): v is Caption =>
   isRecord(v) && typeof v.capture === "string" && typeof v.caption === "string" && typeof v.cat === "string";
-const isEntry = (v: unknown): v is Entry =>
-  isRecord(v) &&
-  typeof v.file === "string" &&
-  typeof v.caption === "string" &&
-  typeof v.width === "number" &&
-  typeof v.height === "number";
 
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -210,22 +193,12 @@ function render(spec: Spec, caption: Caption, index: number, png: Buffer) {
   });
 }
 
-function readManifest(path: string): Manifest {
-  const manifest: Manifest = { devices: {} };
-  const previous = existsSync(path) ? readJson(path) : undefined;
-  if (!isRecord(previous) || !isRecord(previous.devices)) return manifest;
-  for (const [device, entries] of Object.entries(previous.devices)) {
-    if (isDevice(device) && Array.isArray(entries) && entries.every(isEntry)) manifest.devices[device] = entries;
-  }
-  return manifest;
-}
-
 const manifestPath = join(outDir, "manifest.json");
-const manifest = readManifest(manifestPath);
+const manifest = parseManifest(existsSync(manifestPath) ? readJson(manifestPath) : undefined);
 
 const browser = await chromium.launch();
 try {
-  for (const device of Object.keys(DEVICES).filter(isDevice)) {
+  for (const device of DEVICE_NAMES) {
     const dir = join(capturesDir, device);
     if (!existsSync(dir)) {
       console.warn(`No captures for ${device}, keeping its previous screenshots`);

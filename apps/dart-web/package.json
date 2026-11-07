@@ -16,6 +16,7 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@purrphect/store-assets": "workspace:*",
     "@tailwindcss/postcss": "^4.3.4",
     "@types/node": "^26.6.6",
     "@types/react": "catalog:",
