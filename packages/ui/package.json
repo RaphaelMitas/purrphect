@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
+  "type": "module",
   "exports": {
-    "./tailwind-preset": "./tailwind-preset.js",
-    "./tokens": "./tokens.js",
+    "./tailwind-preset": "./tailwind-preset.cjs",
+    "./tokens": "./tokens.cjs",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./cat-paths": "./src/cat-paths.ts",

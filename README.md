@@ -4,8 +4,8 @@
 
 Small, cute apps, all in one place. Built with Expo, open source under MIT.
 
-| App | Platforms | Site |
-| --- | --- | --- |
+| App                         | Platforms             | Site                                             |
+| --------------------------- | --------------------- | ------------------------------------------------ |
 | [Dart Purrphect](apps/dart) | iPad, iPhone, Android | [dart.purrphect.com](https://dart.purrphect.com) |
 
 ## Layout

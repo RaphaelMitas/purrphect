@@ -1,5 +1,5 @@
-/** HSL triplets for the shared theme. `--name` CSS variables, consumed through tailwind-preset.js. */
-module.exports = {
+/** HSL triplets for the shared theme. `--name` CSS variables, consumed through tailwind-preset.cjs. */
+const tokens = {
   light: {
     background: "22 100% 97%",
     foreground: "321 17% 20%",
@@ -60,3 +60,7 @@ module.exports = {
     "butter-ink": "43 100% 71%",
   },
 };
+
+const cssVars = (set) => Object.fromEntries(Object.entries(set).map(([k, v]) => [`--${k}`, v]));
+
+module.exports = { ...tokens, cssVars };

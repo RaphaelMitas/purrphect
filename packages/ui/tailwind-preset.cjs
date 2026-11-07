@@ -1,10 +1,9 @@
 const { hairlineWidth } = require("nativewind/theme");
 const plugin = require("tailwindcss/plugin");
-const tokens = require("./tokens");
+const tokens = require("./tokens.cjs");
 
 const hsl = (name) => `hsl(var(--${name}) / <alpha-value>)`;
 const tone = (name) => ({ DEFAULT: hsl(name), soft: hsl(`${name}-soft`), ink: hsl(`${name}-ink`) });
-const vars = (set) => Object.fromEntries(Object.entries(set).map(([k, v]) => [`--${k}`, v]));
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -50,6 +49,8 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    plugin(({ addBase }) => addBase({ ":root": vars(tokens.light), ".dark:root": vars(tokens.dark) })),
+    plugin(({ addBase }) =>
+      addBase({ ":root": tokens.cssVars(tokens.light), ".dark:root": tokens.cssVars(tokens.dark) }),
+    ),
   ],
 };

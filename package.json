@@ -10,7 +10,8 @@
     "test": "turbo run test",
     "lint:ws": "pnpm dlx sherif@latest",
     "op": "op run --no-masking --environment wqa7rtun5ra2rlna54gukuwguu --",
-    "op-prod": "op run --no-masking --environment 5ewszd5julkpo5yqszdobp27i4 --"
+    "op-prod": "op run --no-masking --environment 5ewszd5julkpo5yqszdobp27i4 --",
+    "release": "node scripts/release.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",

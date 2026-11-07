@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - tooling/*
 
 nodeLinker: hoisted
 
@@ -29,3 +30,6 @@ catalog:
 
 allowBuilds:
   "@parcel/watcher": false
+
+minimumReleaseAgeExclude:
+  - "@tailwindcss/oxide@4.3.5"
