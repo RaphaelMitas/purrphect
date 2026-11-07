@@ -10,8 +10,9 @@ Small, cute apps, all in one place. Built with Expo, open source under MIT.
 
 ## Layout
 
-- `apps/<name>`: an Expo app
+- `apps/<name>`: an Expo app, `apps/<name>-web` its Next.js site
 - `packages/ui`: shared components, theme and the cat
+- `tooling`: CI actions, store screenshot rigs, fastlane
 
 ## Develop
 
