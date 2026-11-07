@@ -41,6 +41,7 @@ export function Segmented<T extends string>({
             <View key={o.value} className="flex-1 rounded-full border-2 border-foreground bg-card px-2">
               <TextInput
                 autoFocus={focusCustom}
+                keyboardAppearance={palette.dark ? "dark" : "light"}
                 keyboardType="number-pad"
                 maxLength={4}
                 value={custom.text}

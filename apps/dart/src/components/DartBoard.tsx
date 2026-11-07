@@ -1,7 +1,6 @@
-import { PALETTE, type Palette, usePalette } from "@purrphect/ui/lib/theme";
+import { type Palette, usePalette } from "@purrphect/ui/lib/theme";
 import { Text } from "@purrphect/ui/text";
 import * as Haptics from "expo-haptics";
-import { useColorScheme } from "nativewind";
 import { memo, useRef, useState } from "react";
 import { type GestureResponderEvent, View } from "react-native";
 import Svg, { Circle, G, Path, Rect, Text as SvgText } from "react-native-svg";
@@ -54,22 +53,16 @@ type Heat = Partial<Record<Segment, number>>;
 const LOUPE_WIDTH = 130;
 const NO_PLAN: readonly Segment[] = [];
 
-// The board's own shades: in dark mode the singles must stand out from the page background.
-const BOARD = {
-  light: { face: PALETTE.light.card, singleA: PALETTE.light.background, singleB: PALETTE.light.pinkSoft },
-  dark: { face: "#241A1F", singleA: "#2E2228", singleB: "#44283A" },
-};
-
 const Face = memo(function Face({
   palette,
-  board,
   plan,
   heat,
+  labels,
 }: {
   palette: Palette;
-  board: { face: string; singleA: string; singleB: string };
   plan: readonly Segment[];
   heat?: Heat;
+  labels: boolean;
 }) {
   const max = Math.max(1, ...Object.entries(heat ?? {}).flatMap(([s, n]) => (s === "Miss" ? [] : [n])));
   const fill = (segment: Segment, base: string) =>
@@ -78,15 +71,15 @@ const Face = memo(function Face({
           .toString(16)
           .padStart(2, "0")}`
       : base;
-  const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : board.face);
+  const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : palette.boardFace);
   const width = (segment: Segment) => (plan.includes(segment) ? 4 : 1.5);
 
   return (
     <G>
-      <Circle r={BOARD_RADIUS - 2} fill={board.face} />
+      <Circle r={BOARD_RADIUS - 2} fill={palette.boardFace} />
       {BOARD_ORDER.map((n, i) => {
         const odd = i % 2 === 1;
-        const single = odd ? board.singleB : board.singleA;
+        const single = odd ? palette.boardSingleAlt : palette.boardSingle;
         const ring = odd ? palette.mint : palette.pink;
         const parts: [Segment, string][] = [
           [segmentFor(n, 1), single],
@@ -105,16 +98,18 @@ const Face = memo(function Face({
                 strokeWidth={width(segment)}
               />
             ))}
-            <SvgText
-              x={tx}
-              y={ty + 7}
-              fontSize={21}
-              fontFamily="Nunito_800ExtraBold"
-              fill={palette.foreground}
-              textAnchor="middle"
-            >
-              {n}
-            </SvgText>
+            {labels && (
+              <SvgText
+                x={tx}
+                y={ty + 7}
+                fontSize={21}
+                fontFamily="Nunito_800ExtraBold"
+                fill={palette.foreground}
+                textAnchor="middle"
+              >
+                {n}
+              </SvgText>
+            )}
           </G>
         );
       })}
@@ -154,15 +149,16 @@ export function DartBoard({
   size,
   plan = NO_PLAN,
   heat,
+  labels = true,
   onDart,
 }: {
   size: number;
   plan?: readonly Segment[];
   heat?: Heat;
+  labels?: boolean;
   onDart?: (segment: Segment) => void;
 }) {
   const palette = usePalette();
-  const { colorScheme } = useColorScheme();
   const [press, setPress] = useState<Press | null>(null);
   const last = useRef<Segment | null>(null);
   const scale = (2 * BOARD_RADIUS) / size;
@@ -208,7 +204,7 @@ export function DartBoard({
           height={size}
           viewBox={`${-BOARD_RADIUS} ${-BOARD_RADIUS} ${BOARD_RADIUS * 2} ${BOARD_RADIUS * 2}`}
         >
-          <Face palette={palette} board={BOARD[colorScheme === "dark" ? "dark" : "light"]} plan={plan} heat={heat} />
+          <Face palette={palette} plan={plan} heat={heat} labels={labels} />
           {press && (
             <SegmentShape segment={press.segment} fill={palette.butter} stroke={palette.foreground} strokeWidth={3} />
           )}

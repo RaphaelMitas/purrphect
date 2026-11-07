@@ -10,6 +10,10 @@
       "types": "./tokens.d.cts",
       "default": "./tokens.cjs"
     },
+    "./theme": {
+      "types": "./theme.d.cts",
+      "default": "./theme.cjs"
+    },
     "./cat-svg": "./src/cat-svg.ts",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",

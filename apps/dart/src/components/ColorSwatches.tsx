@@ -1,26 +1,27 @@
 import { cn } from "@purrphect/ui/lib/utils";
 import { Pressable, View } from "react-native";
-import { colorUses, PLAYER_COLORS, type Player } from "@/db/repo";
 
 export function ColorSwatches({
+  colors,
   value,
-  players,
+  inUse,
   onChange,
 }: {
+  colors: readonly string[];
   value: string;
-  players: readonly Player[];
+  inUse?: (color: string) => boolean;
   onChange: (color: string) => void;
 }) {
   return (
     <View className="max-w-72 flex-row flex-wrap justify-center gap-2 self-center">
-      {PLAYER_COLORS.map((color, i) => {
-        const selected = color === value;
-        const inUse = colorUses(players, color) > 0;
+      {colors.map((color, i) => {
+        const selected = color.toUpperCase() === value.toUpperCase();
+        const used = inUse?.(color) ?? false;
         return (
           <Pressable
             key={color}
             accessibilityRole="button"
-            accessibilityLabel={`Colour ${i + 1}${inUse ? ", in use" : ""}`}
+            accessibilityLabel={`Colour ${i + 1}${used ? ", in use" : ""}`}
             accessibilityState={{ selected }}
             onPress={() => onChange(color)}
             className={cn(
@@ -29,7 +30,7 @@ export function ColorSwatches({
             )}
             style={{ backgroundColor: color }}
           >
-            {inUse && <View className="size-2 rounded-full bg-white" />}
+            {used && <View className="size-2 rounded-full bg-white" />}
           </Pressable>
         );
       })}

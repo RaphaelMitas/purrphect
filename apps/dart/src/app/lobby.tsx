@@ -20,11 +20,13 @@ import {
   addGuest,
   addPlayer,
   byId,
+  colorUses,
   createMatch,
   isRegular,
   leastUsedColor,
   listPlayers,
   listSetups,
+  PLAYER_COLORS,
   type Player,
 } from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
@@ -347,7 +349,12 @@ export default function Lobby() {
         onOpenChange={setAdding}
         onSubmit={async (name) => added(await addPlayer(db, name, newColor))}
       >
-        <ColorSwatches value={newColor} players={data?.players ?? []} onChange={setNewColor} />
+        <ColorSwatches
+          colors={PLAYER_COLORS}
+          value={newColor}
+          inUse={(color) => colorUses(data?.players ?? [], color) > 0}
+          onChange={setNewColor}
+        />
       </NameDialog>
     </SafeAreaView>
   );

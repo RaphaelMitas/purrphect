@@ -9,24 +9,12 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.6.6
       version: 2.6.6
-    '@rn-primitives/dialog':
-      specifier: ^1.5.2
-      version: 1.5.2
     '@rn-primitives/portal':
       specifier: ^1.5.3
       version: 1.5.3
-    '@rn-primitives/slot':
-      specifier: ^1.5.2
-      version: 1.5.2
     '@types/react':
       specifier: ~19.3.0
       version: 19.3.0
-    class-variance-authority:
-      specifier: ^0.7.1
-      version: 0.7.1
-    clsx:
-      specifier: ^2.1.1
-      version: 2.1.1
     expo:
       specifier: ~58.0.23
       version: 58.0.23
@@ -54,15 +42,9 @@ catalogs:
     react-native-svg:
       specifier: 15.16.0
       version: 15.16.0
-    tailwind-merge:
-      specifier: ^3.7.0
-      version: 3.7.0
     tailwindcss:
       specifier: ^3.4.19
       version: 3.4.19
-    tailwindcss-animate:
-      specifier: ^1.0.7
-      version: 1.0.7
     typescript:
       specifier: ~6.0.3
       version: 6.0.3
@@ -131,9 +113,6 @@ importers:
       expo-sqlite:
         specifier: ~58.0.15
         version: 58.0.15(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
-      expo-status-bar:
-        specifier: ~58.0.4
-        version: 58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
       expo-system-ui:
         specifier: ~58.0.7
         version: 58.0.7(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(supports-color@8.1.1)
