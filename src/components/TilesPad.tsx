@@ -2,7 +2,7 @@ import * as Haptics from "expo-haptics";
 import { type ReactNode, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { planOrder } from "@/game/predict";
+import { planOrder, withRing } from "@/game/predict";
 import {
   BOARD_NUMBERS,
   type BoardNumber,
@@ -11,7 +11,6 @@ import {
   type Multiplier,
   type Segment,
   segmentFor,
-  tone,
 } from "@/game/segments";
 import { cn } from "@/lib/utils";
 
@@ -114,11 +113,7 @@ export function TilesPad({
         key={n}
         label={label(main)}
         onPress={() => hit(main)}
-        order={planOrder(
-          plan,
-          (s) => info(s).number === n,
-          (s, i) => `${i}${tone(s) === "single" ? "" : s[0]}`,
-        )}
+        order={planOrder(plan, (s) => info(s).number === n, withRing)}
         className={cn("flex-1 rounded-2xl", armed.tile)}
       >
         <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(main)}</Text>

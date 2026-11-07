@@ -1,5 +1,5 @@
 import { bestRoute, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
-import { info, type Segment } from "./segments";
+import { info, type Segment, tone } from "./segments";
 import type { MatchState } from "./x01";
 
 const HIT_RATES = { single: 0.85, double: 0.33, treble: 0.38, outerBull: 0.4, bull: 0.22 };
@@ -46,6 +46,9 @@ export function suggest(s: MatchState): Suggestion {
     setup,
   };
 }
+
+export const withRing = (segment: Segment, position: number): string =>
+  `${position}${tone(segment) === "single" ? "" : segment[0]}`;
 
 export function planOrder(
   plan: readonly Segment[],
