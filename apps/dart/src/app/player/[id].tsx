@@ -82,8 +82,8 @@ export default function PlayerCard() {
       },
     ]);
 
-  const span = (progress.next?.xp ?? progress.xp) - progress.levelXp;
-  const share = progress.next ? (progress.xp - progress.levelXp) / Math.max(1, span) : 1;
+  const span = (progress.next?.xp ?? progress.xp) - progress.current.xp;
+  const share = progress.next ? (progress.xp - progress.current.xp) / Math.max(1, span) : 1;
 
   const profile = (
     <View className="items-center gap-3 rounded-3xl bg-card p-5">
@@ -96,7 +96,7 @@ export default function PlayerCard() {
       <Text className="font-nunito-black text-2xl">{player.name}</Text>
       <View className="rounded-full bg-butter-soft px-3 py-1">
         <Text className="font-nunito-black text-sm text-butter-ink">
-          {t.level(progress.level)} · {t.levels[progress.levelKey]}
+          {t.level(progress.level)} · {t.levels[progress.current.key]}
         </Text>
       </View>
       <View className="w-full gap-1">

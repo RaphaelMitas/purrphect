@@ -41,7 +41,7 @@ export const fr = {
     discardTitle: "Supprimer ce match ?",
     discardBody: "Ses fléchettes ne compteront pas dans les stats.",
     discard: "Supprimer",
-    continueMatch: "Reprendre le match",
+    continueMatch: "Match en cours",
     standingOn: (name: string, remaining: number) => `${name} à ${remaining}`,
     resume: "Reprendre",
     favourites: "Favoris",

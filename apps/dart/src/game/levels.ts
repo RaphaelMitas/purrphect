@@ -32,8 +32,7 @@ export interface Progress {
   xp: number;
   counts: Record<XpKey, number>;
   level: number;
-  levelKey: LevelKey;
-  levelXp: number;
+  current: (typeof LEVELS)[number];
   next: (typeof LEVELS)[number] | null;
   badges: BadgeKey[];
   bestStreak: number;
@@ -75,8 +74,7 @@ export function progressFor(stats: PlayerStats): Progress {
     xp,
     counts,
     level: index + 1,
-    levelKey: current.key,
-    levelXp: current.xp,
+    current,
     next: next ?? null,
     badges: [...badges],
     bestStreak,

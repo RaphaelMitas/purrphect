@@ -50,6 +50,6 @@ describe("levels", () => {
     expect(p.counts).toMatchObject({ legPlayed: 1, legWon: 1, oneEighty: 2, bigFinish: 1 });
     expect(p.xp).toBe(20 + 50 + 200 + 80 + 10);
     expect(p.badges).toEqual(expect.arrayContaining(["first180", "bigFinish", "fifteenDarter"]));
-    expect(p.levelKey).toBe("yarnChaser");
+    expect(p.current.key).toBe("yarnChaser");
   });
 });

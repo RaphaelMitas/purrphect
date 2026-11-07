@@ -200,7 +200,7 @@ export default function Home() {
             <View className="flex-1">
               <Text className="font-nunito-bold text-base">{p.name}</Text>
               <Text className="text-xs text-muted-foreground">
-                {t.level(progress.level)} · {t.levels[progress.levelKey]}
+                {t.level(progress.level)} · {t.levels[progress.current.key]}
               </Text>
             </View>
             <Text className="text-xs text-muted-foreground">{progress.xp} XP</Text>
