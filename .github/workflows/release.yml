@@ -1,0 +1,396 @@
+name: Release
+
+# Releases when apps/dart/app.json's version has no tag yet; a dry run only captures and composes screenshots.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only capture and compose screenshots; tag, build, upload and open nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ inputs.dry_run && format('release-dry-{0}', github.ref) || 'release' }}
+  cancel-in-progress: false
+
+env:
+  EAS_CLI: eas-cli@27.5.0
+  MAESTRO_VERSION: "2.3.0"
+  MAESTRO_CLI_NO_ANALYTICS: "1"
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release: ${{ steps.decide.outputs.release }}
+      tag: ${{ steps.decide.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Decide whether this is a release
+        id: decide
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          TAG="v$(jq -r .expo.version apps/dart/app.json)"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases run from main; use dry_run on other branches."
+            exit 1
+          elif [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then
+            echo "$TAG already exists; not a release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag and create the GitHub release
+        if: steps.decide.outputs.release == 'true' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.decide.outputs.tag }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" --title "$TAG" --generate-notes
+
+  eas-build-submit:
+    needs: check
+    if: needs.check.outputs.release == 'true' && !inputs.dry_run
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      # Builds and store submissions run on EAS; this waits so a failure shows up here.
+      - name: Build and submit with EAS
+        working-directory: apps/dart
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Create a robot token at https://expo.dev/settings/access-tokens."
+            exit 1
+          fi
+          pnpm dlx "$EAS_CLI" build --platform all --profile production --auto-submit --non-interactive
+
+  screenshots-ios:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build simulator app
+        id: app
+        uses: ./tooling/github/build-ios-sim
+        env:
+          EXPO_PUBLIC_DEMO: "1"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # One simulator at a time: Maestro's XCTest driver listens on a fixed port.
+      - name: Capture iPhone and iPad
+        env:
+          APP: ${{ steps.app.outputs.app-path }}
+        run: |
+          set -euo pipefail
+          capture() {
+            local device="$1" type="$2"
+            local udid
+            udid=$(xcrun simctl create "store-$device" "$type")
+            xcrun simctl boot "$udid"
+            xcrun simctl bootstatus "$udid"
+            xcrun simctl ui "$udid" appearance light
+            xcrun simctl status_bar "$udid" override --time "9:41" --dataNetwork wifi --wifiMode active \
+              --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+            xcrun simctl install "$udid" "$APP"
+            bash apps/dart/screenshots/capture.sh "$device" "$RUNNER_TEMP/captures" "$udid"
+            xcrun simctl shutdown "$udid"
+          }
+          capture iphone "iPhone 17 Pro Max"
+          capture ipad "iPad Pro 13-inch (M5)"
+
+      - name: Upload captures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: captures-ios
+          path: ${{ runner.temp }}/captures/
+          retention-days: 30
+
+  screenshots-android:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build APK
+        id: apk
+        uses: ./tooling/github/build-android-apk
+        env:
+          EXPO_PUBLIC_DEMO: "1"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # The runner executes each script line as its own `sh -c`; demo mode pins a clean status bar.
+      - name: Capture Android phone
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK: ${{ steps.apk.outputs.apk-path }}
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_9_pro
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            adb install "$APK"
+            adb shell cmd uimode night no
+            adb shell settings put global sysui_demo_allowed 1
+            adb shell am broadcast -a com.android.systemui.demo -e command enter
+            adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941
+            adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+            adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4
+            adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
+            bash apps/dart/screenshots/capture.sh android-phone "$RUNNER_TEMP/captures" emulator-5554
+
+      - name: Capture Android tablet
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK: ${{ steps.apk.outputs.apk-path }}
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_tablet
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            adb install "$APK"
+            adb shell cmd uimode night no
+            adb shell settings put global sysui_demo_allowed 1
+            adb shell am broadcast -a com.android.systemui.demo -e command enter
+            adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941
+            adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+            adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4
+            adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
+            bash apps/dart/screenshots/capture.sh android-tablet "$RUNNER_TEMP/captures" emulator-5554
+
+      - name: Upload captures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: captures-android
+          path: ${{ runner.temp }}/captures/
+          retention-days: 30
+
+  # Composes whatever platforms captured; the manifest keeps a failed platform's previous screenshots.
+  compose:
+    needs: [check, screenshots-ios, screenshots-android]
+    if: >-
+      always() && needs.check.outputs.release == 'true' &&
+      (needs.screenshots-ios.result == 'success' || needs.screenshots-android.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Install Chromium
+        run: pnpm --filter @purrphect/store-assets exec playwright install --with-deps chromium
+
+      - name: Download captures
+        uses: actions/download-artifact@v8
+        with:
+          pattern: captures-*
+          path: captures
+          merge-multiple: true
+
+      - name: Compose rigs
+        run: pnpm --filter @purrphect/store-assets compose "$GITHUB_WORKSPACE/captures"
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: store-screenshots
+          path: apps/dart-web/public/screenshots/
+          retention-days: 30
+
+      - name: Attach screenshots to the GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          (cd apps/dart-web/public/screenshots && zip -qr "$RUNNER_TEMP/dart-purrphect-$TAG-screenshots.zip" .)
+          gh release upload "$TAG" "$RUNNER_TEMP/dart-purrphect-$TAG-screenshots.zip" --clobber
+
+      - name: Open a PR with the website screenshots
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          git add apps/dart-web/public/screenshots
+          if git diff --cached --quiet; then
+            echo "Screenshots unchanged."
+            exit 0
+          fi
+          BRANCH="screenshots/$TAG-$GITHUB_RUN_ID"
+          git switch -c "$BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Update screenshots for $TAG"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title "Update screenshots for $TAG" \
+            --body "Store screenshots composed by the $TAG release run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+  # EAS metadata pushes the listing text but cannot upload screenshots, so fastlane deliver does those.
+  store-ios:
+    needs: [check, eas-build-submit, compose]
+    if: always() && needs.check.outputs.release == 'true' && !inputs.dry_run && needs.eas-build-submit.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+      ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check App Store Connect secrets
+        id: guard
+        run: |
+          if [ -z "$ASC_API_KEY_ID" ] || [ -z "$ASC_API_ISSUER_ID" ] || [ -z "$ASC_API_KEY_P8" ]; then
+            echo "::warning::ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_KEY_P8 are not set; skipping the App Store listing."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          printf '%s' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc.p8"
+
+      - name: Setup
+        if: steps.guard.outputs.skip != 'true'
+        uses: ./tooling/github/setup
+
+      - name: Push listing text
+        if: steps.guard.outputs.skip != 'true'
+        working-directory: apps/dart
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: ${{ vars.APPLE_TEAM_TYPE }}
+        run: pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
+
+      - name: Download screenshots
+        if: steps.guard.outputs.skip != 'true' && needs.compose.result == 'success'
+        uses: actions/download-artifact@v8
+        with:
+          name: store-screenshots
+          path: store-screenshots
+
+      - uses: ruby/setup-ruby@v1
+        if: steps.guard.outputs.skip != 'true' && needs.compose.result == 'success'
+        with:
+          ruby-version: "4.0.9"
+
+      # sync compares checksums, so a re-run does not upload duplicates.
+      - name: Upload screenshots
+        if: steps.guard.outputs.skip != 'true' && needs.compose.result == 'success'
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+          FASTLANE_ENABLE_BETA_DELIVER_SYNC_SCREENSHOTS: "true"
+        run: |
+          gem install fastlane -N
+          mkdir -p store/en-US fastlane && touch fastlane/Deliverfile
+          for device in iphone ipad; do
+            for f in store-screenshots/$device/*.png; do cp "$f" "store/en-US/$device-$(basename "$f")"; done
+          done
+          jq -n --arg kid "$ASC_API_KEY_ID" --arg iss "$ASC_API_ISSUER_ID" --rawfile key "$RUNNER_TEMP/asc.p8" \
+            '{key_id: $kid, issuer_id: $iss, key: $key}' > "$RUNNER_TEMP/asc.json"
+          fastlane deliver --app_identifier com.purrphect.dart --app_version "${TAG#v}" \
+            --api_key_path "$RUNNER_TEMP/asc.json" --screenshots_path store --sync_screenshots true \
+            --skip_metadata true --skip_binary_upload true --run_precheck_before_submit false --force true
+
+  store-android:
+    needs: [check, eas-build-submit, compose]
+    if: >-
+      always() && needs.check.outputs.release == 'true' && !inputs.dry_run &&
+      needs.eas-build-submit.result == 'success' && needs.compose.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - name: Check Play secret
+        id: guard
+        run: |
+          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not set; skipping the Play listing."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download screenshots
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: store-screenshots
+          path: store-screenshots
+
+      - uses: ruby/setup-ruby@v1
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          ruby-version: "4.0.9"
+
+      # One tablet set fills both of Play's tablet slots.
+      - name: Upload screenshots
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          gem install fastlane -N
+          images=store/en-US/images
+          mkdir -p "$images/phoneScreenshots" "$images/sevenInchScreenshots" "$images/tenInchScreenshots"
+          cp store-screenshots/android-phone/*.png "$images/phoneScreenshots/"
+          cp store-screenshots/android-tablet/*.png "$images/sevenInchScreenshots/"
+          cp store-screenshots/android-tablet/*.png "$images/tenInchScreenshots/"
+          printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play.json"
+          fastlane supply --package_name com.purrphect.dart --json_key "$RUNNER_TEMP/play.json" \
+            --metadata_path store --skip_upload_apk true --skip_upload_aab true --skip_upload_metadata true \
+            --skip_upload_changelogs true --skip_upload_images true --skip_upload_screenshots false

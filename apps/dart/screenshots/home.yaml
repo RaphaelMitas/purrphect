@@ -1,0 +1,10 @@
+appId: com.purrphect.dart
+---
+# The header's back button sometimes swallows the first tap right after a screen settles.
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn: "Back"
+      - extendedWaitUntil:
+          visible: "Favourites"
+          timeout: 5000

@@ -1,0 +1,8 @@
+[
+  { "capture": "board", "caption": "Tap where it landed, the cat does the maths", "cat": "#FF6FA3" },
+  { "capture": "checkout", "caption": "Missed? The cat finds a new way out", "cat": "#5FCFAE" },
+  { "capture": "tiles", "caption": "Big tiles for quick scoring", "cat": "#FFD66B" },
+  { "capture": "lobby", "caption": "Bring the whole crew, up to 12 players", "cat": "#A58CFF" },
+  { "capture": "stats", "caption": "Watch your average climb", "cat": "#5DB7F0" },
+  { "capture": "player", "caption": "Level up from Kitten to Purrphect", "cat": "#FF9466" }
+]

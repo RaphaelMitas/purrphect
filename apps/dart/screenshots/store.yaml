@@ -1,0 +1,53 @@
+appId: com.purrphect.dart
+name: Store screenshots
+---
+- launchApp:
+    clearState: true
+- openLink: dartpurrphect://demo
+- extendedWaitUntil:
+    visible: "Continue match"
+    timeout: 60000
+
+- tapOn: "Continue match"
+- extendedWaitUntil:
+    visible: "Tiles"
+    timeout: 20000
+- waitForAnimationToEnd
+- takeScreenshot: board
+
+- tapOn: "Tiles"
+- tapOn: "25"
+- waitForAnimationToEnd
+- takeScreenshot: tiles
+
+- tapOn: "Board"
+- waitForAnimationToEnd
+- takeScreenshot: checkout
+
+- runFlow:
+    file: home.yaml
+- tapOn: "Thursday crew"
+- extendedWaitUntil:
+    visible: "Who's playing\\?"
+    timeout: 20000
+- waitForAnimationToEnd
+- takeScreenshot: lobby
+
+- runFlow:
+    file: home.yaml
+- tapOn: "Statistics"
+- extendedWaitUntil:
+    visible: "Average per match"
+    timeout: 20000
+- waitForAnimationToEnd
+- takeScreenshot: stats
+
+- scrollUntilVisible:
+    element: "Open Mia's player card"
+    direction: DOWN
+- tapOn: "Open Mia's player card"
+- extendedWaitUntil:
+    visible: "Lv\\. .*"
+    timeout: 20000
+- waitForAnimationToEnd
+- takeScreenshot: player

@@ -1,0 +1,30 @@
+{
+  "devices": {
+    "android-phone": [
+      {
+        "file": "android-phone/01-board.png",
+        "caption": "Tap where it landed, the cat does the maths"
+      },
+      {
+        "file": "android-phone/02-checkout.png",
+        "caption": "Missed? The cat finds a new way out"
+      },
+      {
+        "file": "android-phone/03-tiles.png",
+        "caption": "Big tiles for quick scoring"
+      },
+      {
+        "file": "android-phone/04-lobby.png",
+        "caption": "Bring the whole crew, up to 12 players"
+      },
+      {
+        "file": "android-phone/05-stats.png",
+        "caption": "Watch your average climb"
+      },
+      {
+        "file": "android-phone/06-player.png",
+        "caption": "Level up from Kitten to Purrphect"
+      }
+    ]
+  }
+}
