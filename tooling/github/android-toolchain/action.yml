@@ -1,0 +1,16 @@
+name: "Android toolchain"
+description: "Java 17 and enough Gradle memory to build apps/dart on a Linux runner"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: 17
+
+    # The template's 512m Metaspace cap OOMs the Gradle daemon; user-home properties override the project's.
+    - shell: bash
+      run: |
+        mkdir -p ~/.gradle
+        printf 'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g\n' >> ~/.gradle/gradle.properties

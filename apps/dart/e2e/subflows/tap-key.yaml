@@ -1,0 +1,18 @@
+appId: com.purrphect.dart
+---
+# Plan and thrown-dart chips repeat key labels like "T20" and come first in the hierarchy.
+# Phone first: a winning tap hides "Up next" behind the overlay, which must not trigger a second tap.
+- runFlow:
+    when:
+      notVisible: "Up next"
+    commands:
+      - tapOn:
+          text: ${KEY}
+          below: "Triple"
+- runFlow:
+    when:
+      visible: "Up next"
+    commands:
+      - tapOn:
+          text: ${KEY}
+          leftOf: "Up next"

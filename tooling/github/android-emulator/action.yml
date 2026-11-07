@@ -1,0 +1,34 @@
+name: "Android emulator"
+description: "Boot a headless x86_64 emulator on a Linux runner and run a script against it"
+
+inputs:
+  script:
+    description: "Commands to run once the emulator is up; each line runs in its own shell"
+    required: true
+  profile:
+    description: "Hardware profile from `avdmanager list device`"
+    default: "pixel_7"
+
+runs:
+  using: composite
+  steps:
+    # Hosted runners expose /dev/kvm only to root; without it the emulator falls back to software and times out.
+    - shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+      with:
+        api-level: 35
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        cores: 3
+        emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        # The launcher's ANR dialog covers the app, and hide_error_dialogs doesn't suppress it.
+        script: |
+          adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher
+          ${{ inputs.script }}

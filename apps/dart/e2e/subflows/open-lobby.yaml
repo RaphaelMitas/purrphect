@@ -1,0 +1,9 @@
+appId: com.purrphect.dart
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "New game"
+    timeout: 60000
+- tapOn: "New game"
+- assertVisible: "Who's playing\\?"

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind-preset.cjs",
+    "css": "../../apps/dart/global.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@purrphect/ui",
+    "utils": "@purrphect/ui/lib/utils",
+    "ui": "@purrphect/ui",
+    "lib": "@purrphect/ui/lib",
+    "hooks": "@purrphect/ui/hooks"
+  }
+}

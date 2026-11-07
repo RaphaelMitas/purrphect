@@ -1,0 +1,48 @@
+appId: com.purrphect.dart
+---
+- runFlow: ../subflows/open-lobby.yaml
+- runFlow:
+    file: ../subflows/add-player.yaml
+    env:
+      NAME: Mira
+
+# Start and legs both offer Custom; once Start's turns into its field, only the legs one is left.
+# The number pad has no return key and can cover the legs row; a tap on the panel title dismisses it.
+- scrollUntilVisible:
+    element: "Custom"
+- tapOn:
+    text: "Custom"
+    index: 0
+- inputText: "40"
+- tapOn: "Rules"
+- scrollUntilVisible:
+    element: "Custom"
+- tapOn: "Custom"
+- inputText: "1"
+- tapOn: "Rules"
+- scrollUntilVisible:
+    element: "Start · 1 player"
+- tapOn: "Start · 1 player"
+- extendedWaitUntil:
+    visible: "40 · double out · first to 1"
+    timeout: 10000
+- tapOn: "Tiles"
+
+- tapOn: "Double"
+- runFlow:
+    file: ../subflows/tap-key.yaml
+    env:
+      KEY: D20
+- extendedWaitUntil:
+    visible: "Mira wins!"
+    timeout: 10000
+
+- tapOn: "Home"
+- extendedWaitUntil:
+    visible: "New game"
+    timeout: 10000
+- tapOn: "Statistics"
+- extendedWaitUntil:
+    visible: "3-dart avg"
+    timeout: 10000
+- assertVisible: "Checkout"

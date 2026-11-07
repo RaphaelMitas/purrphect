@@ -1,0 +1,12 @@
+appId: com.purrphect.dart
+---
+- tapOn: "Add player"
+- extendedWaitUntil:
+    visible: "New player"
+    timeout: 10000
+- inputText: ${NAME}
+# The keyboard covers the dialog button on landscape Android tablets.
+- pressKey: Enter
+- extendedWaitUntil:
+    notVisible: "New player"
+    timeout: 10000

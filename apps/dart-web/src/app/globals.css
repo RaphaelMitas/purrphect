@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@plugin "../../tokens-plugin.mjs";
+
+@theme inline {
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-muted: hsl(var(--muted));
+  --color-border: hsl(var(--border));
+  --color-ring: hsl(var(--ring));
+  --color-pink: hsl(var(--pink));
+  --color-pink-soft: hsl(var(--pink-soft));
+  --color-pink-ink: hsl(var(--pink-ink));
+  --color-mint: hsl(var(--mint));
+  --color-mint-soft: hsl(var(--mint-soft));
+  --color-mint-ink: hsl(var(--mint-ink));
+  --color-butter: hsl(var(--butter));
+  --color-butter-soft: hsl(var(--butter-soft));
+  --color-butter-ink: hsl(var(--butter-ink));
+  --animate-bob: bob 5s ease-in-out infinite;
+
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-2deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(2deg);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  @apply bg-background font-sans font-semibold text-foreground antialiased;
+}
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-ring;
+}
