@@ -138,7 +138,7 @@ export default function PlayerCard() {
         </View>
       )}
       <Button variant="ghost" size="sm" onPress={remove}>
-        <Text className="text-destructive">Delete player</Text>
+        <Text className="text-destructive-ink">Delete player</Text>
       </Button>
     </View>
   );

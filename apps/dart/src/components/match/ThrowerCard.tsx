@@ -36,7 +36,7 @@ function DartSlots({
             <Text
               className={cn(
                 "font-nunito-black text-lg",
-                i === thrown.length ? "text-pink" : "text-muted-foreground/50",
+                i === thrown.length ? "text-pink-ink" : "text-muted-foreground/50",
               )}
             >
               {next ? label(next) : "·"}

@@ -29,7 +29,11 @@ const subscribe = (listener: () => void) => {
 
 export function updateThemes(change: (state: ThemeState) => ThemeState) {
   const next = change(read());
-  Storage.setItemSync(KEY, JSON.stringify(next));
+  try {
+    Storage.setItemSync(KEY, JSON.stringify(next));
+  } catch (error) {
+    console.error(error);
+  }
   state = next;
   for (const listener of listeners) listener();
 }

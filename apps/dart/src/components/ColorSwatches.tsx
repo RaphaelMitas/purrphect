@@ -15,7 +15,7 @@ export function ColorSwatches({
   return (
     <View className="max-w-72 flex-row flex-wrap justify-center gap-2 self-center">
       {colors.map((color, i) => {
-        const selected = color.toUpperCase() === value.toUpperCase();
+        const selected = color === value;
         const used = inUse?.(color) ?? false;
         return (
           <Pressable
@@ -25,12 +25,16 @@ export function ColorSwatches({
             accessibilityState={{ selected }}
             onPress={() => onChange(color)}
             className={cn(
-              "size-9 items-center justify-center rounded-full border-[3px] active:opacity-70",
+              "size-10 rounded-full border-2 p-0.5 active:opacity-70",
               selected ? "border-foreground" : "border-transparent",
             )}
-            style={{ backgroundColor: color }}
           >
-            {used && <View className="size-2 rounded-full bg-white" />}
+            <View
+              className="flex-1 items-center justify-center rounded-full border border-border"
+              style={{ backgroundColor: color }}
+            >
+              {used && <View className="size-2 rounded-full bg-white" />}
+            </View>
           </Pressable>
         );
       })}

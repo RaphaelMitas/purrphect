@@ -24,7 +24,7 @@ module.exports = {
         foreground: hsl("foreground"),
         primary: { DEFAULT: hsl("primary"), foreground: hsl("primary-foreground") },
         secondary: { DEFAULT: hsl("secondary"), foreground: hsl("secondary-foreground") },
-        destructive: { DEFAULT: hsl("destructive"), foreground: hsl("destructive-foreground") },
+        destructive: tone("destructive"),
         muted: { DEFAULT: hsl("muted"), foreground: hsl("muted-foreground") },
         accent: { DEFAULT: hsl("accent"), foreground: hsl("accent-foreground") },
         popover: { DEFAULT: hsl("popover"), foreground: hsl("popover-foreground") },

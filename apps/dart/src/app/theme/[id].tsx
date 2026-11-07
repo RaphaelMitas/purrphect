@@ -97,39 +97,46 @@ function Editor({ initial }: { initial: Theme }) {
           />
           <ThemePreview />
 
-          <Panel title="Feel" hint="sets page, cards and text">
-            <Text className="font-nunito-black text-sm">Mood</Text>
-            <Slider
-              label="Mood"
-              valueText={MOOD_NAMES[draft.mood]}
-              value={mood}
-              min={0}
-              max={MOODS.length - 1}
-              colors={MOODS.map((m) => autoColors({ ...draft, mood: m, page: undefined }).page)}
-              onChange={(i) => change({ mood: MOODS[i] ?? draft.mood })}
-            />
-            <View className="flex-row justify-between px-0.5">
-              {MOODS.map((m) => (
-                <Text
-                  key={m}
-                  className={cn("text-[11px]", m === draft.mood ? "font-nunito-black" : "text-muted-foreground")}
-                >
-                  {MOOD_NAMES[m]}
-                </Text>
-              ))}
+          <Panel
+            title="Feel"
+            hint={draft.page ? "Page is custom, set it to Auto to use these" : "sets page, cards and text"}
+          >
+            <View className={cn("gap-3", draft.page && "opacity-40")} pointerEvents={draft.page ? "none" : "auto"}>
+              <Text className="font-nunito-black text-sm">Mood</Text>
+              <Slider
+                label="Mood"
+                valueText={MOOD_NAMES[draft.mood]}
+                value={mood}
+                min={0}
+                max={MOODS.length - 1}
+                colors={MOODS.map((m) => autoColors({ ...draft, mood: m, page: undefined }).page)}
+                onChange={(i) => change({ mood: MOODS[i] ?? draft.mood })}
+              />
+              <View className="flex-row justify-between px-0.5">
+                {MOODS.map((m) => (
+                  <Text
+                    key={m}
+                    className={cn("text-[11px]", m === draft.mood ? "font-nunito-black" : "text-muted-foreground")}
+                  >
+                    {MOOD_NAMES[m]}
+                  </Text>
+                ))}
+              </View>
+              <View className="mt-1 flex-row justify-between">
+                <Text className="font-nunito-black text-sm">Warmth</Text>
+                <Text className="text-xs text-muted-foreground">cool · warm</Text>
+              </View>
+              <Slider
+                label="Warmth"
+                value={draft.warmth}
+                min={0}
+                max={100}
+                colors={WARMTH_STOPS.map(
+                  (w) => autoColors({ ...draft, warmth: w, mood: "soft", page: undefined }).page,
+                )}
+                onChange={(warmth) => change({ warmth })}
+              />
             </View>
-            <View className="mt-1 flex-row justify-between">
-              <Text className="font-nunito-black text-sm">Warmth</Text>
-              <Text className="text-xs text-muted-foreground">cool · warm</Text>
-            </View>
-            <Slider
-              label="Warmth"
-              value={draft.warmth}
-              min={0}
-              max={100}
-              colors={WARMTH_STOPS.map((w) => autoColors({ ...draft, warmth: w, mood: "soft", page: undefined }).page)}
-              onChange={(warmth) => change({ warmth })}
-            />
           </Panel>
 
           <Panel title="Colours" className="gap-1">
@@ -159,8 +166,8 @@ function Editor({ initial }: { initial: Theme }) {
           </Panel>
 
           <Button variant="outline" onPress={remove} className="h-12 rounded-2xl">
-            <Icon as={Trash2} className="size-4 text-destructive" />
-            <Text className="text-destructive">Delete theme</Text>
+            <Icon as={Trash2} className="size-4 text-destructive-ink" />
+            <Text className="text-destructive-ink">Delete theme</Text>
           </Button>
         </ScrollView>
       </SafeAreaView>

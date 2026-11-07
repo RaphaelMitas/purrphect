@@ -311,8 +311,8 @@ export default function Lobby() {
           onChange={(v) => setRandomOrder(v === "random")}
         />
       </SettingRow>
-      {!startValid && <Text className="text-xs text-destructive">Start score between 2 and 9999.</Text>}
-      {!legsValid && <Text className="text-xs text-destructive">First to between 1 and 99 legs.</Text>}
+      {!startValid && <Text className="text-xs text-destructive-ink">Start score between 2 and 9999.</Text>}
+      {!legsValid && <Text className="text-xs text-destructive-ink">First to between 1 and 99 legs.</Text>}
       <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
         <Text className="text-lg">
           {selected.length ? `Start · ${selected.length} player${selected.length > 1 ? "s" : ""}` : "Pick players"}

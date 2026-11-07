@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, type Theme as NavigationTheme } from "expo-router/react-navigation";
 import { createContext, useContext } from "react";
+import type { TextInputProps } from "react-native";
 import { tripletToHex as hex, isDark, type TokenSet } from "../../theme.cjs";
 import tokens from "../../tokens.cjs";
 
@@ -44,3 +45,12 @@ export function navigationTheme(p: Palette): NavigationTheme {
     },
   };
 }
+
+export const textInputColors = ({
+  dark,
+  pink,
+}: Palette): Pick<TextInputProps, "keyboardAppearance" | "selectionColor" | "cursorColor"> => ({
+  keyboardAppearance: dark ? "dark" : "light",
+  selectionColor: pink,
+  cursorColor: pink,
+});

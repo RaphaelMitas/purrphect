@@ -14,7 +14,7 @@ export interface Theme {
   text?: string;
 }
 
-type ToneName = "pink" | "mint" | "butter";
+type ToneName = "pink" | "mint" | "butter" | "destructive";
 
 export type TokenName =
   | "background"
@@ -31,8 +31,6 @@ export type TokenName =
   | "muted-foreground"
   | "accent"
   | "accent-foreground"
-  | "destructive"
-  | "destructive-foreground"
   | "border"
   | "input"
   | "ring"

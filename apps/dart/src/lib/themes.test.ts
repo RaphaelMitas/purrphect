@@ -34,9 +34,16 @@ describe("generated themes", () => {
       const where = `${theme.id} ${theme.mood} ${theme.warmth}`;
       expect(ratio(tokens, "foreground", "background"), where).toBeGreaterThanOrEqual(7);
       expect(ratio(tokens, "muted-foreground", "background"), where).toBeGreaterThanOrEqual(3);
-      for (const tone of ["pink", "mint", "butter"] as const) {
+      for (const tone of ["pink", "mint", "butter", "destructive"] as const) {
         expect(ratio(tokens, `${tone}-ink`, `${tone}-soft`), `${where} ${tone}`).toBeGreaterThanOrEqual(3);
       }
+    }
+  });
+
+  it("keep a near-black danger colour readable as text on a black page", () => {
+    for (const preset of PRESETS) {
+      const tokens = themeTokens({ ...preset, mood: "black", danger: "#400000" });
+      expect(ratio(tokens, "destructive-ink", "background"), preset.id).toBeGreaterThanOrEqual(3);
     }
   });
 
@@ -53,16 +60,9 @@ describe("generated themes", () => {
 });
 
 describe("theme state", () => {
-  const mine: Theme = {
-    id: "mine",
-    name: "Mine",
-    accent: "#FF70A0",
-    second: "#5FCFAE",
-    highlight: "#FFD36B",
-    danger: "#E86F6F",
-    warmth: 50,
-    mood: "soft",
-  };
+  const purrphect = PRESETS.find((t) => t.id === "purrphect");
+  if (!purrphect) throw new Error("Purrphect preset missing");
+  const mine: Theme = { ...purrphect, id: "mine", name: "Mine" };
 
   it("puts a slot back on its built-in when the theme in it is deleted", () => {
     const state = withSlot(withSlot(withTheme(DEFAULT_THEMES, mine), "light", "mine"), "dark", "mine");

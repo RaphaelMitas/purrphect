@@ -1,14 +1,12 @@
 import { Platform, TextInput } from "react-native";
-import { usePalette } from "./lib/theme";
+import { textInputColors, usePalette } from "./lib/theme";
 import { cn } from "./lib/utils";
 
 function Input({ className, ...props }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
-  const { dark, pink } = usePalette();
+  const palette = usePalette();
   return (
     <TextInput
-      keyboardAppearance={dark ? "dark" : "light"}
-      selectionColor={pink}
-      cursorColor={pink}
+      {...textInputColors(palette)}
       className={cn(
         "border-input bg-background text-foreground flex h-10 w-full min-w-0 flex-row items-center rounded-md border px-3 py-1 text-base leading-5 shadow-sm shadow-black/5 sm:h-9",
         props.editable === false &&
