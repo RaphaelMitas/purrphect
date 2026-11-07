@@ -1,6 +1,7 @@
 import { cn } from "@purrphect/ui/lib/utils";
 import { Pressable, View } from "react-native";
 import { colorUses, PLAYER_COLORS, type Player } from "@/db/repo";
+import { useT } from "@/i18n/LanguageProvider";
 
 export function ColorSwatches({
   value,
@@ -11,6 +12,7 @@ export function ColorSwatches({
   players: readonly Player[];
   onChange: (color: string) => void;
 }) {
+  const t = useT();
   return (
     <View className="max-w-72 flex-row flex-wrap justify-center gap-2 self-center">
       {PLAYER_COLORS.map((color, i) => {
@@ -20,7 +22,7 @@ export function ColorSwatches({
           <Pressable
             key={color}
             accessibilityRole="button"
-            accessibilityLabel={`Colour ${i + 1}${inUse ? ", in use" : ""}`}
+            accessibilityLabel={t.card.colour(i + 1, inUse)}
             accessibilityState={{ selected }}
             onPress={() => onChange(color)}
             className={cn(

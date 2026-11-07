@@ -82,10 +82,12 @@ function DialogOverlay({
 function DialogContent({
   className,
   portalHost,
+  closeLabel = "Close",
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   portalHost?: string;
+  closeLabel?: string;
 }) {
   return (
     <DialogPortal hostName={portalHost}>
@@ -111,7 +113,7 @@ function DialogContent({
             hitSlop={12}
           >
             <Icon as={X} className={cn("text-accent-foreground web:pointer-events-none size-4 shrink-0")} />
-            <Text className="sr-only">Close</Text>
+            <Text className="sr-only">{closeLabel}</Text>
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogOverlay>

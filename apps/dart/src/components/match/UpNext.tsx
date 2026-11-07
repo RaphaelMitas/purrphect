@@ -6,6 +6,8 @@ import { ScrollView, View } from "react-native";
 import type { Player } from "@/db/repo";
 import type { Route } from "@/game/checkout";
 import { label } from "@/game/segments";
+import { useT } from "@/i18n/LanguageProvider";
+import { decimal } from "@/lib/format";
 
 export interface QueueEntry {
   player: Player;
@@ -15,8 +17,9 @@ export interface QueueEntry {
 }
 
 export function UpNextList({ entries }: { entries: QueueEntry[] }) {
+  const t = useT();
   return (
-    <Panel title="Up next" hint={`${entries.length + 1} left`} className="flex-1 gap-1 px-3 py-2">
+    <Panel title={t.match.upNext} hint={t.match.left(entries.length + 1)} className="flex-1 gap-1 px-3 py-2">
       <ScrollView>
         {entries.map((e, i) => (
           <RankRow key={e.player.id} rank={i + 1} color={e.player.color} name={e.player.name} highlight={i === 0}>
@@ -25,7 +28,7 @@ export function UpNextList({ entries }: { entries: QueueEntry[] }) {
                 <Text className="font-nunito-black text-[10px] text-mint-ink">{e.out.darts.map(label).join(" ")}</Text>
               </View>
             )}
-            <Text className="w-10 text-right text-xs text-muted-foreground">{e.average.toFixed(1)}</Text>
+            <Text className="w-10 text-right text-xs text-muted-foreground">{decimal(t, e.average)}</Text>
             <Text className="w-12 text-right font-nunito-black text-lg">{e.remaining}</Text>
           </RankRow>
         ))}

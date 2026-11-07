@@ -16,7 +16,7 @@ async function renderSegmented(value: Option) {
       options={OPTIONS}
       value={value}
       onChange={onChange}
-      custom={{ value: "custom", text: "", placeholder: "1001", onChangeText }}
+      custom={{ value: "custom", label: "Custom start", text: "", placeholder: "1001", onChangeText }}
     />,
   );
   return { onChange, onChangeText };
@@ -27,7 +27,7 @@ describe("Segmented custom field", () => {
     const user = userEvent.setup();
     const { onChange } = await renderSegmented("501");
 
-    expect(screen.queryByLabelText("Custom Custom")).not.toBeOnTheScreen();
+    expect(screen.queryByLabelText("Custom start")).not.toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Custom" }));
     expect(onChange).toHaveBeenCalledWith("custom");
   });
@@ -35,14 +35,14 @@ describe("Segmented custom field", () => {
   it("swaps the Custom button for the number field once selected", async () => {
     await renderSegmented("custom");
 
-    expect(screen.getByLabelText("Custom Custom")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Custom start")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Custom" })).not.toBeOnTheScreen();
   });
 
   it("passes on only the digits that were typed", async () => {
     const { onChangeText } = await renderSegmented("custom");
 
-    await fireEvent.changeText(screen.getByLabelText("Custom Custom"), "4a0-.");
+    await fireEvent.changeText(screen.getByLabelText("Custom start"), "4a0-.");
     expect(onChangeText).toHaveBeenCalledWith("40");
   });
 });

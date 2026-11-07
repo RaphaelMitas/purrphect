@@ -10,6 +10,7 @@ interface SegmentedOption<T extends string> {
 }
 
 interface CustomField {
+  label: string;
   text: string;
   placeholder: string;
   onChangeText: (text: string) => void;
@@ -48,7 +49,7 @@ export function Segmented<T extends string>({
                 placeholderTextColor={palette.mutedForeground}
                 onChangeText={(t) => custom.onChangeText(t.replace(/\D/g, ""))}
                 className="py-1.5 text-center font-nunito-black text-sm text-foreground"
-                accessibilityLabel={`Custom ${o.label}`}
+                accessibilityLabel={custom.label}
               />
             </View>
           );
