@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Dart Purrphect",
+    "slug": "dart-purrphect",
+    "scheme": "dartpurrphect",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.purrphect.dart",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.purrphect.dart",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF7F2",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#FFF7F2",
+          "dark": { "backgroundColor": "#1C1418" }
+        }
+      ],
+      "expo-sqlite",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
