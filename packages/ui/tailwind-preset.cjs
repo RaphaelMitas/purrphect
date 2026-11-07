@@ -3,11 +3,15 @@ const plugin = require("tailwindcss/plugin");
 const tokens = require("./tokens.cjs");
 
 const hsl = (name) => `hsl(var(--${name}) / <alpha-value>)`;
-const tone = (name) => ({ DEFAULT: hsl(name), soft: hsl(`${name}-soft`), ink: hsl(`${name}-ink`) });
+const tone = (name) => ({
+  DEFAULT: hsl(name),
+  foreground: hsl(`${name}-foreground`),
+  soft: hsl(`${name}-soft`),
+  ink: hsl(`${name}-ink`),
+});
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: "class",
   content: [`${__dirname}/src/**/*.{ts,tsx}`],
   presets: [require("nativewind/preset")],
   theme: {
@@ -20,7 +24,7 @@ module.exports = {
         foreground: hsl("foreground"),
         primary: { DEFAULT: hsl("primary"), foreground: hsl("primary-foreground") },
         secondary: { DEFAULT: hsl("secondary"), foreground: hsl("secondary-foreground") },
-        destructive: { DEFAULT: hsl("destructive"), foreground: hsl("primary-foreground") },
+        destructive: tone("destructive"),
         muted: { DEFAULT: hsl("muted"), foreground: hsl("muted-foreground") },
         accent: { DEFAULT: hsl("accent"), foreground: hsl("accent-foreground") },
         popover: { DEFAULT: hsl("popover"), foreground: hsl("popover-foreground") },
@@ -49,8 +53,6 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    plugin(({ addBase }) =>
-      addBase({ ":root": tokens.cssVars(tokens.light), ".dark:root": tokens.cssVars(tokens.dark) }),
-    ),
+    plugin(({ addBase }) => addBase({ ":root": tokens.cssVars(tokens.light) })),
   ],
 };

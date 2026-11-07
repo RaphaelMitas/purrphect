@@ -16,7 +16,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ColorSwatches } from "@/components/ColorSwatches";
 import { DartBoard } from "@/components/DartBoard";
 import { RateBars, TrendChart } from "@/components/StatCharts";
-import { byId, deletePlayer, loadPlayersAndMatches, savesSettled, setPlayerColor } from "@/db/repo";
+import {
+  byId,
+  colorUses,
+  deletePlayer,
+  loadPlayersAndMatches,
+  PLAYER_COLORS,
+  savesSettled,
+  setPlayerColor,
+} from "@/db/repo";
 import { LEVELS, progressFor, XP_RULES } from "@/game/levels";
 import { doubleRates, playerStats, rangeRates } from "@/game/stats";
 import { replay, standings } from "@/game/x01";
@@ -89,8 +97,9 @@ export default function PlayerCard() {
     <View className="items-center gap-3 rounded-3xl bg-card p-5">
       <Cat size={96} color={player.color} />
       <ColorSwatches
+        colors={PLAYER_COLORS}
         value={player.color}
-        players={data?.players.filter((p) => p.id !== player.id) ?? []}
+        inUse={(color) => colorUses(data?.players.filter((p) => p.id !== player.id) ?? [], color) > 0}
         onChange={(color) => setPlayerColor(db, player.id, color).then(reload, console.error)}
       />
       <Text className="font-nunito-black text-2xl">{player.name}</Text>
@@ -131,7 +140,7 @@ export default function PlayerCard() {
         </View>
       )}
       <Button variant="ghost" size="sm" onPress={remove}>
-        <Text className="text-destructive">{t.card.deletePlayer}</Text>
+        <Text className="text-destructive-ink">{t.card.deletePlayer}</Text>
       </Button>
     </View>
   );

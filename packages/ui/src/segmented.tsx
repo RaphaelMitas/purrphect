@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
-import { usePalette } from "./lib/theme";
+import { textInputColors, usePalette } from "./lib/theme";
 import { cn } from "./lib/utils";
 import { Text } from "./text";
 
@@ -42,6 +42,7 @@ export function Segmented<T extends string>({
             <View key={o.value} className="flex-1 rounded-full border-2 border-foreground bg-card px-2">
               <TextInput
                 autoFocus={focusCustom}
+                {...textInputColors(palette)}
                 keyboardType="number-pad"
                 maxLength={4}
                 value={custom.text}

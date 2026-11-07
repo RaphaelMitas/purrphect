@@ -60,7 +60,22 @@ export default function Stats() {
         </View>
         <View className={cn("gap-4", wide && "flex-row")}>
           <View className="flex-[3] gap-4">
-            <Panel title={t.stats.averagePerMatch} hint={t.stats.trendHint}>
+            <Panel
+              title={t.stats.averagePerMatch}
+              right={
+                <View className="flex-row gap-3">
+                  {[
+                    [t.stats.trendThreeDart, "bg-pink"],
+                    [t.stats.trendFirst9, "bg-mint"],
+                  ].map(([label, dot]) => (
+                    <View key={label} className="flex-row items-center gap-1">
+                      <View className={cn("size-2 rounded-full", dot)} />
+                      <Text className="text-xs text-muted-foreground">{label}</Text>
+                    </View>
+                  ))}
+                </View>
+              }
+            >
               <TrendChart points={stats.trend} />
             </Panel>
             <View className={cn("gap-4", wide && "flex-row")}>

@@ -4,7 +4,7 @@ import { isSegment, type Segment } from "@/game/segments";
 const OUT_RULES: readonly OutRule[] = ["double", "master", "straight"];
 const FINISH_MODES: readonly FinishMode[] = ["leg", "places"];
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+export const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isPositiveInt = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v > 0;
 
 export function parseRules(json: string): Rules {

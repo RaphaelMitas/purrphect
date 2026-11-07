@@ -20,11 +20,13 @@ import {
   addGuest,
   addPlayer,
   byId,
+  colorUses,
   createMatch,
   isRegular,
   leastUsedColor,
   listPlayers,
   listSetups,
+  PLAYER_COLORS,
   type Player,
 } from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
@@ -321,8 +323,8 @@ export default function Lobby() {
           onChange={(v) => setRandomOrder(v === "random")}
         />
       </SettingRow>
-      {!startValid && <Text className="text-xs text-destructive">{t.lobby.startInvalid}</Text>}
-      {!legsValid && <Text className="text-xs text-destructive">{t.lobby.legsInvalid}</Text>}
+      {!startValid && <Text className="text-xs text-destructive-ink">{t.lobby.startInvalid}</Text>}
+      {!legsValid && <Text className="text-xs text-destructive-ink">{t.lobby.legsInvalid}</Text>}
       <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
         <Text className="text-lg">{selected.length ? t.lobby.startWith(selected.length) : t.lobby.pickPlayers}</Text>
       </Button>
@@ -358,7 +360,12 @@ export default function Lobby() {
         onOpenChange={setAdding}
         onSubmit={async (name) => added(await addPlayer(db, name, newColor))}
       >
-        <ColorSwatches value={newColor} players={data?.players ?? []} onChange={setNewColor} />
+        <ColorSwatches
+          colors={PLAYER_COLORS}
+          value={newColor}
+          inUse={(color) => colorUses(data?.players ?? [], color) > 0}
+          onChange={setNewColor}
+        />
       </NameDialog>
     </SafeAreaView>
   );
