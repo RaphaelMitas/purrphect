@@ -42,6 +42,8 @@ export function Segmented<T extends string>({
               <TextInput
                 autoFocus={focusCustom}
                 keyboardAppearance={palette.dark ? "dark" : "light"}
+                selectionColor={palette.pink}
+                cursorColor={palette.pink}
                 keyboardType="number-pad"
                 maxLength={4}
                 value={custom.text}

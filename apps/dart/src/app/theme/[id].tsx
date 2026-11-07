@@ -18,7 +18,7 @@ import { ColorDialog } from "@/components/theme/ColorDialog";
 import { ThemedStatusBar } from "@/components/theme/ThemedStatusBar";
 import { ThemePreview } from "@/components/theme/ThemePreview";
 import { updateThemes, useThemes } from "@/hooks/useThemes";
-import { isCustom, ROLES, type Role, roleColor, themeById, withoutTheme, withUpdatedTheme } from "@/lib/themes";
+import { isAuto, ROLES, type RoleInfo, roleColor, withoutTheme, withUpdatedTheme } from "@/lib/themes";
 
 const PORTAL = "theme-editor";
 const MOOD_NAMES = { bright: "Bright", soft: "Soft", dim: "Dim", dark: "Dark", black: "Black" } as const;
@@ -30,14 +30,14 @@ const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, { ...t
 export default function EditThemeRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const themes = useThemes();
-  const [initial] = useState(() => (isCustom(themes, id) ? themeById(themes, id) : undefined));
+  const [initial] = useState(() => themes.custom.find((t) => t.id === id));
   if (!initial) return <Redirect href="/theme" />;
   return <Editor initial={initial} />;
 }
 
 function Editor({ initial }: { initial: Theme }) {
   const [draft, setDraft] = useState(initial);
-  const [role, setRole] = useState<Role | null>(null);
+  const [role, setRole] = useState<RoleInfo | null>(null);
   const latest = useRef(draft);
   const saved = useRef(initial);
   const change = (patch: Partial<Theme>) => setDraft((d) => ({ ...d, ...patch }));
@@ -137,7 +137,7 @@ function Editor({ initial }: { initial: Theme }) {
               <Pressable
                 key={r.key}
                 accessibilityRole="button"
-                onPress={() => setRole(r.key)}
+                onPress={() => setRole(r)}
                 className="flex-row items-center gap-3 border-t border-border py-2.5 active:opacity-70"
               >
                 <View
@@ -148,7 +148,7 @@ function Editor({ initial }: { initial: Theme }) {
                   <Text className="font-nunito-bold text-base">{r.name}</Text>
                   <Text className="text-xs text-muted-foreground">{r.use}</Text>
                 </View>
-                {r.auto && draft[r.key] === undefined && (
+                {isAuto(draft, r.key) && (
                   <View className="rounded-full bg-muted px-2 py-0.5">
                     <Text className="font-nunito-black text-[11px] text-muted-foreground">Auto</Text>
                   </View>
@@ -166,7 +166,7 @@ function Editor({ initial }: { initial: Theme }) {
       </SafeAreaView>
       {role && (
         <ColorDialog
-          key={role}
+          key={role.key}
           role={role}
           theme={draft}
           portalHost={PORTAL}

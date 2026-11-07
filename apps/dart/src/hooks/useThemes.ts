@@ -1,6 +1,7 @@
 import Storage from "expo-sqlite/kv-store";
 import { useSyncExternalStore } from "react";
-import { parseThemeState, type ThemeState } from "@/lib/themes";
+import { useColorScheme } from "react-native";
+import { parseThemeState, type Slot, type ThemeState } from "@/lib/themes";
 
 const KEY = "themes";
 const listeners = new Set<() => void>();
@@ -27,11 +28,16 @@ const subscribe = (listener: () => void) => {
 };
 
 export function updateThemes(change: (state: ThemeState) => ThemeState) {
-  state = change(read());
-  Storage.setItemSync(KEY, JSON.stringify(state));
+  const next = change(read());
+  Storage.setItemSync(KEY, JSON.stringify(next));
+  state = next;
   for (const listener of listeners) listener();
 }
 
 export function useThemes(): ThemeState {
   return useSyncExternalStore(subscribe, read);
+}
+
+export function useSystemSlot(): Slot {
+  return useColorScheme() === "dark" ? "dark" : "light";
 }

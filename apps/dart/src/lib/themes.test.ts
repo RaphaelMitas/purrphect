@@ -44,7 +44,9 @@ describe("generated themes", () => {
     for (const preset of PRESETS) {
       for (let lightness = 0; lightness <= 100; lightness += 2) {
         const tokens = themeTokens({ ...preset, page: hslToHex(220, 10, lightness) });
-        expect(ratio(tokens, "foreground", "background"), `${preset.id} ${lightness}`).toBeGreaterThanOrEqual(3);
+        const where = `${preset.id} ${lightness}`;
+        expect(ratio(tokens, "foreground", "background"), where).toBeGreaterThanOrEqual(3);
+        expect(ratio(tokens, "foreground", "card"), where).toBeGreaterThanOrEqual(3);
       }
     }
   });

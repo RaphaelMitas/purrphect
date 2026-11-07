@@ -9,7 +9,6 @@ export function Slider({
   value,
   min,
   max,
-  step = 1,
   colors,
   label,
   valueText,
@@ -18,7 +17,6 @@ export function Slider({
   value: number;
   min: number;
   max: number;
-  step?: number;
   colors: readonly string[];
   label: string;
   valueText?: string;
@@ -27,14 +25,14 @@ export function Slider({
   const gradient = `slider${useId().replace(/\W/g, "")}`;
   const [width, setWidth] = useState(0);
   const span = max - min;
-  const clampValue = (v: number) => Math.min(max, Math.max(min, Math.round((v - min) / step) * step + min));
+  const clampValue = (v: number) => Math.min(max, Math.max(min, Math.round(v)));
   const track = (e: GestureResponderEvent) => {
     if (width <= THUMB) return;
     const ratio = (e.nativeEvent.locationX - THUMB / 2) / (width - THUMB);
     const next = clampValue(min + ratio * span);
     if (next !== value) onChange(next);
   };
-  const left = width > THUMB ? ((value - min) / span) * (width - THUMB) : 0;
+  const left = width > THUMB ? ((clampValue(value) - min) / span) * (width - THUMB) : 0;
 
   return (
     <View
@@ -43,9 +41,7 @@ export function Slider({
       accessibilityLabel={label}
       accessibilityValue={valueText ? { text: valueText } : { min, max, now: value }}
       accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
-      onAccessibilityAction={(e) =>
-        onChange(clampValue(value + (e.nativeEvent.actionName === "increment" ? step : -step)))
-      }
+      onAccessibilityAction={(e) => onChange(clampValue(value + (e.nativeEvent.actionName === "increment" ? 1 : -1)))}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}

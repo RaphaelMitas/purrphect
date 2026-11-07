@@ -9,9 +9,8 @@ import { ThemeProvider } from "expo-router/react-navigation";
 import { SQLiteProvider } from "expo-sqlite";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useMemo } from "react";
-import { useColorScheme } from "react-native";
 import { migrate } from "@/db/schema";
-import { useThemes } from "@/hooks/useThemes";
+import { useSystemSlot, useThemes } from "@/hooks/useThemes";
 import { slotTheme } from "@/lib/themes";
 
 function Navigation() {
@@ -35,7 +34,7 @@ function Navigation() {
 }
 
 export default function RootLayout() {
-  const scheme = useColorScheme() === "dark" ? "dark" : "light";
+  const scheme = useSystemSlot();
   const themes = useThemes();
   const [fontsLoaded] = useFonts({ Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold });
   if (!fontsLoaded) return null;

@@ -8,7 +8,7 @@ import { hexToHsl, hslToHex, type Theme } from "@purrphect/ui/theme";
 import { useState } from "react";
 import { View } from "react-native";
 import { ColorSwatches } from "@/components/ColorSwatches";
-import { ROLES, type Role, roleColor } from "@/lib/themes";
+import { isAuto, type RoleInfo, roleColor } from "@/lib/themes";
 
 const HUES = [0, 60, 120, 180, 240, 300, 359];
 
@@ -31,19 +31,17 @@ export function ColorDialog({
   onChange,
   onClose,
 }: {
-  role: Role;
+  role: RoleInfo;
   theme: Theme;
   portalHost: string;
   onChange: (patch: Partial<Theme>) => void;
   onClose: () => void;
 }) {
-  const info = ROLES.find((r) => r.key === role);
-  const color = roleColor(theme, role);
+  const color = roleColor(theme, role.key);
   const [hsl, setHsl] = useState(() => hexToHsl(color));
-  if (!info) return null;
   const [h, s, l] = hsl;
-  const auto = info.auto && theme[role] === undefined;
-  const set = (value: string | undefined) => onChange({ [role]: value });
+  const auto = isAuto(theme, role.key);
+  const set = (value: string | undefined) => onChange({ [role.key]: value });
   const tune = (next: [number, number, number]) => {
     setHsl(next);
     set(hslToHex(...next));
@@ -59,11 +57,11 @@ export function ColorDialog({
         <DialogHeader className="flex-row items-center gap-3">
           <View className="size-11 rounded-full border-2 border-border" style={{ backgroundColor: color }} />
           <View className="flex-1">
-            <DialogTitle className="font-nunito-black">{info.name}</DialogTitle>
-            <Text className="text-xs text-muted-foreground">{info.use}</Text>
+            <DialogTitle className="font-nunito-black">{role.name}</DialogTitle>
+            <Text className="text-xs text-muted-foreground">{role.use}</Text>
           </View>
         </DialogHeader>
-        {info.auto && (
+        {role.auto && (
           <View className="gap-1">
             <Segmented
               options={[
@@ -71,7 +69,7 @@ export function ColorDialog({
                 { value: "custom", label: "Custom" },
               ]}
               value={auto ? "auto" : "custom"}
-              onChange={(v) => set(v === "auto" ? undefined : color)}
+              onChange={(v) => (v === "auto" ? set(undefined) : pick(color))}
             />
             <Text className="px-1 text-xs text-muted-foreground">
               {auto ? "Follows Mood and Warmth." : "Fixed. Mood and Warmth no longer change it."}
@@ -79,7 +77,7 @@ export function ColorDialog({
           </View>
         )}
         <View className={cn("gap-4", auto && "opacity-40")} pointerEvents={auto ? "none" : "auto"}>
-          <ColorSwatches colors={info.auto ? NEUTRALS : COLORS} value={color} onChange={pick} />
+          <ColorSwatches colors={role.auto ? NEUTRALS : COLORS} value={color} onChange={pick} />
           <View className="gap-3">
             <Text className="font-nunito-black text-sm">Fine tune</Text>
             <Slider

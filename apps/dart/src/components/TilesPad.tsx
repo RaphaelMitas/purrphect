@@ -16,8 +16,8 @@ import {
 
 const ARMED = {
   1: { tile: "bg-card", text: "text-foreground" },
-  2: { tile: "bg-mint-soft", text: "text-mint-ink" },
-  3: { tile: "bg-pink-soft", text: "text-pink-ink" },
+  2: { tile: "bg-mint-soft", text: "text-mint-ink", on: "bg-mint", onText: "text-mint-foreground" },
+  3: { tile: "bg-pink-soft", text: "text-pink-ink", on: "bg-pink", onText: "text-pink-foreground" },
 } as const;
 
 function Key({
@@ -99,14 +99,9 @@ export function TilesPad({
             key={m}
             label={m === 2 ? "Double" : "Triple"}
             onPress={() => toggle(m)}
-            className={cn("h-11 flex-1 rounded-full", multiplier === m ? (m === 2 ? "bg-mint" : "bg-pink") : "bg-card")}
+            className={cn("h-11 flex-1 rounded-full", multiplier === m ? ARMED[m].on : "bg-card")}
           >
-            <Text
-              className={cn(
-                "font-nunito-black text-base",
-                multiplier === m ? (m === 2 ? "text-mint-foreground" : "text-pink-foreground") : ARMED[m].text,
-              )}
-            >
+            <Text className={cn("font-nunito-black text-base", multiplier === m ? ARMED[m].onText : ARMED[m].text)}>
               {m === 2 ? "Double" : "Triple"}
             </Text>
           </Key>

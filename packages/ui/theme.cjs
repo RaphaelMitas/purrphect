@@ -138,6 +138,8 @@ const triplet = (rgb) => {
 
 const isDarkRgb = (rgb) => luminance(rgb) < 0.2;
 
+const isLightOn = (text, page) => luminance(text) > luminance(page);
+
 const snap = (rgb) => hslToRgb(...rgbToHsl(rgb).map(Math.round)).map(Math.round);
 
 // Contrast is measured on the rounded values the tokens actually carry.
@@ -160,14 +162,14 @@ function pageColor(theme) {
 
 function themeTokens(theme) {
   const page = theme.page ? hexToRgb(theme.page) : pageColor(theme);
-  const dark = isDarkRgb(page);
   const accent = hexToRgb(theme.accent);
   const [accentHue] = rgbToHsl(accent);
-  const cards = theme.cards ? hexToRgb(theme.cards) : mix(page, WHITE, dark ? 0.06 : 0.9);
   const lightText = hslToRgb(accentHue, 67, 96);
   const darkText = hslToRgb(accentHue, 17, 20);
   const autoText = contrast(lightText, page) > contrast(darkText, page) ? lightText : darkText;
   const text = theme.text ? hexToRgb(theme.text) : autoText;
+  const dark = isLightOn(text, page);
+  const cards = theme.cards ? hexToRgb(theme.cards) : mix(page, WHITE, dark ? 0.06 : 0.9);
   const on = (rgb) => (contrast(rgb, WHITE) >= 2.2 ? WHITE : darkText);
   const soft = (rgb) => mix(page, rgb, dark ? 0.24 : 0.16);
   const ink = (rgb) => readable(rgb, soft(rgb), 3);
@@ -215,7 +217,8 @@ const parseTriplet = (value) => value.split(" ").map((part) => Number.parseFloat
 
 const tripletToHex = (value) => hslToHex(...parseTriplet(value));
 
-const isDark = (tokens) => isDarkRgb(hslToRgb(...parseTriplet(tokens.background)));
+const isDark = (tokens) =>
+  isLightOn(hslToRgb(...parseTriplet(tokens.foreground)), hslToRgb(...parseTriplet(tokens.background)));
 
 const autoColors = (theme) => {
   const tokens = themeTokens(theme);

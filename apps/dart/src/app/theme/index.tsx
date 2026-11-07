@@ -9,11 +9,11 @@ import { randomUUID } from "expo-crypto";
 import { router } from "expo-router";
 import { Check, Moon, Pencil, Plus, Sun } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, useColorScheme, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedStatusBar } from "@/components/theme/ThemedStatusBar";
 import { ThemeThumb } from "@/components/theme/ThemePreview";
-import { updateThemes, useThemes } from "@/hooks/useThemes";
+import { updateThemes, useSystemSlot, useThemes } from "@/hooks/useThemes";
 import { allThemes, isCustom, type Slot, slotTheme, withSlot, withTheme } from "@/lib/themes";
 
 const SLOTS = [
@@ -23,7 +23,7 @@ const SLOTS = [
 
 export default function ThemeScreen() {
   const themes = useThemes();
-  const system: Slot = useColorScheme() === "dark" ? "dark" : "light";
+  const system = useSystemSlot();
   const [focus, setFocus] = useState<Slot>(system);
   const inSlot = { light: slotTheme(themes, "light"), dark: slotTheme(themes, "dark") };
   const focused = inSlot[focus];

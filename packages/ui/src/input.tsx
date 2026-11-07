@@ -3,10 +3,12 @@ import { usePalette } from "./lib/theme";
 import { cn } from "./lib/utils";
 
 function Input({ className, ...props }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
-  const { dark } = usePalette();
+  const { dark, pink } = usePalette();
   return (
     <TextInput
       keyboardAppearance={dark ? "dark" : "light"}
+      selectionColor={pink}
+      cursorColor={pink}
       className={cn(
         "border-input bg-background text-foreground flex h-10 w-full min-w-0 flex-row items-center rounded-md border px-3 py-1 text-base leading-5 shadow-sm shadow-black/5 sm:h-9",
         props.editable === false &&

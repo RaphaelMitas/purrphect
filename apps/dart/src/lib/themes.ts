@@ -20,7 +20,10 @@ export const ROLES = [
   { key: "danger", name: "Danger", use: "Discard and delete", auto: false },
 ] as const;
 
-export type Role = (typeof ROLES)[number]["key"];
+export type RoleInfo = (typeof ROLES)[number];
+export type Role = RoleInfo["key"];
+
+export const isAuto = (theme: Theme, role: Role) => theme[role] === undefined;
 
 export function roleColor(theme: Theme, role: Role): string {
   if (role === "page" || role === "cards" || role === "text") return theme[role] ?? autoColors(theme)[role];
@@ -31,7 +34,7 @@ export const allThemes = (state: ThemeState): Theme[] => [...PRESETS, ...state.c
 
 export const isCustom = (state: ThemeState, id: string) => state.custom.some((t) => t.id === id);
 
-export const themeById = (state: ThemeState, id: string) => allThemes(state).find((t) => t.id === id);
+const themeById = (state: ThemeState, id: string) => allThemes(state).find((t) => t.id === id);
 
 export function slotTheme(state: ThemeState, slot: Slot): Theme {
   const theme = themeById(state, state.slots[slot]) ?? themeById(DEFAULT_THEMES, DEFAULT_THEMES.slots[slot]);
@@ -48,13 +51,11 @@ export const withSlot = (state: ThemeState, slot: Slot, id: string): ThemeState 
 
 export const withTheme = (state: ThemeState, theme: Theme): ThemeState => ({
   ...state,
-  custom: isCustom(state, theme.id)
-    ? state.custom.map((t) => (t.id === theme.id ? theme : t))
-    : [...state.custom, theme],
+  custom: [...state.custom, theme],
 });
 
 export const withUpdatedTheme = (state: ThemeState, theme: Theme): ThemeState =>
-  isCustom(state, theme.id) ? withTheme(state, theme) : state;
+  isCustom(state, theme.id) ? { ...state, custom: state.custom.map((t) => (t.id === theme.id ? theme : t)) } : state;
 
 export const withoutTheme = (state: ThemeState, id: string): ThemeState => ({
   slots: bySlot((s) => (state.slots[s] === id ? DEFAULT_THEMES.slots[s] : state.slots[s])),
