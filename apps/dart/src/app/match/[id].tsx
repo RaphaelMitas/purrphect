@@ -94,6 +94,7 @@ export default function MatchScreen() {
                 name: "Player",
                 color: playerColor(i),
                 guest: true,
+                deleted: false,
               },
           ),
         );
@@ -196,7 +197,7 @@ export default function MatchScreen() {
         {boardButtons}
       </>
     ) : (
-      <TilesPad direct={tablet} plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
+      <TilesPad plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
   return (

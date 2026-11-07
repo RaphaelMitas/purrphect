@@ -7,7 +7,8 @@ const MIGRATIONS = [
     name TEXT NOT NULL,
     color TEXT NOT NULL,
     guest INTEGER NOT NULL DEFAULT 0,
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    deleted_at INTEGER
   );
   CREATE TABLE setups (
     id TEXT PRIMARY KEY NOT NULL,

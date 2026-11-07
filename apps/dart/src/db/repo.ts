@@ -6,7 +6,7 @@ import type { PlayedMatch } from "@/game/stats";
 import { shuffled } from "@/lib/shuffle";
 import { parseIds, parseRules, parseSegment } from "./parse";
 
-const PLAYER_COLORS = [
+export const PLAYER_COLORS = [
   "#FF6FA3",
   "#5FCFAE",
   "#F2B84B",
@@ -28,6 +28,7 @@ export interface Player {
   name: string;
   color: string;
   guest: boolean;
+  deleted: boolean;
 }
 
 export interface Setup {
@@ -48,7 +49,7 @@ export interface Match {
   segments: Segment[];
 }
 
-type PlayerRow = { id: string; name: string; color: string; guest: number };
+type PlayerRow = { id: string; name: string; color: string; guest: number; deleted_at: number | null };
 type SetupRow = {
   id: string;
   name: string | null;
@@ -59,7 +60,13 @@ type SetupRow = {
 };
 type MatchRow = { id: string; rules: string; player_ids: string; started_at: number; finished_at: number | null };
 
-const toPlayer = (r: PlayerRow): Player => ({ id: r.id, name: r.name, color: r.color, guest: r.guest === 1 });
+const toPlayer = (r: PlayerRow): Player => ({
+  id: r.id,
+  name: r.name,
+  color: r.color,
+  guest: r.guest === 1,
+  deleted: r.deleted_at !== null,
+});
 const toSetup = (r: SetupRow): Setup => ({
   id: r.id,
   name: r.name,
@@ -70,30 +77,55 @@ const toSetup = (r: SetupRow): Setup => ({
 });
 
 export async function listPlayers(db: SQLiteDatabase): Promise<Player[]> {
-  const rows = await db.getAllAsync<PlayerRow>("SELECT id, name, color, guest FROM players ORDER BY created_at");
+  const rows = await db.getAllAsync<PlayerRow>(
+    "SELECT id, name, color, guest, deleted_at FROM players ORDER BY created_at",
+  );
   return rows.map(toPlayer);
 }
 
-async function insertPlayer(db: SQLiteDatabase, name: string, guest: boolean): Promise<Player> {
-  const used = await db.getAllAsync<{ color: string; n: number }>(
-    "SELECT color, COUNT(*) AS n FROM players GROUP BY color",
-  );
-  const uses = (c: string) => used.find((u) => u.color === c)?.n ?? 0;
-  const color = [...PLAYER_COLORS].sort((a, b) => uses(a) - uses(b))[0] ?? playerColor(0);
-  const player: Player = { id: randomUUID(), name, color, guest };
+export const isRegular = (p: Player) => !p.guest && !p.deleted;
+
+export const colorUses = (players: readonly Player[], color: string) =>
+  players.filter((p) => p.color === color && isRegular(p)).length;
+
+export function leastUsedColor(players: readonly Player[]): string {
+  return [...PLAYER_COLORS].sort((a, b) => colorUses(players, a) - colorUses(players, b))[0] ?? playerColor(0);
+}
+
+async function insertPlayer(db: SQLiteDatabase, name: string, guest: boolean, color?: string): Promise<Player> {
+  const player: Player = {
+    id: randomUUID(),
+    name,
+    color: color ?? leastUsedColor(await listPlayers(db)),
+    guest,
+    deleted: false,
+  };
   await db.runAsync(
     "INSERT INTO players (id, name, color, guest, created_at) VALUES (?, ?, ?, ?, ?)",
     player.id,
     name,
-    color,
+    player.color,
     guest ? 1 : 0,
     Date.now(),
   );
   return player;
 }
 
-export function addPlayer(db: SQLiteDatabase, name: string): Promise<Player> {
-  return insertPlayer(db, name.trim(), false);
+export function addPlayer(db: SQLiteDatabase, name: string, color: string): Promise<Player> {
+  return insertPlayer(db, name.trim(), false, color);
+}
+
+export async function setPlayerColor(db: SQLiteDatabase, id: string, color: string) {
+  await db.runAsync("UPDATE players SET color = ? WHERE id = ?", color, id);
+}
+
+export async function deletePlayer(db: SQLiteDatabase, id: string) {
+  const playedBy = "EXISTS (SELECT 1 FROM json_each(player_ids) WHERE value = ?)";
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("UPDATE players SET deleted_at = ? WHERE id = ?", Date.now(), id);
+    await db.runAsync(`DELETE FROM setups WHERE ${playedBy}`, id);
+    await db.runAsync(`DELETE FROM matches WHERE finished_at IS NULL AND ${playedBy}`, id);
+  });
 }
 
 export async function addGuest(db: SQLiteDatabase): Promise<Player> {

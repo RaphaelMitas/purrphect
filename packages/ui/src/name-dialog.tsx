@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Input } from "./input";
@@ -11,6 +11,7 @@ export function NameDialog({
   placeholder,
   action,
   optional,
+  children,
   onOpenChange,
   onSubmit,
 }: {
@@ -20,6 +21,7 @@ export function NameDialog({
   placeholder: string;
   action: string;
   optional?: boolean;
+  children?: ReactNode;
   onOpenChange: (open: boolean) => void;
   onSubmit: (name: string) => void;
 }) {
@@ -47,6 +49,7 @@ export function NameDialog({
           onSubmitEditing={submit}
           maxLength={24}
         />
+        {children}
         <DialogFooter>
           <Button onPress={submit} disabled={!optional && !name.trim()}>
             <Text>{action}</Text>

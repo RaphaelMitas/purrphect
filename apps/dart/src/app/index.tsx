@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   byId,
   deleteMatch,
+  isRegular,
   latestOpenMatch,
   listSetups,
   loadPlayersAndMatches,
@@ -80,7 +81,7 @@ export default function Home() {
   const regulars = useMemo(
     () =>
       (data?.players ?? [])
-        .filter((p) => !p.guest)
+        .filter(isRegular)
         .map((p) => ({ player: p, progress: progressFor(playerStats(data?.matches ?? [], p.id)) })),
     [data],
   );

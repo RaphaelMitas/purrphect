@@ -55,12 +55,10 @@ function Key({
 }
 
 export function TilesPad({
-  direct,
   plan,
   onDart,
   onUndo,
 }: {
-  direct: boolean;
   plan: readonly Segment[];
   onDart: (segment: Segment) => void;
   onUndo: () => void;
@@ -77,46 +75,16 @@ export function TilesPad({
   const orderOf = (segment: Segment) => planOrder(plan, (s) => s === segment);
 
   const tile = (n: BoardNumber) => {
-    const main = segmentFor(n, multiplier);
-    if (direct) {
-      return (
-        <View key={n} className="flex-1 overflow-hidden rounded-2xl bg-card">
-          <Key
-            label={label(main)}
-            onPress={() => hit(main)}
-            order={orderOf(main)}
-            className={cn("flex-[3] rounded-2xl", armed.tile)}
-          >
-            <Text className={cn("font-nunito-black text-2xl", armed.text)}>{label(main)}</Text>
-          </Key>
-          <View className="min-h-10 flex-[2] flex-row">
-            {([2, 3] as const).map((m) => {
-              const s = segmentFor(n, m);
-              return (
-                <Key
-                  key={m}
-                  label={s}
-                  onPress={() => hit(s)}
-                  order={orderOf(s)}
-                  className={cn("flex-1 rounded-xl", ARMED[m].tile)}
-                >
-                  <Text className={cn("font-nunito-black text-sm", ARMED[m].text)}>{s[0]}</Text>
-                </Key>
-              );
-            })}
-          </View>
-        </View>
-      );
-    }
+    const segment = segmentFor(n, multiplier);
     return (
       <Key
         key={n}
-        label={label(main)}
-        onPress={() => hit(main)}
+        label={label(segment)}
+        onPress={() => hit(segment)}
         order={planOrder(plan, (s) => info(s).number === n, withRing)}
         className={cn("flex-1 rounded-2xl", armed.tile)}
       >
-        <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(main)}</Text>
+        <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(segment)}</Text>
       </Key>
     );
   };

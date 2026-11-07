@@ -5,6 +5,8 @@
   "packageManager": "pnpm@11.28.5",
   "scripts": {
     "dev": "turbo run dev",
+    "ios": "pnpm --filter @purrphect/dart ios",
+    "android": "pnpm --filter @purrphect/dart android",
     "check": "biome check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
