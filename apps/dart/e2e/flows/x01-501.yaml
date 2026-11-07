@@ -18,7 +18,7 @@ appId: com.purrphect.dart
 - assertVisible: "501 · double out · first to 3"
 - tapOn: "Tiles"
 
-# Phone tiles need Triple armed for every dart; tablet tiles accept it too.
+# Triple only stays armed for one dart.
 - tapOn: "Triple"
 - runFlow:
     file: ../subflows/tap-key.yaml

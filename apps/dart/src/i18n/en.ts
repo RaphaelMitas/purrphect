@@ -5,15 +5,19 @@ export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 
 
 const ordinal = (n: number) => `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"}`;
 
+const playerCount = (n: number) => plural(n, "player", "players");
+
 export const en = {
   locale: "en",
   ordinal,
+  playerCount,
   and: (names: string[]) => names.join(" and "),
 
   back: "Back",
   close: "Close",
   save: "Save",
   add: "Add",
+  keep: "Keep",
   undo: "Undo",
   miss: "Miss",
   custom: "Custom",
@@ -39,7 +43,6 @@ export const en = {
     removeFavourite: "Remove favourite",
     discardTitle: "Discard this match?",
     discardBody: "Its darts won't count towards stats.",
-    keep: "Keep",
     discard: "Discard",
     continueMatch: "Continue match",
     standingOn: (name: string, remaining: number) => `${name} on ${remaining}`,
@@ -81,7 +84,7 @@ export const en = {
     throwingOrder: "Throwing order",
     startInvalid: "Start score between 2 and 9999.",
     legsInvalid: "First to between 1 and 99 legs.",
-    startWith: (n: number) => `Start · ${plural(n, "player", "players")}`,
+    startWith: (n: number) => `Start · ${playerCount(n)}`,
     pickPlayers: "Pick players",
     newPlayer: "New player",
     namePlaceholder: "Name",
@@ -138,6 +141,11 @@ export const en = {
   },
 
   card: {
+    deleteTitle: (name: string) => `Delete ${name}?`,
+    deleteBody: "Their finished matches stay in everyone else's stats.",
+    delete: "Delete",
+    deletePlayer: "Delete player",
+    colour: (n: number, inUse: boolean) => `Colour ${n}${inUse ? ", in use" : ""}`,
     gone: "This player doesn't exist anymore.",
     toNext: (xp: number, next: number, name: string) => `${xp} / ${next} XP · ${next - xp} to ${name}`,
     topLevel: (xp: number) => `${xp} XP · top level`,
@@ -155,7 +163,6 @@ export const en = {
     averagePerMatch: "average per match",
     recentMatches: "Recent matches",
     noMatches: "No finished matches yet.",
-    playerCount: (n: number) => plural(n, "player", "players"),
   },
 
   levels: {

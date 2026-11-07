@@ -1,4 +1,5 @@
 import { AppHeader } from "@purrphect/ui/app-header";
+import { Button } from "@purrphect/ui/button";
 import { Cat } from "@purrphect/ui/cat";
 import { useWide } from "@purrphect/ui/hooks/use-wide";
 import { usePalette } from "@purrphect/ui/lib/theme";
@@ -7,13 +8,15 @@ import { Meter } from "@purrphect/ui/meter";
 import { Panel } from "@purrphect/ui/panel";
 import { RankRow } from "@purrphect/ui/rank-row";
 import { Text } from "@purrphect/ui/text";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useMemo } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ColorSwatches } from "@/components/ColorSwatches";
 import { DartBoard } from "@/components/DartBoard";
 import { RateBars, TrendChart } from "@/components/StatCharts";
-import { byId, loadPlayersAndMatches } from "@/db/repo";
+import { byId, deletePlayer, loadPlayersAndMatches, savesSettled, setPlayerColor } from "@/db/repo";
 import { LEVELS, progressFor, XP_RULES } from "@/game/levels";
 import { doubleRates, playerStats, rangeRates } from "@/game/stats";
 import { replay, standings } from "@/game/x01";
@@ -22,11 +25,12 @@ import { useT } from "@/i18n/LanguageProvider";
 import { decimal, percent, relativeDay } from "@/lib/format";
 
 export default function PlayerCard() {
+  const db = useSQLiteContext();
   const wide = useWide();
   const palette = usePalette();
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [data] = useFocusData(loadPlayersAndMatches);
+  const [data, reload] = useFocusData(loadPlayersAndMatches);
   const players = useMemo(() => byId(data?.players ?? []), [data]);
   const player = players.get(id);
   const matches = data?.matches ?? [];
@@ -45,7 +49,7 @@ export default function PlayerCard() {
           const me = m.playerIds.indexOf(id);
           const others = m.playerIds.filter((p) => p !== id);
           const vs =
-            others.length === 1 ? (players.get(others[0] ?? "")?.name ?? "?") : t.card.playerCount(m.playerIds.length);
+            others.length === 1 ? (players.get(others[0] ?? "")?.name ?? "?") : t.playerCount(m.playerIds.length);
           const result =
             m.playerIds.length === 2
               ? `${state.legsWon[me] ?? 0} – ${state.legsWon[1 - me] ?? 0}`
@@ -64,12 +68,31 @@ export default function PlayerCard() {
     );
   }
 
-  const span = (progress.nextXp ?? progress.xp) - progress.levelXp;
-  const share = progress.nextXp ? (progress.xp - progress.levelXp) / Math.max(1, span) : 1;
+  const remove = () =>
+    Alert.alert(t.card.deleteTitle(player.name), t.card.deleteBody, [
+      { text: t.keep, style: "cancel" },
+      {
+        text: t.card.delete,
+        style: "destructive",
+        onPress: async () => {
+          await savesSettled();
+          await deletePlayer(db, player.id);
+          router.dismissTo("/");
+        },
+      },
+    ]);
+
+  const span = (progress.next?.xp ?? progress.xp) - progress.levelXp;
+  const share = progress.next ? (progress.xp - progress.levelXp) / Math.max(1, span) : 1;
 
   const profile = (
     <View className="items-center gap-3 rounded-3xl bg-card p-5">
       <Cat size={96} color={player.color} />
+      <ColorSwatches
+        value={player.color}
+        players={data?.players.filter((p) => p.id !== player.id) ?? []}
+        onChange={(color) => setPlayerColor(db, player.id, color).then(reload, console.error)}
+      />
       <Text className="font-nunito-black text-2xl">{player.name}</Text>
       <View className="rounded-full bg-butter-soft px-3 py-1">
         <Text className="font-nunito-black text-sm text-butter-ink">
@@ -79,8 +102,8 @@ export default function PlayerCard() {
       <View className="w-full gap-1">
         <Meter value={share} />
         <Text className="text-center text-xs text-muted-foreground">
-          {progress.nextXp && progress.nextLevelKey
-            ? t.card.toNext(progress.xp, progress.nextXp, t.levels[progress.nextLevelKey])
+          {progress.next
+            ? t.card.toNext(progress.xp, progress.next.xp, t.levels[progress.next.key])
             : t.card.topLevel(progress.xp)}
         </Text>
       </View>
@@ -107,6 +130,9 @@ export default function PlayerCard() {
           ))}
         </View>
       )}
+      <Button variant="ghost" size="sm" onPress={remove}>
+        <Text className="text-destructive">{t.card.deletePlayer}</Text>
+      </Button>
     </View>
   );
 

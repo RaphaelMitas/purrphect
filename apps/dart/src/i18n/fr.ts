@@ -4,15 +4,19 @@ const plural = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : m
 
 const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);
 
+const playerCount = (n: number) => plural(n, "joueur", "joueurs");
+
 export const fr = {
   locale: "fr",
   ordinal,
+  playerCount,
   and: (names: string[]) => names.join(" et "),
 
   back: "Retour",
   close: "Fermer",
   save: "Enregistrer",
   add: "Ajouter",
+  keep: "Garder",
   undo: "Annuler",
   miss: "Raté",
   custom: "Perso",
@@ -38,7 +42,6 @@ export const fr = {
     removeFavourite: "Retirer des favoris",
     discardTitle: "Supprimer ce match ?",
     discardBody: "Ses fléchettes ne compteront pas dans les stats.",
-    keep: "Garder",
     discard: "Supprimer",
     continueMatch: "Reprendre le match",
     standingOn: (name: string, remaining: number) => `${name} à ${remaining}`,
@@ -80,7 +83,7 @@ export const fr = {
     throwingOrder: "Ordre de jeu",
     startInvalid: "Score de départ entre 2 et 9999.",
     legsInvalid: "First to entre 1 et 99 legs.",
-    startWith: (n: number) => `Jouer · ${plural(n, "joueur", "joueurs")}`,
+    startWith: (n: number) => `Jouer · ${playerCount(n)}`,
     pickPlayers: "Choisis des joueurs",
     newPlayer: "Nouveau joueur",
     namePlaceholder: "Nom",
@@ -137,6 +140,11 @@ export const fr = {
   },
 
   card: {
+    deleteTitle: (name: string) => `Supprimer ${name} ?`,
+    deleteBody: "Ses matchs terminés restent dans les stats des autres.",
+    delete: "Supprimer",
+    deletePlayer: "Supprimer le joueur",
+    colour: (n: number, inUse: boolean) => `Couleur ${n}${inUse ? ", déjà prise" : ""}`,
     gone: "Ce joueur n'existe plus.",
     toNext: (xp: number, next: number, name: string) => `${xp} / ${next} XP · encore ${next - xp} avant ${name}`,
     topLevel: (xp: number) => `${xp} XP · niveau max`,
@@ -154,7 +162,6 @@ export const fr = {
     averagePerMatch: "moyenne par match",
     recentMatches: "Derniers matchs",
     noMatches: "Aucun match terminé pour l'instant.",
-    playerCount: (n: number) => plural(n, "joueur", "joueurs"),
   },
 
   levels: {

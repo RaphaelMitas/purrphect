@@ -15,7 +15,18 @@ import { ChevronDown, ChevronUp, Plus, Shuffle, X } from "lucide-react-native";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { addGuest, addPlayer, byId, createMatch, listPlayers, listSetups, type Player } from "@/db/repo";
+import { ColorSwatches } from "@/components/ColorSwatches";
+import {
+  addGuest,
+  addPlayer,
+  byId,
+  createMatch,
+  isRegular,
+  leastUsedColor,
+  listPlayers,
+  listSetups,
+  type Player,
+} from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useT } from "@/i18n/LanguageProvider";
@@ -72,6 +83,7 @@ export default function Lobby() {
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
   const [randomOrder, setRandomOrder] = useState(DEFAULT_RULES.randomOrder);
   const [adding, setAdding] = useState(false);
+  const [newColor, setNewColor] = useState("");
   const [preloaded, setPreloaded] = useState(false);
   const [starting, setStarting] = useState(false);
   const [addingGuest, setAddingGuest] = useState(false);
@@ -114,6 +126,10 @@ export default function Lobby() {
     });
   const shuffle = () => setSelected((cur) => shuffled(cur));
 
+  const openAdd = () => {
+    setNewColor(leastUsedColor(data?.players ?? []));
+    setAdding(true);
+  };
   const added = (player: Player) => {
     reload();
     toggle(player.id);
@@ -132,7 +148,7 @@ export default function Lobby() {
   };
   const full = selected.length >= MAX_PLAYERS;
 
-  const roster = (data?.players ?? []).filter((p) => !p.guest || selected.includes(p.id));
+  const roster = (data?.players ?? []).filter((p) => isRegular(p) || (!p.deleted && selected.includes(p.id)));
 
   const who = (
     <Panel title={t.lobby.whoIsPlaying} hint={`${selected.length} / ${MAX_PLAYERS}`}>
@@ -169,7 +185,7 @@ export default function Lobby() {
           );
         })}
         {[
-          { label: t.player, a11y: t.lobby.addPlayer, tint: "text-pink", onPress: () => setAdding(true) },
+          { label: t.player, a11y: t.lobby.addPlayer, tint: "text-pink", onPress: openAdd },
           {
             label: t.lobby.guest,
             a11y: t.lobby.addGuest,
@@ -340,8 +356,10 @@ export default function Lobby() {
         action={t.add}
         closeLabel={t.close}
         onOpenChange={setAdding}
-        onSubmit={async (name) => added(await addPlayer(db, name))}
-      />
+        onSubmit={async (name) => added(await addPlayer(db, name, newColor))}
+      >
+        <ColorSwatches value={newColor} players={data?.players ?? []} onChange={setNewColor} />
+      </NameDialog>
     </SafeAreaView>
   );
 }

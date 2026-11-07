@@ -1,14 +1,18 @@
 import { type Messages, plural } from "./en";
 
+const playerCount = (n: number) => `${n} Spieler`;
+
 export const de = {
   locale: "de",
   ordinal: (n: number) => `${n}.`,
+  playerCount,
   and: (names: string[]) => names.join(" und "),
 
   back: "Zurück",
   close: "Schließen",
   save: "Speichern",
   add: "Hinzufügen",
+  keep: "Behalten",
   undo: "Rückgängig",
   miss: "Miss",
   custom: "Eigene",
@@ -34,7 +38,6 @@ export const de = {
     removeFavourite: "Aus Favoriten entfernen",
     discardTitle: "Match verwerfen?",
     discardBody: "Die Darts zählen dann nicht für die Statistik.",
-    keep: "Behalten",
     discard: "Verwerfen",
     continueMatch: "Match fortsetzen",
     standingOn: (name: string, remaining: number) => `${name} auf ${remaining}`,
@@ -76,7 +79,7 @@ export const de = {
     throwingOrder: "Wurfreihenfolge",
     startInvalid: "Startwert zwischen 2 und 9999.",
     legsInvalid: "First to zwischen 1 und 99 Legs.",
-    startWith: (n: number) => `Start · ${n} Spieler`,
+    startWith: (n: number) => `Start · ${playerCount(n)}`,
     pickPlayers: "Spieler wählen",
     newPlayer: "Neuer Spieler",
     namePlaceholder: "Name",
@@ -134,6 +137,11 @@ export const de = {
   },
 
   card: {
+    deleteTitle: (name: string) => `${name} löschen?`,
+    deleteBody: "Die beendeten Matches bleiben in der Statistik der anderen.",
+    delete: "Löschen",
+    deletePlayer: "Spieler löschen",
+    colour: (n: number, inUse: boolean) => `Farbe ${n}${inUse ? ", vergeben" : ""}`,
     gone: "Diesen Spieler gibt es nicht mehr.",
     toNext: (xp: number, next: number, name: string) => `${xp} / ${next} XP · noch ${next - xp} bis ${name}`,
     topLevel: (xp: number) => `${xp} XP · höchstes Level`,
@@ -151,7 +159,6 @@ export const de = {
     averagePerMatch: "Average pro Match",
     recentMatches: "Letzte Matches",
     noMatches: "Noch keine beendeten Matches.",
-    playerCount: (n: number) => `${n} Spieler`,
   },
 
   levels: {

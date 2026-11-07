@@ -105,7 +105,8 @@ export default function MatchScreen() {
   const players = useMemo(
     () =>
       (match?.playerIds ?? []).map(
-        (pid, i): Player => known.get(pid) ?? { id: pid, name: t.player, color: playerColor(i), guest: true },
+        (pid, i): Player =>
+          known.get(pid) ?? { id: pid, name: t.player, color: playerColor(i), guest: true, deleted: false },
       ),
     [match, known, t.player],
   );
@@ -190,7 +191,7 @@ export default function MatchScreen() {
         {boardButtons}
       </>
     ) : (
-      <TilesPad direct={tablet} plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
+      <TilesPad plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
   const modes = [
