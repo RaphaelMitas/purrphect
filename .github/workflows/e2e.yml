@@ -15,7 +15,7 @@ env:
   FORCE_COLOR: 3
 
 jobs:
-  # macOS runners are scarce: pull requests test on Android, iOS runs on request and in every release's screenshot job.
+  # macOS runners are scarce: pull requests test on Android, iOS runs on request and in every release's ios job.
   ios:
     if: github.event_name == 'workflow_dispatch'
     runs-on: macos-26

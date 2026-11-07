@@ -53,12 +53,12 @@ jobs:
             esac
           fi
 
-  # Built on our runners with `eas build --local`, so releases don't use the Expo plan's build quota.
+  # --local keeps both release builds off the Expo plan's build quota.
   android:
     needs: check
     if: needs.check.outputs.release == 'true' && !inputs.dry_run
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v7
         with:
@@ -85,7 +85,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 150
     outputs:
-      shipped: ${{ steps.ship.outputs.shipped }}
+      shipped: ${{ steps.earlier.outputs.shipped || steps.ship.outputs.shipped }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -94,9 +94,29 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # EAS metadata pushes the listing text; fastlane deliver uploads the screenshots later.
-      - name: Build, submit and push the listing
+      # A re-run after a failed capture must not build and submit this version again.
+      - name: Check for an earlier ship
+        id: earlier
+        if: "!inputs.dry_run"
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          tags=$(git ls-remote --tags origin "refs/tags/$TAG")
+          [ -z "$tags" ] || echo "shipped=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build and submit
         id: ship
+        if: "!inputs.dry_run && !steps.earlier.outputs.shipped"
+        working-directory: apps/dart
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          pnpm dlx "$EAS_CLI" build --platform ios --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.ipa"
+          pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
+          echo "shipped=true" >> "$GITHUB_OUTPUT"
+
+      # EAS metadata can't upload screenshots, so store-ios-screenshots does those with fastlane deliver.
+      - name: Push listing text
         if: "!inputs.dry_run"
         working-directory: apps/dart
         env:
@@ -108,12 +128,9 @@ jobs:
           EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           EXPO_APPLE_TEAM_TYPE: ${{ vars.APPLE_TEAM_TYPE }}
         run: |
+          trap 'rm -f "$EXPO_ASC_API_KEY_PATH"' EXIT
           printf '%s' "$ASC_API_KEY_P8" > "$EXPO_ASC_API_KEY_PATH"
-          pnpm dlx "$EAS_CLI" build --platform ios --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.ipa"
-          pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
           pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
-          rm "$EXPO_ASC_API_KEY_PATH"
-          echo "shipped=true" >> "$GITHUB_OUTPUT"
 
       - name: Build simulator app
         id: app

@@ -25,11 +25,11 @@ runs:
         arch: x86_64
         target: google_apis
         profile: ${{ inputs.profile }}
-        # The software-rendered emulator ANRs the launcher with the default 2 cores.
+        # Extra cores speed up the software-rendered emulator.
         cores: 3
         emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
-        # The launcher still ANRs on the slow emulator, and hide_error_dialogs doesn't hide its dialog over the app.
+        # The launcher's ANR dialog covers the app, and hide_error_dialogs doesn't suppress it.
         script: |
           adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher
           ${{ inputs.script }}
