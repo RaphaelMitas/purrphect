@@ -24,7 +24,8 @@ const PORTAL = "theme-editor";
 const MOOD_NAMES = { bright: "Bright", soft: "Soft", dim: "Dim", dark: "Dark", black: "Black" } as const;
 const WARMTH_STOPS = [0, 25, 50, 75, 100];
 
-const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, theme));
+const displayName = (theme: Theme) => theme.name.trim() || "Untitled";
+const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, { ...theme, name: displayName(theme) }));
 
 export default function EditThemeRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -59,7 +60,7 @@ function Editor({ initial }: { initial: Theme }) {
   );
 
   const remove = () =>
-    Alert.alert(`Delete ${draft.name}?`, "Modes using it go back to Purrphect or Midnight.", [
+    Alert.alert(`Delete ${displayName(draft)}?`, "Modes using it go back to Purrphect or Midnight.", [
       { text: "Keep", style: "cancel" },
       {
         text: "Delete",
