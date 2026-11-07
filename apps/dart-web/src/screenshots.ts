@@ -27,19 +27,17 @@ const DIR = path.join(process.cwd(), "public", "screenshots");
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-function entries(value: unknown): { file: string; caption: string }[] {
+function shots(value: unknown): Shot[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((e) =>
-    isRecord(e) && typeof e.file === "string" && typeof e.caption === "string"
-      ? [{ file: e.file, caption: e.caption }]
+    isRecord(e) &&
+    typeof e.file === "string" &&
+    typeof e.caption === "string" &&
+    typeof e.width === "number" &&
+    typeof e.height === "number"
+      ? [{ src: `/screenshots/${e.file}`, caption: e.caption, width: e.width, height: e.height }]
       : [],
   );
-}
-
-async function pngSize(file: string) {
-  const png = await readFile(file);
-  if (png.toString("latin1", 12, 16) !== "IHDR") throw new Error(`${file} is not a PNG`);
-  return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
 }
 
 export async function loadScreenshots(): Promise<DeviceShots[]> {
@@ -47,18 +45,7 @@ export async function loadScreenshots(): Promise<DeviceShots[]> {
   if (!existsSync(manifestPath)) return [];
   const manifest: unknown = JSON.parse(await readFile(manifestPath, "utf8"));
   const devices = isRecord(manifest) && isRecord(manifest.devices) ? manifest.devices : {};
-  const all = await Promise.all(
-    Object.entries(DEVICES).map(async ([device, label]) => ({
-      device,
-      label,
-      shots: await Promise.all(
-        entries(devices[device]).map(async ({ file, caption }) => ({
-          src: `/screenshots/${file}`,
-          caption,
-          ...(await pngSize(path.join(DIR, file))),
-        })),
-      ),
-    })),
-  );
-  return all.filter((d) => d.shots.length > 0);
+  return Object.entries(DEVICES)
+    .map(([device, label]) => ({ device, label, shots: shots(devices[device]) }))
+    .filter((d) => d.shots.length > 0);
 }

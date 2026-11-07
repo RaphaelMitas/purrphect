@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" style="{{VARS}}">
+<html lang="en" style="{{VARS}} {{THEME}}">
   <head>
     <meta charset="utf-8" />
     <style>
@@ -9,14 +9,6 @@
         src: url("{{FONT}}") format("truetype");
       }
       :root {
-        --cream: #fff7f2;
-        --ink: #3b2a35;
-        --pink: #ff6fa3;
-        --pink-soft: #ffe3ee;
-        --mint: #5fcfae;
-        --mint-soft: #dbf5ec;
-        --butter: #ffd66b;
-        --butter-soft: #fff3d1;
         --bezel: #2e2129;
       }
       html,
@@ -28,9 +20,9 @@
       }
       body {
         position: relative;
-        background: var(--cream);
+        background: hsl(var(--background));
         font-family: "Nunito", sans-serif;
-        color: var(--ink);
+        color: hsl(var(--foreground));
       }
       .blob {
         position: absolute;
@@ -66,8 +58,6 @@
         left: var(--cat-x);
         top: var(--cat-y);
         width: var(--cat-w);
-        transform: rotate(var(--cat-tilt));
-        transform-origin: 50% 100%;
         filter: drop-shadow(0 calc(var(--u) * 0.6) calc(var(--u) * 1.2) rgba(59, 42, 53, 0.18));
       }
       .cat svg {

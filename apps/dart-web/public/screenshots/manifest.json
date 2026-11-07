@@ -3,27 +3,39 @@
     "android-phone": [
       {
         "file": "android-phone/01-board.png",
-        "caption": "Tap where it landed, the cat does the maths"
+        "caption": "Tap where it landed, the cat does the maths",
+        "width": 1440,
+        "height": 2560
       },
       {
         "file": "android-phone/02-checkout.png",
-        "caption": "Missed? The cat finds a new way out"
+        "caption": "Missed? The cat finds a new way out",
+        "width": 1440,
+        "height": 2560
       },
       {
         "file": "android-phone/03-tiles.png",
-        "caption": "Big tiles for quick scoring"
+        "caption": "Big tiles for quick scoring",
+        "width": 1440,
+        "height": 2560
       },
       {
         "file": "android-phone/04-lobby.png",
-        "caption": "Bring the whole crew, up to 12 players"
+        "caption": "Bring the whole crew, up to 12 players",
+        "width": 1440,
+        "height": 2560
       },
       {
         "file": "android-phone/05-stats.png",
-        "caption": "Watch your average climb"
+        "caption": "Watch your average climb",
+        "width": 1440,
+        "height": 2560
       },
       {
         "file": "android-phone/06-player.png",
-        "caption": "Level up from Kitten to Purrphect"
+        "caption": "Level up from Kitten to Purrphect",
+        "width": 1440,
+        "height": 2560
       }
     ]
   }

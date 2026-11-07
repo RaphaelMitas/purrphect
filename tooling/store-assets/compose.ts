@@ -3,8 +3,9 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { catSvg } from "@purrphect/ui/cat-svg";
+import tokens from "@purrphect/ui/tokens";
 import { chromium } from "playwright";
-import { catSvg } from "./cat.ts";
 
 const DEVICES = {
   iphone: { width: 1320, height: 2868, frame: "iphone", bezel: 0.035, radius: 0.13 },
@@ -18,11 +19,13 @@ type Spec = (typeof DEVICES)[Device];
 interface Caption {
   capture: string;
   caption: string;
-  cat?: string;
+  cat: string;
 }
 interface Entry {
   file: string;
   caption: string;
+  width: number;
+  height: number;
 }
 interface Manifest {
   devices: Partial<Record<Device, Entry[]>>;
@@ -31,21 +34,23 @@ interface Manifest {
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const isDevice = (name: string): name is Device => name in DEVICES;
 
-const [capturesArg, outArg = here("../../apps/dart-web/public/screenshots")] = process.argv.slice(2);
+const [capturesArg] = process.argv.slice(2);
 if (!capturesArg) {
-  console.error("Usage: node compose.ts <captures-dir> [out-dir]");
+  console.error("Usage: node compose.ts <captures-dir>");
   process.exit(1);
 }
 const capturesDir = resolve(capturesArg);
-const outDir = resolve(outArg);
+const outDir = here("../../apps/dart-web/public/screenshots");
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isCaption = (v: unknown): v is Caption =>
+  isRecord(v) && typeof v.capture === "string" && typeof v.caption === "string" && typeof v.cat === "string";
+const isEntry = (v: unknown): v is Entry =>
   isRecord(v) &&
-  typeof v.capture === "string" &&
+  typeof v.file === "string" &&
   typeof v.caption === "string" &&
-  (v.cat === undefined || typeof v.cat === "string");
-const isEntry = (v: unknown): v is Entry => isRecord(v) && typeof v.file === "string" && typeof v.caption === "string";
+  typeof v.width === "number" &&
+  typeof v.height === "number";
 
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -104,11 +109,11 @@ function decor(index: number, u: number, spec: Spec) {
   const span = Math.max(spec.width, spec.height);
   const blobs = set.blobs.map(([color, x, y, size]) => {
     const d = size * span;
-    return `<div class="blob" style="left:${px(x * spec.width - d / 2)};top:${px(y * spec.height - d / 2)};width:${px(d)};height:${px(d)};background:var(--${color})"></div>`;
+    return `<div class="blob" style="left:${px(x * spec.width - d / 2)};top:${px(y * spec.height - d / 2)};width:${px(d)};height:${px(d)};background:hsl(var(--${color}))"></div>`;
   });
   const dots = DOTS.map(
     ([x = 0, y = 0], i) =>
-      `<div class="dot" style="left:${px(x * spec.width - u)};top:${px(y * spec.height - u)};background:var(--${set.dots[i % set.dots.length]})"></div>`,
+      `<div class="dot" style="left:${px(x * spec.width - u)};top:${px(y * spec.height - u)};background:hsl(var(--${set.dots[i % set.dots.length]}))"></div>`,
   );
   return [...blobs, ...dots].join("");
 }
@@ -185,18 +190,21 @@ function render(spec: Spec, caption: Caption, index: number, png: Buffer) {
   const css = Object.entries(vars)
     .map(([k, v]) => `--${k}: ${px(v)};`)
     .join(" ");
-  const tokens: Record<string, string> = {
+  const fills: Record<string, string> = {
     VARS: css,
+    THEME: Object.entries(tokens.cssVars(tokens.light))
+      .map(([k, v]) => `${k}: ${v};`)
+      .join(" "),
     FONT: `data:font/ttf;base64,${font}`,
     DECOR: decor(index, u, spec),
     CAPTION: escapeHtml(caption.caption),
-    CAT: catSvg(caption.cat ?? "#FF6FA3"),
+    CAT: catSvg(caption.cat),
     FRAME: spec.frame,
     BUTTONS: buttons(spec.frame, u, deviceW, deviceH),
     SCREEN: `data:image/png;base64,${png.toString("base64")}`,
   };
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    const value = tokens[key];
+    const value = fills[key];
     if (value === undefined) throw new Error(`Unknown template token ${key}`);
     return value;
   });
@@ -224,6 +232,8 @@ try {
       continue;
     }
     const spec = DEVICES[device];
+    const missing = captions.filter((c) => !existsSync(join(dir, `${c.capture}.png`))).map((c) => c.capture);
+    if (missing.length) throw new Error(`${device} is missing captures: ${missing.join(", ")}`);
     await rm(join(outDir, device), { recursive: true, force: true });
     await mkdir(join(outDir, device), { recursive: true });
     const page = await browser.newPage({ viewport: { width: spec.width, height: spec.height } });
@@ -240,7 +250,7 @@ try {
       if (overflows) throw new Error(`"${caption.caption}" does not fit the ${device} caption area`);
       const file = `${device}/${String(i + 1).padStart(2, "0")}-${caption.capture}.png`;
       await page.screenshot({ path: join(outDir, file) });
-      entries.push({ file, caption: caption.caption });
+      entries.push({ file, caption: caption.caption, width: spec.width, height: spec.height });
       console.log(file);
     }
     await page.close();

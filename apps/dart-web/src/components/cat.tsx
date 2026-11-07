@@ -1,46 +1,9 @@
-import {
-  CHEEKS_X,
-  EYES_X,
-  HEAD,
-  HEAD_TRANSFORM,
-  NOSE,
-  VIEW_BOX,
-  WHISKER_SIDES,
-  WHISKERS,
-} from "@purrphect/ui/cat-paths";
+import { CAT_ASPECT, catSvg } from "@purrphect/ui/cat-svg";
 import tokens from "@purrphect/ui/tokens";
 
-const PINK = `hsl(${tokens.light.pink})`;
-const DETAIL = `hsl(${tokens.light["primary-foreground"]})`;
+const SRC = `data:image/svg+xml;utf8,${encodeURIComponent(catSvg(`hsl(${tokens.light.pink})`))}`;
 
 export function Cat({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg
-      width={size}
-      height={(size * 255) / 229}
-      viewBox={VIEW_BOX}
-      className={className}
-      aria-hidden="true"
-      focusable="false"
-    >
-      {WHISKER_SIDES.map((side) => (
-        <g key={side} transform={side} fill={PINK}>
-          {WHISKERS.map((w) => (
-            <path key={w.d} d={w.d} transform={w.transform} />
-          ))}
-        </g>
-      ))}
-      <path d={HEAD} transform={HEAD_TRANSFORM} fill={PINK} />
-      {CHEEKS_X.map((cx) => (
-        <ellipse key={cx} cx={cx} cy={122} rx={12} ry={7} fill={DETAIL} opacity={0.4} />
-      ))}
-      {EYES_X.map((x) => (
-        <g key={x} transform={`translate(${x}, 79.4965)`}>
-          <ellipse cx={14.5} cy={13.5} rx={14.5} ry={13.5} fill={DETAIL} />
-          <circle cx={18.5} cy={12.5} r={3.5} fill={PINK} />
-        </g>
-      ))}
-      <path d={NOSE} fill={DETAIL} />
-    </svg>
-  );
+  // biome-ignore lint/performance/noImgElement: an inline data-URI SVG gains nothing from next/image
+  return <img src={SRC} width={size} height={Math.round(size * CAT_ASPECT)} className={className} alt="" />;
 }

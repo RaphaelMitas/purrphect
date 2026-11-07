@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+
 env:
   FORCE_COLOR: 3
 
@@ -18,6 +21,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./tooling/github/setup
@@ -33,3 +38,6 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Build website
+        run: pnpm turbo run build --filter @purrphect/dart-web

@@ -6,10 +6,13 @@
   "type": "module",
   "exports": {
     "./tailwind-preset": "./tailwind-preset.cjs",
-    "./tokens": "./tokens.cjs",
+    "./tokens": {
+      "types": "./tokens.d.cts",
+      "default": "./tokens.cjs"
+    },
+    "./cat-svg": "./src/cat-svg.ts",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
-    "./cat-paths": "./src/cat-paths.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {

@@ -43,7 +43,7 @@ export function Gallery({ devices }: { devices: DeviceShots[] }) {
             <figure className="flex flex-col items-center gap-3">
               <Image
                 src={shot.src}
-                alt={shot.caption}
+                alt=""
                 width={shot.width}
                 height={shot.height}
                 className="h-auto max-h-[32rem] w-auto max-w-[80vw]"

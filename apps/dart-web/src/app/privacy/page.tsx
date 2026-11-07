@@ -39,7 +39,10 @@ export default function Privacy() {
       </p>
 
       <h2>Deleting your data</h2>
-      <p>Remove the app and its data is gone. Since we hold no copy, there is nothing for us to delete on our end.</p>
+      <p>
+        Remove the app and its data goes with it, unless a device backup restores it. We hold no copy, so there is
+        nothing for us to delete on our end.
+      </p>
 
       <h2>This website</h2>
       <p>

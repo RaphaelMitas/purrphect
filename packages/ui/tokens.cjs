@@ -1,4 +1,3 @@
-/** HSL triplets for the shared theme. `--name` CSS variables, consumed through tailwind-preset.cjs. */
 const tokens = {
   light: {
     background: "22 100% 97%",

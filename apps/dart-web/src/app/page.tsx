@@ -20,7 +20,7 @@ const FEATURES: { title: string; body: string; badge: ReactNode }[] = [
   },
   {
     title: "The cat calls the out",
-    body: "Every visit, the cat suggests a checkout and your odds of hitting it. Miss a dart and it has a plan B.",
+    body: "On a finish, the cat suggests the route and your odds of hitting it. No out yet? It tells you what to leave.",
     badge: <Cat size={40} />,
   },
   {

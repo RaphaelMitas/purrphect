@@ -5,9 +5,6 @@ inputs:
   script:
     description: "Commands to run once the emulator is up; each line runs in its own shell"
     required: true
-  api-level:
-    description: "Android API level of the system image"
-    default: "35"
   profile:
     description: "Hardware profile from `avdmanager list device`"
     default: "pixel_7"
@@ -22,9 +19,9 @@ runs:
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
 
-    - uses: reactivecircus/android-emulator-runner@v2
+    - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       with:
-        api-level: ${{ inputs.api-level }}
+        api-level: 35
         arch: x86_64
         target: google_apis
         profile: ${{ inputs.profile }}

@@ -8,13 +8,14 @@
     "check": "biome check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint:ws": "pnpm dlx sherif@latest",
+    "lint:ws": "sherif",
     "op": "op run --no-masking --environment wqa7rtun5ra2rlna54gukuwguu --",
     "op-prod": "op run --no-masking --environment 5ewszd5julkpo5yqszdobp27i4 --",
     "release": "node scripts/release.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "sherif": "^1.13.0",
     "turbo": "^2.11.10",
     "typescript": "catalog:"
   }

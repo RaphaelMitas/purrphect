@@ -1,7 +1,15 @@
 import * as DialogPrimitive from "@rn-primitives/dialog";
 import { X } from "lucide-react-native";
 import * as React from "react";
-import { type GestureResponderEvent, KeyboardAvoidingView, Platform, Text, View, type ViewProps } from "react-native";
+import {
+  type GestureResponderEvent,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  type ViewProps,
+} from "react-native";
 import { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 import { Icon } from "./icon";
@@ -54,12 +62,18 @@ function DialogOverlay({
           exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
           as="Pressable"
         >
-          <NativeOnlyAnimatedView
-            entering={FadeIn.delay(50).reduceMotion(ReduceMotion.System)}
-            exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={StyleSheet.absoluteFill}
+            className="items-center justify-center p-2"
           >
-            <KeyboardAvoidingView behavior="padding">{children}</KeyboardAvoidingView>
-          </NativeOnlyAnimatedView>
+            <NativeOnlyAnimatedView
+              entering={FadeIn.delay(50).reduceMotion(ReduceMotion.System)}
+              exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
+            >
+              {children}
+            </NativeOnlyAnimatedView>
+          </KeyboardAvoidingView>
         </NativeOnlyAnimatedView>
       </DialogPrimitive.Overlay>
     </FullWindowOverlay>

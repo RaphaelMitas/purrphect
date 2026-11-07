@@ -8,7 +8,7 @@ https://docs.expo.dev/versions/v58.0.0/ instead of trusting memory.
 ```bash
 pnpm typecheck                     # turbo, every package
 pnpm check                         # biome, whole repo
-pnpm test                          # turbo, vitest
+pnpm test                          # turbo: vitest + jest
 pnpm --filter @purrphect/dart ios  # dev build; Expo Go is not supported
 pnpm op <cmd> / pnpm op-prod <cmd> # run with 1Password dev / prod environment
 ```

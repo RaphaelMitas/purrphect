@@ -1,6 +1,7 @@
 import { type Palette, usePalette } from "@purrphect/ui/lib/theme";
 import { Text } from "@purrphect/ui/text";
 import * as Haptics from "expo-haptics";
+import { useColorScheme } from "nativewind";
 import { memo, useRef, useState } from "react";
 import { type GestureResponderEvent, View } from "react-native";
 import Svg, { Circle, G, Path, Rect, Text as SvgText } from "react-native-svg";
@@ -53,7 +54,23 @@ type Heat = Partial<Record<Segment, number>>;
 const LOUPE_WIDTH = 130;
 const NO_PLAN: readonly Segment[] = [];
 
-const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; plan: readonly Segment[]; heat?: Heat }) {
+// The board's own shades: in dark mode the singles must stand out from the page background.
+const BOARD = {
+  light: { face: "#FFFFFF", singleA: "#FFF7F2", singleB: "#FFE3EE" },
+  dark: { face: "#241A1F", singleA: "#2E2228", singleB: "#44283A" },
+};
+
+const Face = memo(function Face({
+  palette,
+  board,
+  plan,
+  heat,
+}: {
+  palette: Palette;
+  board: (typeof BOARD)["light"];
+  plan: readonly Segment[];
+  heat?: Heat;
+}) {
   const max = Math.max(1, ...Object.entries(heat ?? {}).flatMap(([s, n]) => (s === "Miss" ? [] : [n])));
   const fill = (segment: Segment, base: string) =>
     heat
@@ -61,15 +78,15 @@ const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; pla
           .toString(16)
           .padStart(2, "0")}`
       : base;
-  const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : palette.card);
+  const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : board.face);
   const width = (segment: Segment) => (plan.includes(segment) ? 4 : 1.5);
 
   return (
     <G>
-      <Circle r={BOARD_RADIUS - 2} fill={palette.card} />
+      <Circle r={BOARD_RADIUS - 2} fill={board.face} />
       {BOARD_ORDER.map((n, i) => {
         const odd = i % 2 === 1;
-        const single = odd ? palette.pinkSoft : palette.background;
+        const single = odd ? board.singleB : board.singleA;
         const ring = odd ? palette.mint : palette.pink;
         const parts: [Segment, string][] = [
           [segmentFor(n, 1), single],
@@ -145,6 +162,7 @@ export function DartBoard({
   onDart?: (segment: Segment) => void;
 }) {
   const palette = usePalette();
+  const { colorScheme } = useColorScheme();
   const [press, setPress] = useState<Press | null>(null);
   const last = useRef<Segment | null>(null);
   const scale = (2 * BOARD_RADIUS) / size;
@@ -190,7 +208,7 @@ export function DartBoard({
           height={size}
           viewBox={`${-BOARD_RADIUS} ${-BOARD_RADIUS} ${BOARD_RADIUS * 2} ${BOARD_RADIUS * 2}`}
         >
-          <Face palette={palette} plan={plan} heat={heat} />
+          <Face palette={palette} board={BOARD[colorScheme === "dark" ? "dark" : "light"]} plan={plan} heat={heat} />
           {press && (
             <SegmentShape segment={press.segment} fill={palette.butter} stroke={palette.foreground} strokeWidth={3} />
           )}

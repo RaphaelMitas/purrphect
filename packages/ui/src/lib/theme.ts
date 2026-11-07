@@ -13,8 +13,6 @@ export const PALETTE = {
     pinkSoft: "#FFE3EE",
     mint: "#5FCFAE",
     butter: "#FFD66B",
-    catDetail: "#FFFFFF",
-    blush: "#FFB3CD",
   },
   dark: {
     background: "#1C1418",
@@ -27,8 +25,6 @@ export const PALETTE = {
     pinkSoft: "#4A2233",
     mint: "#5FCFAE",
     butter: "#FFD66B",
-    catDetail: "#FFFFFF",
-    blush: "#FFB3CD",
   },
 } as const;
 

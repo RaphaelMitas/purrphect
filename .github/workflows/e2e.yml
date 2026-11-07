@@ -7,11 +7,11 @@ concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   FORCE_COLOR: 3
-  MAESTRO_VERSION: "2.3.0"
-  MAESTRO_CLI_NO_ANALYTICS: "1"
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
 
 jobs:
   ios:
@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./tooling/github/setup
@@ -35,9 +37,7 @@ jobs:
         uses: ./tooling/github/build-ios-sim
 
       - name: Install Maestro
-        run: |
-          curl -fsSL https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        uses: ./tooling/github/maestro
 
       - name: Install app
         env:
@@ -66,6 +66,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./tooling/github/setup
@@ -75,9 +77,7 @@ jobs:
         uses: ./tooling/github/build-android-apk
 
       - name: Install Maestro
-        run: |
-          curl -fsSL https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        uses: ./tooling/github/maestro
 
       # ANR dialogs from the slow emulator overlay the app and hide it from Maestro.
       - name: Run Maestro flows

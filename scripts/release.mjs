@@ -30,6 +30,9 @@ const next =
   { major: `${major + 1}.0.0`, minor: `${major}.${minor + 1}.0`, patch: `${major}.${minor}.${patch + 1}` }[bump] ??
   bump;
 if (!/^\d+\.\d+\.\d+$/.test(next)) fail(`Expected patch, minor, major or x.y.z, got "${bump}".`);
+const [to, from] = [next, current].map((v) => v.split(".").map(Number));
+const differs = to.findIndex((n, i) => n !== from[i]);
+if (differs === -1 || to[differs] < from[differs]) fail(`v${next} is not newer than v${current}.`);
 if (run("git", ["ls-remote", "--tags", "origin", `refs/tags/v${next}`]) !== "") fail(`v${next} is already tagged.`);
 
 console.log(`Releasing v${next} (from v${current})`);
@@ -39,17 +42,20 @@ if (dryRun) process.exit(0);
 writeFileSync(appJson, source.replace(`"version": "${current}"`, `"version": "${next}"`));
 const branch = `release/v${next}`;
 run("git", ["switch", "-c", branch]);
-run("git", ["commit", "-am", `Release v${next}`]);
-run("git", ["push", "-u", "origin", branch]);
-console.log(
-  run("gh", [
-    "pr",
-    "create",
-    "--title",
-    `Release v${next}`,
-    "--body",
-    `Bumps Dart Purrphect to v${next}. On merge, the Release workflow tags it, builds and submits through EAS, and refreshes the store screenshots.`,
-  ]),
-);
-run("gh", ["pr", "merge", "--auto", "--squash"]);
-run("git", ["switch", "main"]);
+try {
+  run("git", ["commit", "-am", `Release v${next}`]);
+  run("git", ["push", "-u", "origin", branch]);
+  console.log(
+    run("gh", [
+      "pr",
+      "create",
+      "--title",
+      `Release v${next}`,
+      "--body",
+      `Bumps Dart Purrphect to v${next}. On merge, the Release workflow builds and submits through EAS, tags it, and refreshes the store screenshots.`,
+    ]),
+  );
+  run("gh", ["pr", "merge", "--auto", "--squash"]);
+} finally {
+  run("git", ["switch", "main"]);
+}
