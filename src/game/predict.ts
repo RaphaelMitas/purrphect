@@ -47,6 +47,10 @@ export function suggest(s: MatchState): Suggestion {
   };
 }
 
-export function planOrder(plan: readonly Segment[], matches: (segment: Segment) => boolean): string {
-  return plan.flatMap((s, i) => (matches(s) ? [i + 1] : [])).join("·");
+export function planOrder(
+  plan: readonly Segment[],
+  matches: (segment: Segment) => boolean,
+  format: (segment: Segment, position: number) => string = (_, position) => String(position),
+): string {
+  return plan.flatMap((s, i) => (matches(s) ? [format(s, i + 1)] : [])).join("·");
 }

@@ -21,27 +21,16 @@ const ARMED = {
   3: { tile: "bg-pink-soft", text: "text-pink-ink" },
 } as const;
 
-function PlanBadge({ order, suffix }: { order: string; suffix?: string }) {
-  return (
-    <View className="absolute right-1 top-1 rounded-full bg-foreground px-1.5">
-      <Text className="font-nunito-black text-[10px] text-background">
-        {order}
-        {suffix ? ` · ${suffix}` : ""}
-      </Text>
-    </View>
-  );
-}
-
 function Key({
   onPress,
   className,
-  highlighted,
+  order,
   children,
   label,
 }: {
   onPress: () => void;
   className?: string;
-  highlighted?: boolean;
+  order?: string;
   children: ReactNode;
   label: string;
 }) {
@@ -52,11 +41,16 @@ function Key({
       onPress={onPress}
       className={cn(
         "items-center justify-center active:opacity-70",
-        highlighted && "border-[3px] border-foreground",
+        order && "border-[3px] border-foreground",
         className,
       )}
     >
       {children}
+      {order && (
+        <View className="absolute right-1 top-1 rounded-full bg-foreground px-1.5">
+          <Text className="font-nunito-black text-[10px] text-background">{order}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -86,32 +80,28 @@ export function TilesPad({
   const tile = (n: BoardNumber) => {
     const main = segmentFor(n, multiplier);
     if (direct) {
-      const mainOrder = orderOf(main);
       return (
         <View key={n} className="flex-1 overflow-hidden rounded-2xl bg-card">
           <Key
             label={label(main)}
             onPress={() => hit(main)}
-            highlighted={mainOrder !== ""}
+            order={orderOf(main)}
             className={cn("flex-[3] rounded-2xl", armed.tile)}
           >
             <Text className={cn("font-nunito-black text-2xl", armed.text)}>{label(main)}</Text>
-            {mainOrder && <PlanBadge order={mainOrder} />}
           </Key>
           <View className="min-h-10 flex-[2] flex-row">
             {([2, 3] as const).map((m) => {
               const s = segmentFor(n, m);
-              const order = orderOf(s);
               return (
                 <Key
                   key={m}
                   label={s}
                   onPress={() => hit(s)}
-                  highlighted={order !== ""}
+                  order={orderOf(s)}
                   className={cn("flex-1 rounded-xl", ARMED[m].tile)}
                 >
                   <Text className={cn("font-nunito-black text-sm", ARMED[m].text)}>{s[0]}</Text>
-                  {order && <PlanBadge order={order} />}
                 </Key>
               );
             })}
@@ -119,19 +109,19 @@ export function TilesPad({
         </View>
       );
     }
-    const order = planOrder(plan, (s) => info(s).number === n);
-    const planned = plan.find((s) => info(s).number === n);
-    const suffix = planned && tone(planned) !== "single" ? planned[0] : undefined;
     return (
       <Key
         key={n}
         label={label(main)}
         onPress={() => hit(main)}
-        highlighted={order !== ""}
+        order={planOrder(
+          plan,
+          (s) => info(s).number === n,
+          (s, i) => `${i}${tone(s) === "single" ? "" : s[0]}`,
+        )}
         className={cn("flex-1 rounded-2xl", armed.tile)}
       >
         <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(main)}</Text>
-        {order && <PlanBadge order={order} suffix={suffix} />}
       </Key>
     );
   };
@@ -161,17 +151,15 @@ export function TilesPad({
       ))}
       <View className="h-12 flex-row gap-2">
         {(["25", "Bull"] as const).map((s) => {
-          const order = orderOf(s);
           return (
             <Key
               key={s}
               label={s}
               onPress={() => hit(s)}
-              highlighted={order !== ""}
+              order={orderOf(s)}
               className="flex-1 rounded-2xl bg-butter-soft"
             >
               <Text className="font-nunito-black text-base text-butter-ink">{s}</Text>
-              {order && <PlanBadge order={order} />}
             </Key>
           );
         })}

@@ -17,7 +17,7 @@ export function TrendChart({ points, height = 170 }: { points: TrendPoint[]; hei
   const min = Math.floor(Math.min(...values) / 10) * 10;
   const max = Math.max(Math.ceil(Math.max(...values) / 10) * 10, min + 10);
   const x = (i: number) => 12 + (i * (width - 40)) / (points.length - 1);
-  const y = (v: number) => height - 18 - ((v - min) / Math.max(1, max - min)) * (height - 30);
+  const y = (v: number) => height - 18 - ((v - min) / (max - min)) * (height - 30);
   const path = (pick: (p: TrendPoint) => number) =>
     points.map((p, i) => `${i ? "L" : "M"}${x(i)} ${y(pick(p))}`).join("");
   const ticks = [min, (min + max) / 2, max];
