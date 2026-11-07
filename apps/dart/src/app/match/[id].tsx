@@ -35,20 +35,17 @@ import { bestRoute } from "@/game/checkout";
 import { suggest } from "@/game/predict";
 import type { Segment } from "@/game/segments";
 import { type MatchEvent, matchAverage, replay, standings, upNext } from "@/game/x01";
-import { ordinal, rulesSummary } from "@/lib/format";
+import type { Messages } from "@/i18n/en";
+import { useT } from "@/i18n/LanguageProvider";
+import { rulesSummary } from "@/lib/format";
 
-const MODES = [
-  { value: "board", label: "Board" },
-  { value: "tiles", label: "Tiles" },
-] as const;
-
-function eventMessage(e: MatchEvent | null, players: Player[]): string | null {
+function eventMessage(t: Messages, e: MatchEvent | null, players: Player[]): string | null {
   if (!e) return null;
   const name = players[e.player]?.name ?? "";
-  if (e.kind === "bust") return `Bust, ${name}!`;
-  if (e.kind === "180") return "One hundred and eighty!";
-  if (e.kind === "checkout") return `${name} finishes ${ordinal(e.place)}!`;
-  if (e.kind === "leg") return `Game shot, ${name}!`;
+  if (e.kind === "bust") return t.match.bust(name);
+  if (e.kind === "180") return t.match.oneEighty;
+  if (e.kind === "checkout") return t.match.finishes(name, t.ordinal(e.place));
+  if (e.kind === "leg") return t.match.gameShot(name);
   return null;
 }
 
@@ -67,6 +64,7 @@ export default function MatchScreen() {
   const db = useSQLiteContext();
   const wide = useWide();
   const tablet = useTablet();
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -91,7 +89,7 @@ export default function MatchScreen() {
             (pid, i) =>
               players.get(pid) ?? {
                 id: pid,
-                name: "Player",
+                name: t.player,
                 color: playerColor(i),
                 guest: true,
               },
@@ -108,7 +106,7 @@ export default function MatchScreen() {
     return () => {
       active = false;
     };
-  }, [db, id]);
+  }, [db, id, t.player]);
 
   const state = useMemo(
     () => (match ? replay(match.rules, match.playerIds.length, segments) : null),
@@ -127,7 +125,7 @@ export default function MatchScreen() {
   const throwDart = (segment: Segment) => {
     if (state.winner !== null || busy) return;
     const after = persist([...segments, segment]);
-    setToast((t) => ({ message: eventMessage(after.lastEvent, players), stamp: t.stamp + 1 }));
+    setToast((cur) => ({ message: eventMessage(t, after.lastEvent, players), stamp: cur.stamp + 1 }));
   };
   const undo = () => {
     if (segments.length && !busy) persist(segments.slice(0, -1));
@@ -180,8 +178,8 @@ export default function MatchScreen() {
   const boardButtons = (
     <View className="flex-row gap-2">
       {[
-        { label: "Miss", onPress: () => throwDart("Miss") },
-        { label: "Undo", onPress: undo },
+        { label: t.miss, onPress: () => throwDart("Miss") },
+        { label: t.undo, onPress: undo },
       ].map((b) => (
         <Button key={b.label} variant="secondary" className="h-12 flex-1 rounded-2xl" onPress={b.onPress}>
           <Text className="text-muted-foreground">{b.label}</Text>
@@ -199,18 +197,24 @@ export default function MatchScreen() {
       <TilesPad direct={tablet} plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
+  const modes = [
+    { value: "board", label: t.match.board },
+    { value: "tiles", label: t.match.tiles },
+  ] as const;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right", "bottom"]}>
       <AppHeader
-        title={`Leg ${state.leg + 1}`}
+        title={t.match.leg(state.leg + 1)}
         back
+        backLabel={t.back}
         onBack={() => leave()}
-        right={<Text className="text-xs text-muted-foreground">{rulesSummary(match.rules)}</Text>}
+        right={<Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
       />
       {wide ? (
         <View className="flex-1 flex-row">
           <View className="flex-[1.25] gap-3 border-r-2 border-border p-4">
-            <Segmented options={MODES} value={mode} onChange={changeMode} size="lg" />
+            <Segmented options={modes} value={mode} onChange={changeMode} size="lg" />
             {input}
           </View>
           <View className="flex-1 gap-3 p-4">
@@ -225,7 +229,7 @@ export default function MatchScreen() {
           <PlayerStrip entries={queue} />
           {bubble}
           <View className="h-10 flex-row">
-            <Segmented className="flex-1" options={MODES} value={mode} onChange={changeMode} />
+            <Segmented className="flex-1" options={modes} value={mode} onChange={changeMode} />
           </View>
           {input}
         </View>

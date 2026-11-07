@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import type { Rules } from "@/game/rules";
 import type { Segment } from "@/game/segments";
 import type { PlayedMatch } from "@/game/stats";
+import { isLanguagePreference, type LanguagePreference } from "@/i18n/language";
 import { shuffled } from "@/lib/shuffle";
 import { parseIds, parseRules, parseSegment } from "./parse";
 
@@ -96,9 +97,9 @@ export function addPlayer(db: SQLiteDatabase, name: string): Promise<Player> {
   return insertPlayer(db, name.trim(), false);
 }
 
-export async function addGuest(db: SQLiteDatabase): Promise<Player> {
+export async function addGuest(db: SQLiteDatabase, name: (n: number) => string): Promise<Player> {
   const row = await db.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM players WHERE guest = 1");
-  return insertPlayer(db, `Guest ${(row?.n ?? 0) + 1}`, true);
+  return insertPlayer(db, name((row?.n ?? 0) + 1), true);
 }
 
 export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
@@ -240,16 +241,34 @@ async function finishedMatches(db: SQLiteDatabase): Promise<PlayedMatch[]> {
   return rows.map((r) => ({ ...toMatch(r, byMatch.get(r.id) ?? []), finishedAt: r.finished_at ?? r.started_at }));
 }
 
+async function getPref(db: SQLiteDatabase, key: string): Promise<string | undefined> {
+  const row = await db.getFirstAsync<{ value: string }>("SELECT value FROM prefs WHERE key = ?", key);
+  return row?.value;
+}
+
+async function setPref(db: SQLiteDatabase, key: string, value: string) {
+  await db.runAsync(
+    "INSERT INTO prefs (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    key,
+    value,
+  );
+}
+
 export type InputMode = "board" | "tiles";
 
 export async function getInputMode(db: SQLiteDatabase): Promise<InputMode> {
-  const row = await db.getFirstAsync<{ value: string }>("SELECT value FROM prefs WHERE key = 'input'");
-  return row?.value === "tiles" ? "tiles" : "board";
+  return (await getPref(db, "input")) === "tiles" ? "tiles" : "board";
 }
 
 export async function setInputMode(db: SQLiteDatabase, mode: InputMode) {
-  await db.runAsync(
-    "INSERT INTO prefs (key, value) VALUES ('input', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-    mode,
-  );
+  await setPref(db, "input", mode);
+}
+
+export async function getLanguage(db: SQLiteDatabase): Promise<LanguagePreference> {
+  const value = await getPref(db, "language");
+  return value && isLanguagePreference(value) ? value : "system";
+}
+
+export async function setLanguage(db: SQLiteDatabase, language: LanguagePreference) {
+  await setPref(db, "language", language);
 }

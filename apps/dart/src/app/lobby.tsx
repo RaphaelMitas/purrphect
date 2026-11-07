@@ -18,42 +18,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { addGuest, addPlayer, byId, createMatch, listPlayers, listSetups, type Player } from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
 import { useFocusData } from "@/hooks/useFocusData";
+import { useT } from "@/i18n/LanguageProvider";
 import { shuffled } from "@/lib/shuffle";
 
-const START_OPTIONS = [
-  { value: "301", label: "301" },
-  { value: "501", label: "501" },
-  { value: "701", label: "701" },
-  { value: "custom", label: "Custom" },
-] as const;
+const START_OPTIONS = ["301", "501", "701", "custom"] as const;
 const OUT_OPTIONS = [
   { value: "double", label: "Double" },
   { value: "master", label: "Master" },
   { value: "straight", label: "Straight" },
 ] as const;
-const LEG_OPTIONS = [
-  { value: "1", label: "1" },
-  { value: "3", label: "3" },
-  { value: "5", label: "5" },
-  { value: "custom", label: "Custom" },
-] as const;
-const ORDER_OPTIONS = [
-  { value: "listed", label: "As listed" },
-  { value: "random", label: "Random each game" },
-] as const;
-const FINISH_OPTIONS = [
-  { value: "leg", label: "Leg ends" },
-  { value: "places", label: "Play out places" },
-] as const;
+const LEG_OPTIONS = ["1", "3", "5", "custom"] as const;
 
-type StartOption = (typeof START_OPTIONS)[number]["value"];
-type LegOption = (typeof LEG_OPTIONS)[number]["value"];
+type StartOption = (typeof START_OPTIONS)[number];
+type LegOption = (typeof LEG_OPTIONS)[number];
 
 const MAX_PLAYERS = 12;
 
-function pick<T extends string>(options: readonly { value: T }[], value: number, fallback: T): [T, string] {
-  const found = options.find((o) => o.value === String(value));
-  return found ? [found.value, ""] : [fallback, String(value)];
+function pick<T extends string>(options: readonly T[], value: number, fallback: T): [T, string] {
+  const found = options.find((o) => o === String(value));
+  return found ? [found, ""] : [fallback, String(value)];
+}
+
+function withCustom<T extends string>(options: readonly T[], custom: string) {
+  return options.map((value) => ({ value, label: value === "custom" ? custom : value }));
 }
 
 async function loadLobby(db: SQLiteDatabase) {
@@ -73,6 +60,7 @@ function SettingRow({ label, children }: { label: string; children: ReactNode })
 export default function Lobby() {
   const db = useSQLiteContext();
   const wide = useWide();
+  const t = useT();
   const { setup: setupId } = useLocalSearchParams<{ setup?: string }>();
   const [data, reload] = useFocusData(loadLobby);
   const [selected, setSelected] = useState<string[]>([]);
@@ -147,7 +135,7 @@ export default function Lobby() {
   const roster = (data?.players ?? []).filter((p) => !p.guest || selected.includes(p.id));
 
   const who = (
-    <Panel title="Who's playing?" hint={`${selected.length} / ${MAX_PLAYERS}`}>
+    <Panel title={t.lobby.whoIsPlaying} hint={`${selected.length} / ${MAX_PLAYERS}`}>
       <View className="flex-row flex-wrap gap-2">
         {roster.map((p) => {
           const index = selected.indexOf(p.id);
@@ -181,13 +169,14 @@ export default function Lobby() {
           );
         })}
         {[
-          { label: "Player", tint: "text-pink", onPress: () => setAdding(true) },
+          { label: t.player, a11y: t.lobby.addPlayer, tint: "text-pink", onPress: () => setAdding(true) },
           {
-            label: "Guest",
+            label: t.lobby.guest,
+            a11y: t.lobby.addGuest,
             tint: "text-muted-foreground",
             onPress: () => {
               setAddingGuest(true);
-              void addGuest(db)
+              void addGuest(db, t.lobby.guestName)
                 .then(added)
                 .catch(console.error)
                 .finally(() => setAddingGuest(false));
@@ -197,7 +186,7 @@ export default function Lobby() {
           <Pressable
             key={b.label}
             accessibilityRole="button"
-            accessibilityLabel={`Add ${b.label.toLowerCase()}`}
+            accessibilityLabel={b.a11y}
             disabled={full || addingGuest}
             onPress={b.onPress}
             className={cn(
@@ -215,24 +204,24 @@ export default function Lobby() {
 
   const order = (
     <Panel
-      title="Order"
-      hint={randomOrder ? "shuffled every game" : undefined}
+      title={t.lobby.order}
+      hint={randomOrder ? t.lobby.shuffledEveryGame : undefined}
       className="gap-1"
       right={
         <Pressable onPress={shuffle} className="flex-row items-center gap-1 rounded-full bg-pink-soft px-3 py-1.5">
           <Icon as={Shuffle} className="size-3.5 text-pink-ink" />
-          <Text className="font-nunito-black text-xs text-pink-ink">Shuffle</Text>
+          <Text className="font-nunito-black text-xs text-pink-ink">{t.lobby.shuffle}</Text>
         </Pressable>
       }
     >
-      {selected.length === 0 && <Text className="py-2 text-sm text-muted-foreground">Tap players to add them.</Text>}
+      {selected.length === 0 && <Text className="py-2 text-sm text-muted-foreground">{t.lobby.tapPlayers}</Text>}
       {selected.map((id, i) => {
         const p = players.get(id);
         if (!p) return null;
         return (
           <RankRow key={id} rank={i + 1} color={p.color} name={p.name}>
             <Pressable
-              accessibilityLabel={`Move ${p.name} up`}
+              accessibilityLabel={t.lobby.moveUp(p.name)}
               disabled={i === 0}
               onPress={() => move(i, -1)}
               className="p-1.5"
@@ -240,7 +229,7 @@ export default function Lobby() {
               <Icon as={ChevronUp} className={cn("size-5", i === 0 ? "text-muted-foreground/30" : "text-foreground")} />
             </Pressable>
             <Pressable
-              accessibilityLabel={`Move ${p.name} down`}
+              accessibilityLabel={t.lobby.moveDown(p.name)}
               disabled={i === selected.length - 1}
               onPress={() => move(i, 1)}
               className="p-1.5"
@@ -250,7 +239,7 @@ export default function Lobby() {
                 className={cn("size-5", i === selected.length - 1 ? "text-muted-foreground/30" : "text-foreground")}
               />
             </Pressable>
-            <Pressable accessibilityLabel={`Remove ${p.name}`} onPress={() => toggle(id)} className="p-1.5">
+            <Pressable accessibilityLabel={t.lobby.remove(p.name)} onPress={() => toggle(id)} className="p-1.5">
               <Icon as={X} className="size-5 text-muted-foreground" />
             </Pressable>
           </RankRow>
@@ -260,52 +249,73 @@ export default function Lobby() {
   );
 
   const settings = (
-    <Panel title="Rules">
-      <SettingRow label="Start">
+    <Panel title={t.lobby.rules}>
+      <SettingRow label={t.lobby.start}>
         <Segmented
           className="flex-1"
-          options={START_OPTIONS}
+          options={withCustom(START_OPTIONS, t.custom)}
           value={start}
           onChange={setStart}
-          custom={{ value: "custom", text: startCustom, placeholder: "1001", onChangeText: setStartCustom }}
+          custom={{
+            value: "custom",
+            label: t.lobby.customStart,
+            text: startCustom,
+            placeholder: "1001",
+            onChangeText: setStartCustom,
+          }}
         />
       </SettingRow>
-      <SettingRow label="Out">
+      <SettingRow label={t.lobby.out}>
         <Segmented className="flex-1" options={OUT_OPTIONS} value={out} onChange={setOut} />
       </SettingRow>
-      <SettingRow label="First to (legs)">
+      <SettingRow label={t.lobby.firstToLegs}>
         <Segmented
           className="flex-1"
-          options={LEG_OPTIONS}
+          options={withCustom(LEG_OPTIONS, t.custom)}
           value={legs}
           onChange={setLegs}
-          custom={{ value: "custom", text: legsCustom, placeholder: "7", onChangeText: setLegsCustom }}
+          custom={{
+            value: "custom",
+            label: t.lobby.customLegs,
+            text: legsCustom,
+            placeholder: "7",
+            onChangeText: setLegsCustom,
+          }}
         />
       </SettingRow>
-      <SettingRow label="Finish">
-        <Segmented className="flex-1" options={FINISH_OPTIONS} value={finish} onChange={setFinish} />
-      </SettingRow>
-      <SettingRow label="Throwing order">
+      <SettingRow label={t.lobby.finish}>
         <Segmented
           className="flex-1"
-          options={ORDER_OPTIONS}
+          options={[
+            { value: "leg", label: t.lobby.finishLeg },
+            { value: "places", label: t.lobby.finishPlaces },
+          ]}
+          value={finish}
+          onChange={setFinish}
+        />
+      </SettingRow>
+      <SettingRow label={t.lobby.throwingOrder}>
+        <Segmented
+          className="flex-1"
+          options={[
+            { value: "listed", label: t.lobby.orderListed },
+            { value: "random", label: t.lobby.orderRandom },
+          ]}
           value={randomOrder ? "random" : "listed"}
           onChange={(v) => setRandomOrder(v === "random")}
         />
       </SettingRow>
-      {!startValid && <Text className="text-xs text-destructive">Start score between 2 and 9999.</Text>}
-      {!legsValid && <Text className="text-xs text-destructive">First to between 1 and 99 legs.</Text>}
+      {!startValid && <Text className="text-xs text-destructive">{t.lobby.startInvalid}</Text>}
+      {!legsValid && <Text className="text-xs text-destructive">{t.lobby.legsInvalid}</Text>}
       <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
-        <Text className="text-lg">
-          {selected.length ? `Start · ${selected.length} player${selected.length > 1 ? "s" : ""}` : "Pick players"}
-        </Text>
+        <Text className="text-lg">{selected.length ? t.lobby.startWith(selected.length) : t.lobby.pickPlayers}</Text>
       </Button>
     </Panel>
   );
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <AppHeader title="New game" back />
+      <AppHeader title={t.newGame} back backLabel={t.back} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-12" keyboardShouldPersistTaps="handled">
         {wide ? (
           <View className="flex-row gap-4">
@@ -325,9 +335,9 @@ export default function Lobby() {
       </ScrollView>
       <NameDialog
         open={adding}
-        title="New player"
-        placeholder="Name"
-        action="Add"
+        title={t.lobby.newPlayer}
+        placeholder={t.lobby.namePlaceholder}
+        action={t.add}
         onOpenChange={setAdding}
         onSubmit={async (name) => added(await addPlayer(db, name))}
       />

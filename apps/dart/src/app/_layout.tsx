@@ -9,6 +9,7 @@ import { SQLiteProvider } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import { migrate } from "@/db/schema";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
@@ -18,11 +19,15 @@ export default function RootLayout() {
 
   return (
     <SQLiteProvider databaseName="dart-purrphect.db" onInit={migrate}>
-      <ThemeProvider value={NAV_THEME[scheme]}>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: PALETTE[scheme].background } }} />
-        <PortalHost />
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider value={NAV_THEME[scheme]}>
+          <StatusBar style="auto" />
+          <Stack
+            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: PALETTE[scheme].background } }}
+          />
+          <PortalHost />
+        </ThemeProvider>
+      </LanguageProvider>
     </SQLiteProvider>
   );
 }

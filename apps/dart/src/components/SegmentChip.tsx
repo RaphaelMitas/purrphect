@@ -2,6 +2,7 @@ import { cn } from "@purrphect/ui/lib/utils";
 import { Text } from "@purrphect/ui/text";
 import { View } from "react-native";
 import { label, type Segment, tone } from "@/game/segments";
+import { useT } from "@/i18n/LanguageProvider";
 
 const BOX = {
   treble: "bg-pink-soft border-pink/40",
@@ -34,11 +35,12 @@ export function SegmentChip({
   size?: keyof typeof SIZE;
   className?: string;
 }) {
-  const t = tone(segment);
+  const t = useT();
+  const kind = tone(segment);
   const [box, text] = SIZE[size];
   return (
-    <View className={cn("items-center justify-center border-2", box, BOX[t], className)}>
-      <Text className={cn("font-nunito-black", text, INK[t])}>{label(segment)}</Text>
+    <View className={cn("items-center justify-center border-2", box, BOX[kind], className)}>
+      <Text className={cn("font-nunito-black", text, INK[kind])}>{segment === "Miss" ? t.miss : label(segment)}</Text>
     </View>
   );
 }

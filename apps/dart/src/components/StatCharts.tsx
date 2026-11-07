@@ -5,13 +5,15 @@ import { Text } from "@purrphect/ui/text";
 import { View } from "react-native";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import type { TrendPoint } from "@/game/stats";
+import { useT } from "@/i18n/LanguageProvider";
 import { percent } from "@/lib/format";
 
 export function TrendChart({ points, height = 170 }: { points: TrendPoint[]; height?: number }) {
   const palette = usePalette();
+  const t = useT();
   const [{ width }, onLayout] = useLayoutSize();
   if (points.length < 2) {
-    return <Text className="py-6 text-center text-sm text-muted-foreground">Play two matches to see a trend.</Text>;
+    return <Text className="py-6 text-center text-sm text-muted-foreground">{t.stats.trendEmpty}</Text>;
   }
   const values = points.flatMap((p) => [p.average, p.first9Average]);
   const min = Math.floor(Math.min(...values) / 10) * 10;

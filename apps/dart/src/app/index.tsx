@@ -10,7 +10,7 @@ import { Panel } from "@purrphect/ui/panel";
 import { Text } from "@purrphect/ui/text";
 import { Link, router } from "expo-router";
 import { type SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
-import { BarChart3, Star } from "lucide-react-native";
+import { BarChart3, Settings, Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,6 +30,7 @@ import { progressFor } from "@/game/levels";
 import { playerStats } from "@/game/stats";
 import { replay } from "@/game/x01";
 import { useFocusData } from "@/hooks/useFocusData";
+import { useT } from "@/i18n/LanguageProvider";
 import { relativeDay, rulesSummary, setupName } from "@/lib/format";
 
 async function loadHome(db: SQLiteDatabase) {
@@ -55,10 +56,11 @@ function Avatars({ ids, players }: { ids: string[]; players: Map<string, Player>
 
 function StarButton({ setup, onToggle }: { setup: Setup; onToggle: () => void }) {
   const palette = usePalette();
+  const t = useT();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={setup.favorite ? "Remove favourite" : "Add favourite"}
+      accessibilityLabel={setup.favorite ? t.home.removeFavourite : t.home.addFavourite}
       onPress={onToggle}
       hitSlop={10}
     >
@@ -74,6 +76,7 @@ function StarButton({ setup, onToggle }: { setup: Setup; onToggle: () => void })
 export default function Home() {
   const db = useSQLiteContext();
   const wide = useWide();
+  const t = useT();
   const [data, reload] = useFocusData(loadHome);
   const [renaming, setRenaming] = useState<Setup | null>(null);
   const players = useMemo(() => byId(data?.players ?? []), [data?.players]);
@@ -97,10 +100,10 @@ export default function Home() {
   const openState = open ? replay(open.rules, open.playerIds.length, open.segments) : null;
   const openPlayer = open && openState ? players.get(open.playerIds[openState.current] ?? "") : undefined;
   const discard = (matchId: string) =>
-    Alert.alert("Discard this match?", "Its darts won't count towards stats.", [
-      { text: "Keep", style: "cancel" },
+    Alert.alert(t.home.discardTitle, t.home.discardBody, [
+      { text: t.home.keep, style: "cancel" },
       {
-        text: "Discard",
+        text: t.home.discard,
         style: "destructive",
         onPress: async () => {
           await savesSettled();
@@ -119,24 +122,25 @@ export default function Home() {
         >
           <Cat size={40} color={openPlayer?.color} />
           <View className="flex-1">
-            <Text className="font-nunito-black text-base">Continue match</Text>
+            <Text className="font-nunito-black text-base">{t.home.continueMatch}</Text>
             <Text className="text-xs text-muted-foreground">
-              {rulesSummary(open.rules)} · {openPlayer?.name} on {openState.remaining[openState.current]}
+              {rulesSummary(t, open.rules)} ·{" "}
+              {t.home.standingOn(openPlayer?.name ?? "", openState.remaining[openState.current] ?? 0)}
             </Text>
           </View>
           <Button variant="ghost" size="sm" onPress={() => discard(open.id)}>
-            <Text className="text-muted-foreground">Discard</Text>
+            <Text className="text-muted-foreground">{t.home.discard}</Text>
           </Button>
-          <Text className="font-nunito-black text-pink-ink">Resume</Text>
+          <Text className="font-nunito-black text-pink-ink">{t.home.resume}</Text>
         </Pressable>
       )}
       <Button size="lg" className="h-16 rounded-3xl" onPress={() => router.push("/lobby")}>
-        <Text className="text-xl">New game</Text>
+        <Text className="text-xl">{t.newGame}</Text>
       </Button>
 
-      <Panel title="Favourites" hint={favourites.length > 0 ? "long press to name" : undefined}>
+      <Panel title={t.home.favourites} hint={favourites.length > 0 ? t.home.longPressToName : undefined}>
         {favourites.length === 0 ? (
-          <Text className="text-sm text-muted-foreground">Star a recent setup to keep it here.</Text>
+          <Text className="text-sm text-muted-foreground">{t.home.favouritesEmpty}</Text>
         ) : (
           <View className="flex-row flex-wrap gap-2">
             {favourites.map((s) => (
@@ -152,7 +156,7 @@ export default function Home() {
                   </Text>
                   <StarButton setup={s} onToggle={() => toggleFavorite(s)} />
                 </View>
-                <Text className="text-xs text-muted-foreground">{rulesSummary(s.rules)}</Text>
+                <Text className="text-xs text-muted-foreground">{rulesSummary(t, s.rules)}</Text>
                 <Avatars ids={s.playerIds} players={players} />
               </Pressable>
             ))}
@@ -160,8 +164,8 @@ export default function Home() {
         )}
       </Panel>
 
-      <Panel title="Recent" className="gap-1">
-        {recents.length === 0 && <Text className="text-sm text-muted-foreground">Your games show up here.</Text>}
+      <Panel title={t.home.recent} className="gap-1">
+        {recents.length === 0 && <Text className="text-sm text-muted-foreground">{t.home.recentEmpty}</Text>}
         {recents.map((s) => (
           <Pressable
             key={s.id}
@@ -174,11 +178,11 @@ export default function Home() {
                 {setupName(s, players)}
               </Text>
               <Text className="text-xs text-muted-foreground" numberOfLines={1}>
-                {rulesSummary(s.rules)}
+                {rulesSummary(t, s.rules)}
               </Text>
             </View>
             <Avatars ids={s.playerIds} players={players} />
-            <Text className="w-16 text-right text-xs text-muted-foreground">{relativeDay(s.lastUsedAt)}</Text>
+            <Text className="w-16 text-right text-xs text-muted-foreground">{relativeDay(t, s.lastUsedAt)}</Text>
           </Pressable>
         ))}
       </Panel>
@@ -186,10 +190,8 @@ export default function Home() {
   );
 
   const people = (
-    <Panel title="Players" className="gap-1">
-      {regulars.length === 0 && (
-        <Text className="text-sm text-muted-foreground">Add players when you start a game.</Text>
-      )}
+    <Panel title={t.players} className="gap-1">
+      {regulars.length === 0 && <Text className="text-sm text-muted-foreground">{t.home.playersEmpty}</Text>}
       {regulars.map(({ player: p, progress }) => (
         <Link key={p.id} href={`/player/${p.id}`} asChild>
           <Pressable className="flex-row items-center gap-3 border-t border-border py-2 active:opacity-70">
@@ -197,7 +199,7 @@ export default function Home() {
             <View className="flex-1">
               <Text className="font-nunito-bold text-base">{p.name}</Text>
               <Text className="text-xs text-muted-foreground">
-                Lv. {progress.level} · {progress.name}
+                {t.level(progress.level)} · {t.levels[progress.levelKey]}
               </Text>
             </View>
             <Text className="text-xs text-muted-foreground">{progress.xp} XP</Text>
@@ -212,11 +214,18 @@ export default function Home() {
       <AppHeader
         title="Dart Purrphect"
         right={
-          <Link href="/stats" asChild>
-            <Button variant="ghost" size="icon" accessibilityLabel="Statistics" className="rounded-full">
-              <Icon as={BarChart3} className="size-6 text-foreground" />
-            </Button>
-          </Link>
+          <>
+            <Link href="/stats" asChild>
+              <Button variant="ghost" size="icon" accessibilityLabel={t.statistics} className="rounded-full">
+                <Icon as={BarChart3} className="size-6 text-foreground" />
+              </Button>
+            </Link>
+            <Link href="/settings" asChild>
+              <Button variant="ghost" size="icon" accessibilityLabel={t.settings} className="rounded-full">
+                <Icon as={Settings} className="size-6 text-foreground" />
+              </Button>
+            </Link>
+          </>
         }
       />
       <ScrollView contentContainerClassName="p-4 pb-12">
@@ -234,10 +243,10 @@ export default function Home() {
       </ScrollView>
       <NameDialog
         open={renaming !== null}
-        title="Name this setup"
+        title={t.home.nameSetup}
         initial={renaming?.name ?? ""}
-        placeholder="Thursday crew"
-        action="Save"
+        placeholder={t.home.setupPlaceholder}
+        action={t.save}
         optional
         onOpenChange={(o) => !o && setRenaming(null)}
         onSubmit={async (name) => {

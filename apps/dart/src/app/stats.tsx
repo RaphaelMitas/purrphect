@@ -15,17 +15,14 @@ import { loadPlayersAndMatches } from "@/db/repo";
 import { DAY } from "@/game/levels";
 import { doubleRates, playerStats } from "@/game/stats";
 import { useFocusData } from "@/hooks/useFocusData";
-import { percent } from "@/lib/format";
+import { useT } from "@/i18n/LanguageProvider";
+import { decimal, percent } from "@/lib/format";
 
-const RANGES = [
-  { value: "7", label: "7 days" },
-  { value: "30", label: "30 days" },
-  { value: "all", label: "All" },
-] as const;
-type Range = (typeof RANGES)[number]["value"];
+type Range = "7" | "30" | "all";
 
 export default function Stats() {
   const wide = useWide();
+  const t = useT();
   const [data] = useFocusData(loadPlayersAndMatches);
   const [range, setRange] = useState<Range>("30");
   const [chosen, setChosen] = useState<string | null>(null);
@@ -49,25 +46,25 @@ export default function Stats() {
     !player || !stats ? (
       <View className="items-center gap-3 py-16">
         <Cat size={72} />
-        <Text className="text-muted-foreground">Finish a match to see statistics.</Text>
+        <Text className="text-muted-foreground">{t.stats.empty}</Text>
       </View>
     ) : (
       <View className="gap-4">
         <View className="flex-row flex-wrap gap-3">
-          <Kpi label="3-dart avg" value={stats.average.toFixed(1)} />
-          <Kpi label="First 9 avg" value={stats.first9Average.toFixed(1)} />
-          <Kpi label="Checkout" value={percent(stats.checkoutRate)} />
-          <Kpi label="180s" value={String(stats.bands["180"])} />
-          <Kpi label="High finish" value={String(stats.highestFinish || "–")} />
-          <Kpi label="Best leg" value={stats.bestLegDarts ? `${stats.bestLegDarts} darts` : "–"} />
+          <Kpi label={t.stats.average} value={decimal(t, stats.average)} />
+          <Kpi label={t.stats.first9} value={decimal(t, stats.first9Average)} />
+          <Kpi label={t.stats.checkout} value={percent(stats.checkoutRate)} />
+          <Kpi label={t.stats.oneEighties} value={String(stats.bands["180"])} />
+          <Kpi label={t.stats.highFinish} value={String(stats.highestFinish || "–")} />
+          <Kpi label={t.stats.bestLeg} value={stats.bestLegDarts ? t.darts(stats.bestLegDarts) : "–"} />
         </View>
         <View className={cn("gap-4", wide && "flex-row")}>
           <View className="flex-[3] gap-4">
-            <Panel title="Average per match" hint="pink 3-dart · mint first 9">
+            <Panel title={t.stats.averagePerMatch} hint={t.stats.trendHint}>
               <TrendChart points={stats.trend} />
             </Panel>
             <View className={cn("gap-4", wide && "flex-row")}>
-              <Panel title="Visits" className="flex-1">
+              <Panel title={t.stats.visits} className="flex-1">
                 <ColumnBars
                   data={[
                     { label: "60+", value: stats.bands["60+"] },
@@ -78,22 +75,22 @@ export default function Stats() {
                   ]}
                 />
               </Panel>
-              <Panel title="Double hit rate" hint="darts at double" className="flex-1">
+              <Panel title={t.stats.doubleRate} hint={t.stats.dartsAtDouble} className="flex-1">
                 {Object.keys(stats.doubles).length ? (
                   <RateBars rows={doubleRates(stats)} tone="mint" />
                 ) : (
-                  <Text className="text-sm text-muted-foreground">No double attempts yet.</Text>
+                  <Text className="text-sm text-muted-foreground">{t.stats.noDoubles}</Text>
                 )}
               </Panel>
             </View>
           </View>
-          <Panel title="Where darts land" hint={`${stats.darts} darts`} className="flex-[2] items-center">
+          <Panel title={t.stats.whereDartsLand} hint={t.darts(stats.darts)} className="flex-[2] items-center">
             <DartBoard size={wide ? 340 : 300} heat={stats.heat} />
           </Panel>
         </View>
         <Link href={`/player/${player.id}`} asChild>
           <Pressable className="items-center rounded-2xl bg-pink-soft py-3 active:opacity-70">
-            <Text className="font-nunito-black text-pink-ink">Open {player.name}'s player card</Text>
+            <Text className="font-nunito-black text-pink-ink">{t.stats.openCard(player.name)}</Text>
           </Pressable>
         </Link>
       </View>
@@ -101,7 +98,7 @@ export default function Stats() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <AppHeader title="Statistics" back />
+      <AppHeader title={t.statistics} back backLabel={t.back} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-12">
         <View className={cn("gap-3", wide && "flex-row items-center")}>
           <ScrollView
@@ -126,7 +123,16 @@ export default function Stats() {
             ))}
           </ScrollView>
           <View className={cn("flex-row", wide ? "w-72" : "")}>
-            <Segmented className="flex-1" options={RANGES} value={range} onChange={setRange} />
+            <Segmented
+              className="flex-1"
+              options={[
+                { value: "7", label: t.stats.days(7) },
+                { value: "30", label: t.stats.days(30) },
+                { value: "all", label: t.stats.all },
+              ]}
+              value={range}
+              onChange={setRange}
+            />
           </View>
         </View>
         {body}

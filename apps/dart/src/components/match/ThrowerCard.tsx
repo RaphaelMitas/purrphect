@@ -5,6 +5,8 @@ import { View } from "react-native";
 import { SegmentChip } from "@/components/SegmentChip";
 import type { Player } from "@/db/repo";
 import { label, type Segment } from "@/game/segments";
+import { useT } from "@/i18n/LanguageProvider";
+import { decimal } from "@/lib/format";
 
 function DartSlots({
   thrown,
@@ -67,6 +69,7 @@ export function ThrowerCard({
   plan: readonly Segment[];
   compact?: boolean;
 }) {
+  const t = useT();
   return (
     <View className="gap-3 rounded-3xl border-[3px] bg-card p-3" style={{ borderColor: player.color }}>
       <View className="flex-row items-center gap-3">
@@ -77,12 +80,12 @@ export function ThrowerCard({
               {player.name}
             </Text>
             <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: player.color }}>
-              <Text className="font-nunito-black text-[10px] text-white">THROWING</Text>
+              <Text className="font-nunito-black text-[10px] text-white">{t.match.throwing}</Text>
             </View>
           </View>
           <Text className="text-xs text-muted-foreground">
-            avg <Text className="font-nunito-black text-xs">{average.toFixed(1)}</Text> · visit{" "}
-            <Text className="font-nunito-black text-xs">{visitScore}</Text> · legs{" "}
+            {t.match.avg} <Text className="font-nunito-black text-xs">{decimal(t, average)}</Text> · {t.match.visit}{" "}
+            <Text className="font-nunito-black text-xs">{visitScore}</Text> · {t.match.legs}{" "}
             <Text className="font-nunito-black text-xs">{legsWon}</Text>
           </Text>
         </View>

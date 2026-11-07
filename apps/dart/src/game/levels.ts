@@ -1,47 +1,41 @@
 import type { PlayerStats } from "./stats";
 
 export const LEVELS = [
-  { name: "Kitten", xp: 0 },
-  { name: "Yarn Chaser", xp: 150 },
-  { name: "Alley Cat", xp: 400 },
-  { name: "House Panther", xp: 750 },
-  { name: "Tomcat", xp: 1200 },
-  { name: "Whisker Wizard", xp: 1750 },
-  { name: "Purrfessional", xp: 2300 },
-  { name: "Top Cat", xp: 3000 },
-  { name: "Lionheart", xp: 4500 },
-  { name: "Purrphect", xp: 6500 },
+  { key: "kitten", xp: 0 },
+  { key: "yarnChaser", xp: 150 },
+  { key: "alleyCat", xp: 400 },
+  { key: "housePanther", xp: 750 },
+  { key: "tomcat", xp: 1200 },
+  { key: "whiskerWizard", xp: 1750 },
+  { key: "purrfessional", xp: 2300 },
+  { key: "topCat", xp: 3000 },
+  { key: "lionheart", xp: 4500 },
+  { key: "purrphect", xp: 6500 },
 ] as const;
+
+export type LevelKey = (typeof LEVELS)[number]["key"];
 
 export const XP_RULES = [
-  { key: "legPlayed", label: "Leg played", xp: 20 },
-  { key: "legWon", label: "Leg won", xp: 50 },
-  { key: "ton", label: "100+ visit", xp: 10 },
-  { key: "oneEighty", label: "180", xp: 100 },
-  { key: "bigFinish", label: "100+ finish", xp: 80 },
-  { key: "streakDay", label: "Daily streak", xp: 30 },
+  { key: "legPlayed", xp: 20 },
+  { key: "legWon", xp: 50 },
+  { key: "ton", xp: 10 },
+  { key: "oneEighty", xp: 100 },
+  { key: "bigFinish", xp: 80 },
+  { key: "streakDay", xp: 30 },
 ] as const;
 
-type XpKey = (typeof XP_RULES)[number]["key"];
+export type XpKey = (typeof XP_RULES)[number]["key"];
 
 export type BadgeKey = "first180" | "bigFinish" | "bullFinish" | "streak5" | "fifteenDarter";
-
-export const BADGES: Record<BadgeKey, string> = {
-  first180: "First 180",
-  bigFinish: "100+ finish",
-  bullFinish: "Bull finish",
-  streak5: "5 day streak",
-  fifteenDarter: "15 darter",
-};
 
 export interface Progress {
   xp: number;
   counts: Record<XpKey, number>;
   level: number;
-  name: string;
+  levelKey: LevelKey;
   levelXp: number;
   nextXp: number | null;
-  nextName: string | null;
+  nextLevelKey: LevelKey | null;
   badges: BadgeKey[];
   bestStreak: number;
 }
@@ -82,10 +76,10 @@ export function progressFor(stats: PlayerStats): Progress {
     xp,
     counts,
     level: index + 1,
-    name: current.name,
+    levelKey: current.key,
     levelXp: current.xp,
     nextXp: next?.xp ?? null,
-    nextName: next?.name ?? null,
+    nextLevelKey: next?.key ?? null,
     badges: [...badges],
     bestStreak,
   };

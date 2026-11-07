@@ -48,7 +48,8 @@
         }
       ],
       "expo-sqlite",
-      "expo-font"
+      "expo-font",
+      ["expo-localization", { "supportedLocales": ["en", "de", "fr"] }]
     ],
     "experiments": {
       "typedRoutes": true
