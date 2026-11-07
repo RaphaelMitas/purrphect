@@ -3,6 +3,7 @@ import {
   addPlayer,
   createMatch,
   type Player,
+  playerColor,
   recordSetupUse,
   renameSetup,
   saveDarts,
@@ -143,7 +144,7 @@ export async function seedDemo(db: SQLiteDatabase) {
 
   const players: Player[] = [];
   for (const [i, p] of PLAYERS.entries()) {
-    const player = await addPlayer(db, p.name);
+    const player = await addPlayer(db, p.name, playerColor(i));
     await db.runAsync("UPDATE players SET created_at = ? WHERE id = ?", i, player.id);
     players.push(player);
   }

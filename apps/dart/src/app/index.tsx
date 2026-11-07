@@ -80,7 +80,7 @@ export default function Home() {
   const regulars = useMemo(
     () =>
       (data?.players ?? [])
-        .filter((p) => !p.guest)
+        .filter((p) => !p.guest && !p.deleted)
         .map((p) => ({ player: p, progress: progressFor(playerStats(data?.matches ?? [], p.id)) })),
     [data],
   );

@@ -32,7 +32,7 @@ export default function Stats() {
 
   const played = useMemo(() => {
     const ids = new Set(data?.matches.flatMap((m) => m.playerIds));
-    return (data?.players ?? []).filter((p) => ids.has(p.id) && !p.guest);
+    return (data?.players ?? []).filter((p) => ids.has(p.id) && !p.guest && !p.deleted);
   }, [data]);
   const player = played.find((p) => p.id === chosen) ?? played[0];
 

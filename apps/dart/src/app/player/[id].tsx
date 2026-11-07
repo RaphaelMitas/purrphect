@@ -1,4 +1,5 @@
 import { AppHeader } from "@purrphect/ui/app-header";
+import { Button } from "@purrphect/ui/button";
 import { Cat } from "@purrphect/ui/cat";
 import { useWide } from "@purrphect/ui/hooks/use-wide";
 import { usePalette } from "@purrphect/ui/lib/theme";
@@ -7,13 +8,15 @@ import { Meter } from "@purrphect/ui/meter";
 import { Panel } from "@purrphect/ui/panel";
 import { RankRow } from "@purrphect/ui/rank-row";
 import { Text } from "@purrphect/ui/text";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useMemo } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ColorSwatches } from "@/components/ColorSwatches";
 import { DartBoard } from "@/components/DartBoard";
 import { RateBars, TrendChart } from "@/components/StatCharts";
-import { byId, loadPlayersAndMatches } from "@/db/repo";
+import { byId, deletePlayer, loadPlayersAndMatches, savesSettled, setPlayerColor } from "@/db/repo";
 import { BADGES, LEVELS, progressFor, XP_RULES } from "@/game/levels";
 import { doubleRates, playerStats, rangeRates } from "@/game/stats";
 import { replay, standings } from "@/game/x01";
@@ -21,10 +24,11 @@ import { useFocusData } from "@/hooks/useFocusData";
 import { ordinal, percent, relativeDay } from "@/lib/format";
 
 export default function PlayerCard() {
+  const db = useSQLiteContext();
   const wide = useWide();
   const palette = usePalette();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [data] = useFocusData(loadPlayersAndMatches);
+  const [data, reload] = useFocusData(loadPlayersAndMatches);
   const players = useMemo(() => byId(data?.players ?? []), [data]);
   const player = players.get(id);
   const matches = data?.matches ?? [];
@@ -62,12 +66,31 @@ export default function PlayerCard() {
     );
   }
 
+  const remove = () =>
+    Alert.alert(`Delete ${player.name}?`, "Their finished matches stay in everyone else's stats.", [
+      { text: "Keep", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await savesSettled();
+          await deletePlayer(db, player.id);
+          router.dismissTo("/");
+        },
+      },
+    ]);
+
   const span = (progress.nextXp ?? progress.xp) - progress.levelXp;
   const share = progress.nextXp ? (progress.xp - progress.levelXp) / Math.max(1, span) : 1;
 
   const profile = (
     <View className="items-center gap-3 rounded-3xl bg-card p-5">
       <Cat size={96} color={player.color} />
+      <ColorSwatches
+        value={player.color}
+        players={data?.players ?? []}
+        onChange={(color) => setPlayerColor(db, player.id, color).then(reload, console.error)}
+      />
       <Text className="font-nunito-black text-2xl">{player.name}</Text>
       <View className="rounded-full bg-butter-soft px-3 py-1">
         <Text className="font-nunito-black text-sm text-butter-ink">
@@ -105,6 +128,9 @@ export default function PlayerCard() {
           ))}
         </View>
       )}
+      <Button variant="ghost" size="sm" onPress={remove}>
+        <Text className="text-destructive">Delete player</Text>
+      </Button>
     </View>
   );
 

@@ -86,7 +86,9 @@ export function ThrowerCard({
             <Text className="font-nunito-black text-xs">{legsWon}</Text>
           </Text>
         </View>
-        <Text className={cn("font-nunito-black", compact ? "text-5xl" : "text-6xl")}>{remaining}</Text>
+        <Text className={cn("font-nunito-black", compact ? "text-5xl leading-[60px]" : "text-6xl leading-[72px]")}>
+          {remaining}
+        </Text>
       </View>
       <DartSlots thrown={thrown} plan={plan} compact={compact} />
     </View>
