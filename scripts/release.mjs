@@ -39,7 +39,9 @@ console.log(`Releasing v${next} (from v${current})`);
 if (dryRun) process.exit(0);
 
 const branch = `release/v${next}`;
-if (run("git", ["branch", "--list", branch]) !== "") fail(`Delete the local ${branch} branch from a failed run first.`);
+if (run("git", ["branch", "--list", branch]) !== "" || run("git", ["ls-remote", "--heads", "origin", branch]) !== "") {
+  fail(`Delete ${branch} locally and on origin; it is left over from a failed run.`);
+}
 run("git", ["switch", "-c", branch]);
 try {
   // A text edit keeps app.json formatted the way Biome wants it.
