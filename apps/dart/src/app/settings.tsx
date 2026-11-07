@@ -1,13 +1,22 @@
 import { AppHeader } from "@purrphect/ui/app-header";
+import { Icon } from "@purrphect/ui/icon";
 import { Panel } from "@purrphect/ui/panel";
 import { Segmented } from "@purrphect/ui/segmented";
-import { ScrollView } from "react-native";
+import { Text } from "@purrphect/ui/text";
+import { Link } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useThemes } from "@/hooks/useThemes";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { LANGUAGE_OPTIONS } from "@/i18n/language";
+import { slotTheme, themeName } from "@/lib/themes";
 
 export default function Settings() {
   const { t, preference, setPreference } = useLanguage();
+  const themes = useThemes();
+  const light = themeName(slotTheme(themes, "light"), t);
+  const dark = themeName(slotTheme(themes, "dark"), t);
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
       <AppHeader title={t.settings} back backLabel={t.back} />
@@ -18,6 +27,25 @@ export default function Settings() {
             value={preference}
             onChange={setPreference}
           />
+        </Panel>
+        <Panel title={t.theme.title}>
+          <Link href="/theme" asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${t.theme.title}: ${t.theme.lightMode} ${light}, ${t.theme.darkMode} ${dark}`}
+              className="flex-row items-center gap-3 active:opacity-70"
+            >
+              <View className="flex-1 gap-0.5">
+                <Text className="font-nunito-bold text-base">
+                  {t.theme.lightMode}: {light}
+                </Text>
+                <Text className="text-sm text-muted-foreground">
+                  {t.theme.darkMode}: {dark}
+                </Text>
+              </View>
+              <Icon as={ChevronRight} className="size-5 text-muted-foreground" />
+            </Pressable>
+          </Link>
         </Panel>
       </ScrollView>
     </SafeAreaView>

@@ -10,7 +10,7 @@ import { Panel } from "@purrphect/ui/panel";
 import { Text } from "@purrphect/ui/text";
 import { Link, router } from "expo-router";
 import { type SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
-import { BarChart3, Palette, Settings, Star } from "lucide-react-native";
+import { BarChart3, Settings, Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -216,11 +216,6 @@ export default function Home() {
         title="Dart Purrphect"
         right={
           <>
-            <Link href="/theme" asChild>
-              <Button variant="ghost" size="icon" accessibilityLabel={t.theme.title} className="rounded-full">
-                <Icon as={Palette} className="size-6 text-foreground" />
-              </Button>
-            </Link>
             <Link href="/stats" asChild>
               <Button variant="ghost" size="icon" accessibilityLabel={t.statistics} className="rounded-full">
                 <Icon as={BarChart3} className="size-6 text-foreground" />
