@@ -37,10 +37,13 @@ yarn-error.*
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+ios/
+android/
 
 # secrets
 .env
 credentials.json
 .claude/settings.local.json
+
+# turbo
+.turbo
