@@ -82,12 +82,10 @@ jobs:
       - name: Install Maestro
         uses: ./tooling/github/maestro
 
-      # ANR dialogs from the slow emulator overlay the app and hide it from Maestro.
       - name: Run Maestro flows
         uses: ./tooling/github/android-emulator
         with:
           script: |
-            adb shell settings put global hide_error_dialogs 1
             adb install "${{ steps.build.outputs.apk-path }}"
             cd apps/dart && pnpm e2e
 

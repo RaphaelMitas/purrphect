@@ -29,4 +29,7 @@ runs:
         cores: 3
         emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
-        script: ${{ inputs.script }}
+        # The launcher still ANRs on the slow emulator, and hide_error_dialogs doesn't hide its dialog over the app.
+        script: |
+          adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher
+          ${{ inputs.script }}

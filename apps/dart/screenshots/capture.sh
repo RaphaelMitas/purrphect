@@ -19,7 +19,6 @@ case "$device" in
     ;;
   android-*)
     adb -s "$target" install "$app"
-    adb -s "$target" shell settings put global hide_error_dialogs 1
     adb -s "$target" shell cmd uimode night no
     adb -s "$target" shell settings put global sysui_demo_allowed 1
     demo() { adb -s "$target" shell am broadcast -a com.android.systemui.demo -e command "$@"; }
