@@ -9,19 +9,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-java@v6
-      with:
-        distribution: temurin
-        java-version: 17
+    - uses: ./tooling/github/android-toolchain
 
     - shell: bash
       working-directory: apps/dart
       run: pnpm expo prebuild --platform android --no-install
-
-    # The template's 512m Metaspace cap OOMs the Gradle daemon; the later duplicate key wins.
-    - shell: bash
-      working-directory: apps/dart/android
-      run: printf '\norg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g\n' >> gradle.properties
 
     # The Expo template signs release builds with the debug keystore, so the APK installs as-is.
     - id: build

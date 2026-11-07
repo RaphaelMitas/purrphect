@@ -53,11 +53,12 @@ jobs:
             esac
           fi
 
-  eas-build-submit:
+  # Built on our runners with `eas build --local`, so releases don't use the Expo plan's build quota.
+  android:
     needs: check
     if: needs.check.outputs.release == 'true' && !inputs.dry_run
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
         with:
@@ -66,34 +67,25 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # Builds and store submissions run on EAS; this waits so a failure shows up here.
-      - name: Build and submit with EAS
+      - name: Android toolchain
+        uses: ./tooling/github/android-toolchain
+
+      - name: Build and submit
         working-directory: apps/dart
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: pnpm dlx "$EAS_CLI" build --platform all --profile production --auto-submit --non-interactive
-
-  # Tagged only after a successful build, so a failed run can simply be re-run.
-  tag:
-    needs: [check, eas-build-submit]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    steps:
-      - name: Tag and create the GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.check.outputs.tag }}
         run: |
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          pnpm dlx "$EAS_CLI" build --platform android --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.aab"
+          pnpm dlx "$EAS_CLI" submit --platform android --profile production --non-interactive --path "$RUNNER_TEMP/dart.aab"
 
-  screenshots-ios:
+  # One macOS job ships the build and then captures the screenshots, since macOS runners are scarce.
+  ios:
     needs: check
     if: needs.check.outputs.release == 'true'
     runs-on: macos-26
-    timeout-minutes: 90
+    timeout-minutes: 150
+    outputs:
+      shipped: ${{ steps.ship.outputs.shipped }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -101,6 +93,27 @@ jobs:
 
       - name: Setup
         uses: ./tooling/github/setup
+
+      # EAS metadata pushes the listing text; fastlane deliver uploads the screenshots later.
+      - name: Build, submit and push the listing
+        id: ship
+        if: "!inputs.dry_run"
+        working-directory: apps/dart
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: ${{ vars.APPLE_TEAM_TYPE }}
+        run: |
+          printf '%s' "$ASC_API_KEY_P8" > "$EXPO_ASC_API_KEY_PATH"
+          pnpm dlx "$EAS_CLI" build --platform ios --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.ipa"
+          pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
+          pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
+          rm "$EXPO_ASC_API_KEY_PATH"
+          echo "shipped=true" >> "$GITHUB_OUTPUT"
 
       - name: Build simulator app
         id: app
@@ -146,6 +159,23 @@ jobs:
           path: ${{ runner.temp }}/captures/
           retention-days: 30
 
+  # Tagged only after both stores have the build, so a failed run can simply be re-run.
+  tag:
+    needs: [check, android, ios]
+    if: "!cancelled() && needs.android.result == 'success' && needs.ios.outputs.shipped == 'true'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Tag and create the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+
   screenshots-android:
     needs: check
     if: needs.check.outputs.release == 'true'
@@ -190,10 +220,10 @@ jobs:
 
   # The manifest keeps a failed platform's previous screenshots.
   compose:
-    needs: [check, screenshots-ios, screenshots-android]
+    needs: [check, ios, screenshots-android]
     if: >-
       !cancelled() && needs.check.outputs.release == 'true' &&
-      (needs.screenshots-ios.result == 'success' || needs.screenshots-android.result == 'success')
+      (needs.ios.result == 'success' || needs.screenshots-android.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -271,39 +301,11 @@ jobs:
             --title "Update screenshots for $TAG" \
             --body "Store screenshots composed by the $TAG release run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-  # EAS metadata pushes the listing text but cannot upload screenshots, so fastlane deliver does those.
-  store-ios:
-    needs: [check, tag]
-    if: needs.tag.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./tooling/github/setup
-
-      - name: Push listing text
-        working-directory: apps/dart
-        env:
-          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc.p8
-          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
-          EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          EXPO_APPLE_TEAM_TYPE: ${{ vars.APPLE_TEAM_TYPE }}
-        run: |
-          printf '%s' "$ASC_API_KEY_P8" > "$EXPO_ASC_API_KEY_PATH"
-          pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
-
   store-ios-screenshots:
-    needs: [check, tag, store-ios, screenshots-ios, compose]
+    needs: [check, tag, ios, compose]
     if: >-
       !cancelled() && needs.tag.result == 'success' &&
-      needs.screenshots-ios.result == 'success' && needs.compose.result == 'success'
+      needs.ios.result == 'success' && needs.compose.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
