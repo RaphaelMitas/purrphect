@@ -1,8 +1,8 @@
 import { de } from "./de";
-import { en, type Messages } from "./en";
+import { en } from "./en";
 import { fr } from "./fr";
 
-export const MESSAGES = { en, de, fr } satisfies Record<string, Messages>;
+export const MESSAGES = { en, de, fr };
 export type Language = keyof typeof MESSAGES;
 export type LanguagePreference = Language | "system";
 

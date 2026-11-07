@@ -44,7 +44,7 @@ function eventMessage(t: Messages, e: MatchEvent | null, players: Player[]): str
   const name = players[e.player]?.name ?? "";
   if (e.kind === "bust") return t.match.bust(name);
   if (e.kind === "180") return t.match.oneEighty;
-  if (e.kind === "checkout") return t.match.finishes(name, t.ordinal(e.place));
+  if (e.kind === "checkout") return t.match.finishes(name, e.place);
   if (e.kind === "leg") return t.match.gameShot(name);
   return null;
 }
@@ -67,7 +67,7 @@ export default function MatchScreen() {
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [known, setKnown] = useState<Map<string, Player>>(new Map());
   const [segments, setSegments] = useState<Segment[]>([]);
   const [mode, setMode] = useState<InputMode>("board");
   const [toast, setToast] = useState<{ message: string | null; stamp: number }>({ message: null, stamp: 0 });
@@ -83,18 +83,7 @@ export default function MatchScreen() {
           router.replace("/");
           return;
         }
-        const players = byId(all);
-        setPlayers(
-          m.playerIds.map(
-            (pid, i) =>
-              players.get(pid) ?? {
-                id: pid,
-                name: t.player,
-                color: playerColor(i),
-                guest: true,
-              },
-          ),
-        );
+        setKnown(byId(all));
         setMatch(m);
         setSegments(m.segments);
         setMode(inputMode);
@@ -106,13 +95,20 @@ export default function MatchScreen() {
     return () => {
       active = false;
     };
-  }, [db, id, t.player]);
+  }, [db, id]);
 
   const state = useMemo(
     () => (match ? replay(match.rules, match.playerIds.length, segments) : null),
     [match, segments],
   );
   const suggestion = useMemo(() => (state ? suggest(state) : null), [state]);
+  const players = useMemo(
+    () =>
+      (match?.playerIds ?? []).map(
+        (pid, i): Player => known.get(pid) ?? { id: pid, name: t.player, color: playerColor(i), guest: true },
+      ),
+    [match, known, t.player],
+  );
 
   if (!match || !state || !suggestion) return <SafeAreaView className="flex-1 bg-background" />;
 

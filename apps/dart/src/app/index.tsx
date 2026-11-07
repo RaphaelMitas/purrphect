@@ -247,6 +247,7 @@ export default function Home() {
         initial={renaming?.name ?? ""}
         placeholder={t.home.setupPlaceholder}
         action={t.save}
+        closeLabel={t.close}
         optional
         onOpenChange={(o) => !o && setRenaming(null)}
         onSubmit={async (name) => {

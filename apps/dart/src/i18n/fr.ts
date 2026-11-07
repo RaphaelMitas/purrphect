@@ -1,11 +1,14 @@
 import { type Messages, plural } from "./en";
 
+const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);
+
 export const fr = {
   locale: "fr",
-  ordinal: (n: number) => (n === 1 ? "1er" : `${n}e`),
+  ordinal,
   and: (names: string[]) => names.join(" et "),
 
   back: "Retour",
+  close: "Fermer",
   save: "Enregistrer",
   add: "Ajouter",
   undo: "Annuler",
@@ -31,10 +34,10 @@ export const fr = {
   home: {
     addFavourite: "Ajouter aux favoris",
     removeFavourite: "Retirer des favoris",
-    discardTitle: "Abandonner ce match ?",
+    discardTitle: "Supprimer ce match ?",
     discardBody: "Ses fléchettes ne compteront pas dans les stats.",
     keep: "Garder",
-    discard: "Abandonner",
+    discard: "Supprimer",
     continueMatch: "Reprendre le match",
     standingOn: (name: string, remaining: number) => `${name} à ${remaining}`,
     resume: "Reprendre",
@@ -50,7 +53,7 @@ export const fr = {
 
   lobby: {
     orderListed: "Dans l'ordre",
-    orderRandom: "Aléatoire à chaque partie",
+    orderRandom: "Aléatoire",
     finishLeg: "Fin du leg",
     finishPlaces: "Jouer les places",
     whoIsPlaying: "Qui joue ?",
@@ -87,7 +90,7 @@ export const fr = {
     leg: (n: number) => `Leg ${n}`,
     bust: (name: string) => `Bust, ${name} !`,
     oneEighty: "One hundred and eighty!",
-    finishes: (name: string, place: string) => `${name} termine ${place} !`,
+    finishes: (name: string, place: number) => `${name} termine ${ordinal(place)} !`,
     gameShot: (name: string) => `Game shot, ${name} !`,
     throwing: "AU LANCER",
     avg: "moy.",
@@ -98,9 +101,9 @@ export const fr = {
     home: "Accueil",
     rematch: "Revanche",
     upNext: "À suivre",
-    left: (n: number) => `${n} restants`,
+    left: (n: number) => plural(n, "restant", "restants"),
     checkoutGo: (n: number) => `Reste ${n}. Vise`,
-    scoreBig: (n: number) => `Encore ${n}. Marque gros sur`,
+    scoreBig: (n: number) => `Reste ${n}. Marque des points sur`,
     noOut: (n: number) => `Pas de finish à ${n}. Vise`,
     toLeave: "pour laisser",
     missInto: (single: string, leaves: number) => `Simple ${single} ? Alors ${leaves} :`,
@@ -119,7 +122,7 @@ export const fr = {
     checkout: "Checkout",
     oneEighties: "180",
     highFinish: "High finish",
-    bestLeg: "Meilleur leg",
+    bestLeg: "Meilleur leg (fléchettes)",
     averagePerMatch: "Moyenne par match",
     trendHint: "rose 3 fléchettes · vert first 9",
     visits: "Volées",
@@ -149,7 +152,7 @@ export const fr = {
     averagePerMatch: "moyenne par match",
     recentMatches: "Derniers matchs",
     noMatches: "Aucun match terminé pour l'instant.",
-    playerCount: (n: number) => `${n} joueurs`,
+    playerCount: (n: number) => plural(n, "joueur", "joueurs"),
   },
 
   levels: {

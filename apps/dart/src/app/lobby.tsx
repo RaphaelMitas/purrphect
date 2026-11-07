@@ -338,6 +338,7 @@ export default function Lobby() {
         title={t.lobby.newPlayer}
         placeholder={t.lobby.namePlaceholder}
         action={t.add}
+        closeLabel={t.close}
         onOpenChange={setAdding}
         onSubmit={async (name) => added(await addPlayer(db, name))}
       />

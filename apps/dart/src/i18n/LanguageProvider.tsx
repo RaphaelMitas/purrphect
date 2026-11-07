@@ -34,7 +34,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         preference,
         setPreference: (next: LanguagePreference) => {
           setPreference(next);
-          void setLanguage(db, next);
+          setLanguage(db, next).catch(console.error);
         },
       },
     [db, locales, preference],

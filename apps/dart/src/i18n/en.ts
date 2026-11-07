@@ -3,12 +3,15 @@ import type { OutRule } from "@/game/rules";
 
 export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+const ordinal = (n: number) => `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"}`;
+
 export const en = {
   locale: "en",
-  ordinal: (n: number) => `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"}`,
+  ordinal,
   and: (names: string[]) => names.join(" and "),
 
   back: "Back",
+  close: "Close",
   save: "Save",
   add: "Add",
   undo: "Undo",
@@ -90,13 +93,13 @@ export const en = {
     leg: (n: number) => `Leg ${n}`,
     bust: (name: string) => `Bust, ${name}!`,
     oneEighty: "One hundred and eighty!",
-    finishes: (name: string, place: string) => `${name} finishes ${place}!`,
+    finishes: (name: string, place: number) => `${name} finishes ${ordinal(place)}!`,
     gameShot: (name: string) => `Game shot, ${name}!`,
     throwing: "THROWING",
     avg: "avg",
     visit: "visit",
     legs: "legs",
-    legsWon: (n: number) => `${n} legs`,
+    legsWon: (n: number) => plural(n, "leg", "legs"),
     wins: (name: string) => `${name} wins!`,
     home: "Home",
     rematch: "Rematch",
@@ -122,7 +125,7 @@ export const en = {
     checkout: "Checkout",
     oneEighties: "180s",
     highFinish: "High finish",
-    bestLeg: "Best leg",
+    bestLeg: "Best leg (darts)",
     averagePerMatch: "Average per match",
     trendHint: "pink 3-dart · mint first 9",
     visits: "Visits",
@@ -152,7 +155,7 @@ export const en = {
     averagePerMatch: "average per match",
     recentMatches: "Recent matches",
     noMatches: "No finished matches yet.",
-    playerCount: (n: number) => `${n} players`,
+    playerCount: (n: number) => plural(n, "player", "players"),
   },
 
   levels: {

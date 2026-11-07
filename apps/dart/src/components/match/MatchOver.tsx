@@ -47,13 +47,19 @@ export function MatchOver({
         </View>
         <View className="flex-row gap-2">
           <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onUndo}>
-            <Text>{t.undo}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit>
+              {t.undo}
+            </Text>
           </Button>
           <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onHome}>
-            <Text>{t.match.home}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit>
+              {t.match.home}
+            </Text>
           </Button>
           <Button className="flex-1 rounded-2xl" disabled={busy} onPress={onRematch}>
-            <Text>{t.match.rematch}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit>
+              {t.match.rematch}
+            </Text>
           </Button>
         </View>
       </View>

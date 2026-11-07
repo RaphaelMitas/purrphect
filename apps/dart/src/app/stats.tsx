@@ -56,7 +56,7 @@ export default function Stats() {
           <Kpi label={t.stats.checkout} value={percent(stats.checkoutRate)} />
           <Kpi label={t.stats.oneEighties} value={String(stats.bands["180"])} />
           <Kpi label={t.stats.highFinish} value={String(stats.highestFinish || "–")} />
-          <Kpi label={t.stats.bestLeg} value={stats.bestLegDarts ? t.darts(stats.bestLegDarts) : "–"} />
+          <Kpi label={t.stats.bestLeg} value={String(stats.bestLegDarts ?? "–")} />
         </View>
         <View className={cn("gap-4", wide && "flex-row")}>
           <View className="flex-[3] gap-4">
