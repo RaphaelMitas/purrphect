@@ -41,12 +41,13 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <SQLiteProvider databaseName="dart-purrphect.db" onInit={migrate}>
-      <LanguageProvider>
-        <ThemeView theme={slotTheme(themes, scheme)} className="flex-1">
+    // SQLiteProvider is memoised and ignores new children, so the theme has to sit above it.
+    <ThemeView theme={slotTheme(themes, scheme)} className="flex-1">
+      <SQLiteProvider databaseName="dart-purrphect.db" onInit={migrate}>
+        <LanguageProvider>
           <Navigation />
-        </ThemeView>
-      </LanguageProvider>
-    </SQLiteProvider>
+        </LanguageProvider>
+      </SQLiteProvider>
+    </ThemeView>
   );
 }
