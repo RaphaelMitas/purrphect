@@ -117,6 +117,7 @@ export function RateBars({
   rows: { label: string; rate: number; detail?: string }[];
   tone?: "pink" | "mint";
 }) {
+  const t = useT();
   return (
     <View className="gap-2">
       {rows.map((r) => (
@@ -124,7 +125,7 @@ export function RateBars({
           <Text className="w-16 font-nunito-black text-xs">{r.label}</Text>
           <Meter value={r.rate} className="flex-1" fill={tone === "mint" ? "bg-mint" : "bg-pink"} />
           <Text className="w-20 text-right text-xs text-muted-foreground">
-            {percent(r.rate)}
+            {percent(t, r.rate)}
             {r.detail ? ` · ${r.detail}` : ""}
           </Text>
         </View>

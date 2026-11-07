@@ -24,8 +24,8 @@ export function relativeDay(t: Messages, at: number, now = Date.now()): string {
   return new Date(at).toLocaleDateString(t.locale, { day: "numeric", month: "short" });
 }
 
-export function percent(rate: number): string {
-  return `${Math.round(rate * 100)}%`;
+export function percent(t: Messages, rate: number): string {
+  return rate.toLocaleString(t.locale, { style: "percent", maximumFractionDigits: 0 });
 }
 
 export function decimal(t: Messages, value: number): string {

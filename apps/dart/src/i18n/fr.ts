@@ -1,4 +1,6 @@
-import { type Messages, plural } from "./en";
+import type { Messages } from "./en";
+
+const plural = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`;
 
 const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);
 
@@ -78,7 +80,7 @@ export const fr = {
     throwingOrder: "Ordre de jeu",
     startInvalid: "Score de départ entre 2 et 9999.",
     legsInvalid: "First to entre 1 et 99 legs.",
-    startWith: (n: number) => `Lancer · ${plural(n, "joueur", "joueurs")}`,
+    startWith: (n: number) => `Jouer · ${plural(n, "joueur", "joueurs")}`,
     pickPlayers: "Choisis des joueurs",
     newPlayer: "Nouveau joueur",
     namePlaceholder: "Nom",
@@ -109,7 +111,7 @@ export const fr = {
     missInto: (single: string, leaves: number) => `Simple ${single} ? Alors ${leaves} :`,
     aim: "vise",
     justScore: "marque des points",
-    more: (names: string, n: number) => `${names} +${n} autres`,
+    more: (names: string, n: number) => `${names} +${plural(n, "autre", "autres")}`,
     canFinish: (names: string, count: number) => `${names} ${count === 1 ? "peut" : "peuvent"} finir avant ton retour.`,
   },
 
@@ -124,7 +126,7 @@ export const fr = {
     highFinish: "High finish",
     bestLeg: "Meilleur leg (fléchettes)",
     averagePerMatch: "Moyenne par match",
-    trendHint: "rose 3 fléchettes · vert first 9",
+    trendHint: "rose moyenne · vert first 9",
     visits: "Volées",
     doubleRate: "Réussite aux doubles",
     dartsAtDouble: "fléchettes au double",

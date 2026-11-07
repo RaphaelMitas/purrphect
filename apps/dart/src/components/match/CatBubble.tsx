@@ -45,7 +45,7 @@ export function CatBubble({
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{t.match.checkoutGo(remaining)}</Text>
             <Route darts={route.darts} />
-            <Text className="font-nunito-black text-sm text-pink-ink">{percent(chance)}</Text>
+            <Text className="font-nunito-black text-sm text-pink-ink">{percent(t, chance)}</Text>
           </View>
         ) : setup && setup.leaves > 170 ? (
           <View className="flex-row flex-wrap items-center gap-2">

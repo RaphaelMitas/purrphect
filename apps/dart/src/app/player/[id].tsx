@@ -87,7 +87,7 @@ export default function PlayerCard() {
       <View className="flex-row gap-6">
         {[
           [decimal(t, stats.average), t.card.avg],
-          [percent(stats.checkoutRate), t.card.checkout],
+          [percent(t, stats.checkoutRate), t.card.checkout],
           [String(stats.legsWon), t.card.legsWon],
         ].map(([v, l]) => (
           <View key={l} className="items-center">
@@ -150,7 +150,7 @@ export default function PlayerCard() {
         <RateBars rows={rangeRates(stats)} />
         {doubleRates(stats, 1).map((d) => (
           <Text key={d.label} className="text-xs text-muted-foreground">
-            {t.card.mostTriedDouble} <Text className="font-nunito-black text-xs">{d.label}</Text> · {percent(d.rate)}
+            {t.card.mostTriedDouble} <Text className="font-nunito-black text-xs">{d.label}</Text> · {percent(t, d.rate)}
           </Text>
         ))}
       </Panel>

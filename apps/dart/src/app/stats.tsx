@@ -53,7 +53,7 @@ export default function Stats() {
         <View className="flex-row flex-wrap gap-3">
           <Kpi label={t.stats.average} value={decimal(t, stats.average)} />
           <Kpi label={t.stats.first9} value={decimal(t, stats.first9Average)} />
-          <Kpi label={t.stats.checkout} value={percent(stats.checkoutRate)} />
+          <Kpi label={t.stats.checkout} value={percent(t, stats.checkoutRate)} />
           <Kpi label={t.stats.oneEighties} value={String(stats.bands["180"])} />
           <Kpi label={t.stats.highFinish} value={String(stats.highestFinish || "–")} />
           <Kpi label={t.stats.bestLeg} value={String(stats.bestLegDarts ?? "–")} />

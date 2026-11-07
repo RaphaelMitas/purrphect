@@ -3,7 +3,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { createContext, type ReactNode, use, useEffect, useMemo, useState } from "react";
 import { getLanguage, setLanguage } from "@/db/repo";
 import { en, type Messages } from "./en";
-import { type LanguagePreference, MESSAGES, resolveLanguage } from "./language";
+import { type LanguagePreference, localeTag, MESSAGES, resolveLanguage } from "./language";
 
 interface LanguageState {
   t: Messages;
@@ -27,18 +27,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       });
   }, [db]);
 
-  const state = useMemo(
-    () =>
-      preference && {
-        t: MESSAGES[resolveLanguage(preference, locales)],
-        preference,
-        setPreference: (next: LanguagePreference) => {
-          setPreference(next);
-          setLanguage(db, next).catch(console.error);
-        },
+  const state = useMemo(() => {
+    if (!preference) return null;
+    const language = resolveLanguage(preference, locales);
+    return {
+      t: { ...MESSAGES[language], locale: localeTag(language, locales) },
+      preference,
+      setPreference: (next: LanguagePreference) => {
+        setPreference(next);
+        setLanguage(db, next).catch(console.error);
       },
-    [db, locales, preference],
-  );
+    };
+  }, [db, locales, preference]);
 
   if (!state) return null;
   return <LanguageContext value={state}>{children}</LanguageContext>;

@@ -60,7 +60,7 @@ export const de = {
     addGuest: "Gast hinzufügen",
     guestName: (n: number) => `Gast ${n}`,
     order: "Reihenfolge",
-    shuffledEveryGame: "jedes Spiel neu gemischt",
+    shuffledEveryGame: "jedes Spiel neu",
     shuffle: "Mischen",
     tapPlayers: "Tippe auf Spieler, um sie hinzuzufügen.",
     moveUp: (name: string) => `${name} nach oben`,
