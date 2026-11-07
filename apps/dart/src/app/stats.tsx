@@ -11,7 +11,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DartBoard } from "@/components/DartBoard";
 import { ColumnBars, Kpi, RateBars, TrendChart } from "@/components/StatCharts";
-import { loadPlayersAndMatches } from "@/db/repo";
+import { isRegular, loadPlayersAndMatches } from "@/db/repo";
 import { DAY } from "@/game/levels";
 import { doubleRates, playerStats } from "@/game/stats";
 import { useFocusData } from "@/hooks/useFocusData";
@@ -32,7 +32,7 @@ export default function Stats() {
 
   const played = useMemo(() => {
     const ids = new Set(data?.matches.flatMap((m) => m.playerIds));
-    return (data?.players ?? []).filter((p) => ids.has(p.id) && !p.guest && !p.deleted);
+    return (data?.players ?? []).filter((p) => ids.has(p.id) && isRegular(p));
   }, [data]);
   const player = played.find((p) => p.id === chosen) ?? played[0];
 

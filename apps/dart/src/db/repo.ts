@@ -83,9 +83,13 @@ export async function listPlayers(db: SQLiteDatabase): Promise<Player[]> {
   return rows.map(toPlayer);
 }
 
+export const isRegular = (p: Player) => !p.guest && !p.deleted;
+
+export const colorUses = (players: readonly Player[], color: string) =>
+  players.filter((p) => p.color === color && isRegular(p)).length;
+
 export function leastUsedColor(players: readonly Player[]): string {
-  const uses = (c: string) => players.filter((p) => p.color === c && !p.deleted).length;
-  return [...PLAYER_COLORS].sort((a, b) => uses(a) - uses(b))[0] ?? playerColor(0);
+  return [...PLAYER_COLORS].sort((a, b) => colorUses(players, a) - colorUses(players, b))[0] ?? playerColor(0);
 }
 
 async function insertPlayer(db: SQLiteDatabase, name: string, guest: boolean, color?: string): Promise<Player> {
@@ -117,10 +121,10 @@ export async function setPlayerColor(db: SQLiteDatabase, id: string, color: stri
 
 export async function deletePlayer(db: SQLiteDatabase, id: string) {
   const playedBy = "EXISTS (SELECT 1 FROM json_each(player_ids) WHERE value = ?)";
-  await db.withExclusiveTransactionAsync(async (tx) => {
-    await tx.runAsync("UPDATE players SET deleted_at = ? WHERE id = ?", Date.now(), id);
-    await tx.runAsync(`DELETE FROM setups WHERE ${playedBy}`, id);
-    await tx.runAsync(`DELETE FROM matches WHERE finished_at IS NULL AND ${playedBy}`, id);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("UPDATE players SET deleted_at = ? WHERE id = ?", Date.now(), id);
+    await db.runAsync(`DELETE FROM setups WHERE ${playedBy}`, id);
+    await db.runAsync(`DELETE FROM matches WHERE finished_at IS NULL AND ${playedBy}`, id);
   });
 }
 

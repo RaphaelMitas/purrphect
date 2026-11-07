@@ -21,6 +21,7 @@ import {
   addPlayer,
   byId,
   createMatch,
+  isRegular,
   leastUsedColor,
   listPlayers,
   listSetups,
@@ -159,7 +160,7 @@ export default function Lobby() {
   };
   const full = selected.length >= MAX_PLAYERS;
 
-  const roster = (data?.players ?? []).filter((p) => !p.deleted && (!p.guest || selected.includes(p.id)));
+  const roster = (data?.players ?? []).filter((p) => isRegular(p) || (!p.deleted && selected.includes(p.id)));
 
   const who = (
     <Panel title="Who's playing?" hint={`${selected.length} / ${MAX_PLAYERS}`}>

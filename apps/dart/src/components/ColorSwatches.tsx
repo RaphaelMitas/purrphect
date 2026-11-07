@@ -1,6 +1,6 @@
 import { cn } from "@purrphect/ui/lib/utils";
 import { Pressable, View } from "react-native";
-import { PLAYER_COLORS, type Player } from "@/db/repo";
+import { colorUses, PLAYER_COLORS, type Player } from "@/db/repo";
 
 export function ColorSwatches({
   value,
@@ -15,7 +15,7 @@ export function ColorSwatches({
     <View className="max-w-72 flex-row flex-wrap justify-center gap-2 self-center">
       {PLAYER_COLORS.map((color, i) => {
         const selected = color === value;
-        const inUse = !selected && players.some((p) => p.color === color && !p.deleted);
+        const inUse = colorUses(players, color) > 0;
         return (
           <Pressable
             key={color}

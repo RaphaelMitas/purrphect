@@ -88,7 +88,7 @@ export default function PlayerCard() {
       <Cat size={96} color={player.color} />
       <ColorSwatches
         value={player.color}
-        players={data?.players ?? []}
+        players={data?.players.filter((p) => p.id !== player.id) ?? []}
         onChange={(color) => setPlayerColor(db, player.id, color).then(reload, console.error)}
       />
       <Text className="font-nunito-black text-2xl">{player.name}</Text>
