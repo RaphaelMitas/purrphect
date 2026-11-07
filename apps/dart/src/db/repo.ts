@@ -110,8 +110,9 @@ export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   return rows.map(toSetup);
 }
 
+// Fixed-order setups keep the signature shape older saves were stored with.
 const signature = (r: Rules, playerIds: string[]) =>
-  JSON.stringify([r.start, r.out, r.firstTo, r.finish, r.randomOrder, playerIds]);
+  JSON.stringify([r.start, r.out, r.firstTo, r.finish, playerIds, ...(r.randomOrder ? ["random"] : [])]);
 
 export async function recordSetupUse(db: SQLiteDatabase, rules: Rules, players: string[]): Promise<string> {
   const playerIds = rules.randomOrder ? [...players].sort() : players;
