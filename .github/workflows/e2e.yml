@@ -1,0 +1,98 @@
+name: E2E
+
+on:
+  pull_request:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 3
+  MAESTRO_VERSION: "2.3.0"
+  MAESTRO_CLI_NO_ANALYTICS: "1"
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      # Boots while the app builds.
+      - name: Create iOS simulator
+        id: sim
+        uses: ./tooling/github/ios-simulator
+        with:
+          device: "^iPad Air 13-inch"
+
+      - name: Build app
+        id: build
+        uses: ./tooling/github/build-ios-sim
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Install app
+        env:
+          UDID: ${{ steps.sim.outputs.udid }}
+          APP: ${{ steps.build.outputs.app-path }}
+        run: |
+          xcrun simctl bootstatus "$UDID"
+          xcrun simctl install "$UDID" "$APP"
+
+      - name: Run Maestro flows
+        working-directory: apps/dart
+        run: pnpm e2e --device "${{ steps.sim.outputs.udid }}"
+
+      # Maestro's failure bundle sits in hidden dirs, which upload-artifact drops by default.
+      - name: Upload Maestro results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-ios
+          path: apps/dart/e2e/results/
+          include-hidden-files: true
+          retention-days: 7
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build APK
+        id: build
+        uses: ./tooling/github/build-android-apk
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # ANR dialogs from the slow emulator overlay the app and hide it from Maestro.
+      - name: Run Maestro flows
+        uses: ./tooling/github/android-emulator
+        with:
+          script: |
+            adb shell settings put global hide_error_dialogs 1
+            adb install "${{ steps.build.outputs.apk-path }}"
+            cd apps/dart && pnpm e2e
+
+      - name: Upload Maestro results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-android
+          path: apps/dart/e2e/results/
+          include-hidden-files: true
+          retention-days: 7

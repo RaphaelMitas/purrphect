@@ -1,0 +1,35 @@
+name: "Android emulator"
+description: "Boot a headless x86_64 emulator on a Linux runner and run a script against it"
+
+inputs:
+  script:
+    description: "Commands to run once the emulator is up; each line runs in its own shell"
+    required: true
+  api-level:
+    description: "Android API level of the system image"
+    default: "35"
+  profile:
+    description: "Hardware profile from `avdmanager list device`"
+    default: "pixel_7"
+
+runs:
+  using: composite
+  steps:
+    # Hosted runners expose /dev/kvm only to root; without it the emulator falls back to software and times out.
+    - shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ inputs.api-level }}
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        # The software-rendered emulator ANRs the launcher with the default 2 cores.
+        cores: 3
+        emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: ${{ inputs.script }}
