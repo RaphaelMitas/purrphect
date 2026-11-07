@@ -5,9 +5,11 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { seedDemo } from "@/db/demo";
+import { useT } from "@/i18n/LanguageProvider";
 
 function Seeding() {
   const db = useSQLiteContext();
+  const t = useT();
   const started = useRef(false);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ function Seeding() {
   return (
     <SafeAreaView className="flex-1 items-center justify-center gap-3 bg-background">
       <Cat size={72} />
-      <Text className="text-muted-foreground">Setting up the demo…</Text>
+      <Text className="text-muted-foreground">{t.demo}</Text>
     </SafeAreaView>
   );
 }

@@ -11,6 +11,7 @@ import * as SystemUI from "expo-system-ui";
 import { useEffect, useMemo } from "react";
 import { migrate } from "@/db/schema";
 import { useSystemSlot, useThemes } from "@/hooks/useThemes";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { slotTheme } from "@/lib/themes";
 
 function Navigation() {
@@ -41,9 +42,11 @@ export default function RootLayout() {
 
   return (
     <SQLiteProvider databaseName="dart-purrphect.db" onInit={migrate}>
-      <ThemeView theme={slotTheme(themes, scheme)} className="flex-1">
-        <Navigation />
-      </ThemeView>
+      <LanguageProvider>
+        <ThemeView theme={slotTheme(themes, scheme)} className="flex-1">
+          <Navigation />
+        </ThemeView>
+      </LanguageProvider>
     </SQLiteProvider>
   );
 }

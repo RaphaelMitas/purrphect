@@ -18,14 +18,13 @@ import { ColorDialog } from "@/components/theme/ColorDialog";
 import { ThemedStatusBar } from "@/components/theme/ThemedStatusBar";
 import { ThemePreview } from "@/components/theme/ThemePreview";
 import { updateThemes, useThemes } from "@/hooks/useThemes";
-import { isAuto, ROLES, type RoleInfo, roleColor, withoutTheme, withUpdatedTheme } from "@/lib/themes";
+import { useT } from "@/i18n/LanguageProvider";
+import { isAuto, ROLES, type RoleInfo, roleColor, themeName, withoutTheme, withUpdatedTheme } from "@/lib/themes";
 
 const PORTAL = "theme-editor";
-const MOOD_NAMES = { bright: "Bright", soft: "Soft", dim: "Dim", dark: "Dark", black: "Black" } as const;
 const WARMTH_STOPS = [0, 25, 50, 75, 100];
 
-const displayName = (theme: Theme) => theme.name.trim() || "Untitled";
-const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, { ...theme, name: displayName(theme) }));
+const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, theme));
 
 export default function EditThemeRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,6 +35,7 @@ export default function EditThemeRoute() {
 }
 
 function Editor({ initial }: { initial: Theme }) {
+  const t = useT();
   const [draft, setDraft] = useState(initial);
   const [role, setRole] = useState<RoleInfo | null>(null);
   const latest = useRef(draft);
@@ -60,10 +60,10 @@ function Editor({ initial }: { initial: Theme }) {
   );
 
   const remove = () =>
-    Alert.alert(`Delete ${displayName(draft)}?`, "Modes using it go back to Purrphect or Midnight.", [
-      { text: "Keep", style: "cancel" },
+    Alert.alert(t.theme.deleteTitle(themeName(draft, t)), t.theme.deleteBody, [
+      { text: t.keep, style: "cancel" },
       {
-        text: "Delete",
+        text: t.card.delete,
         style: "destructive",
         onPress: () => {
           updateThemes((s) => withoutTheme(s, draft.id));
@@ -79,11 +79,12 @@ function Editor({ initial }: { initial: Theme }) {
       <ThemedStatusBar />
       <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
         <AppHeader
-          title="Edit theme"
+          title={t.theme.editTheme}
           back
+          backLabel={t.back}
           right={
             <Button variant="ghost" size="sm" onPress={() => router.back()}>
-              <Text className="text-pink-ink">Done</Text>
+              <Text className="text-pink-ink">{t.theme.done}</Text>
             </Button>
           }
         />
@@ -91,21 +92,18 @@ function Editor({ initial }: { initial: Theme }) {
           <Input
             value={draft.name}
             onChangeText={(name) => change({ name })}
-            placeholder="Theme name"
+            placeholder={t.theme.name}
             maxLength={24}
-            accessibilityLabel="Theme name"
+            accessibilityLabel={t.theme.name}
           />
           <ThemePreview />
 
-          <Panel
-            title="Feel"
-            hint={draft.page ? "Page is custom, set it to Auto to use these" : "sets page, cards and text"}
-          >
+          <Panel title={t.theme.feel} hint={draft.page ? t.theme.feelLocked : t.theme.feelHint}>
             <View className={cn("gap-3", draft.page && "opacity-40")} pointerEvents={draft.page ? "none" : "auto"}>
-              <Text className="font-nunito-black text-sm">Mood</Text>
+              <Text className="font-nunito-black text-sm">{t.theme.mood}</Text>
               <Slider
-                label="Mood"
-                valueText={MOOD_NAMES[draft.mood]}
+                label={t.theme.mood}
+                valueText={t.theme.moods[draft.mood]}
                 value={mood}
                 min={0}
                 max={MOODS.length - 1}
@@ -118,16 +116,16 @@ function Editor({ initial }: { initial: Theme }) {
                     key={m}
                     className={cn("text-[11px]", m === draft.mood ? "font-nunito-black" : "text-muted-foreground")}
                   >
-                    {MOOD_NAMES[m]}
+                    {t.theme.moods[m]}
                   </Text>
                 ))}
               </View>
               <View className="mt-1 flex-row justify-between">
-                <Text className="font-nunito-black text-sm">Warmth</Text>
-                <Text className="text-xs text-muted-foreground">cool · warm</Text>
+                <Text className="font-nunito-black text-sm">{t.theme.warmth}</Text>
+                <Text className="text-xs text-muted-foreground">{t.theme.coolWarm}</Text>
               </View>
               <Slider
-                label="Warmth"
+                label={t.theme.warmth}
                 value={draft.warmth}
                 min={0}
                 max={100}
@@ -139,7 +137,7 @@ function Editor({ initial }: { initial: Theme }) {
             </View>
           </Panel>
 
-          <Panel title="Colours" className="gap-1">
+          <Panel title={t.theme.colours} className="gap-1">
             {ROLES.map((r) => (
               <Pressable
                 key={r.key}
@@ -152,12 +150,12 @@ function Editor({ initial }: { initial: Theme }) {
                   style={{ backgroundColor: roleColor(draft, r.key) }}
                 />
                 <View className="flex-1">
-                  <Text className="font-nunito-bold text-base">{r.name}</Text>
-                  <Text className="text-xs text-muted-foreground">{r.use}</Text>
+                  <Text className="font-nunito-bold text-base">{t.theme.roles[r.key].name}</Text>
+                  <Text className="text-xs text-muted-foreground">{t.theme.roles[r.key].use}</Text>
                 </View>
                 {isAuto(draft, r.key) && (
                   <View className="rounded-full bg-muted px-2 py-0.5">
-                    <Text className="font-nunito-black text-[11px] text-muted-foreground">Auto</Text>
+                    <Text className="font-nunito-black text-[11px] text-muted-foreground">{t.theme.auto}</Text>
                   </View>
                 )}
                 <Icon as={ChevronRight} className="size-4 text-muted-foreground" />
@@ -167,7 +165,7 @@ function Editor({ initial }: { initial: Theme }) {
 
           <Button variant="outline" onPress={remove} className="h-12 rounded-2xl">
             <Icon as={Trash2} className="size-4 text-destructive-ink" />
-            <Text className="text-destructive-ink">Delete theme</Text>
+            <Text className="text-destructive-ink">{t.theme.deleteTheme}</Text>
           </Button>
         </ScrollView>
       </SafeAreaView>

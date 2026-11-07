@@ -1,5 +1,6 @@
 import { autoColors, MOODS, PRESETS, type Theme } from "@purrphect/ui/theme";
 import { isRecord } from "@/db/parse";
+import type { Messages } from "@/i18n/en";
 
 export type Slot = "light" | "dark";
 
@@ -11,17 +12,19 @@ export interface ThemeState {
 export const DEFAULT_THEMES: ThemeState = { slots: { light: "purrphect", dark: "midnight" }, custom: [] };
 
 export const ROLES = [
-  { key: "page", name: "Page", use: "Behind everything", auto: true },
-  { key: "cards", name: "Cards", use: "Panels, tiles and dialogs", auto: true },
-  { key: "text", name: "Text", use: "Muted text and borders follow it", auto: true },
-  { key: "accent", name: "Accent", use: "Buttons, the board, the next dart", auto: false },
-  { key: "second", name: "Second accent", use: "Board rings, doubles, the first 9 line", auto: false },
-  { key: "highlight", name: "Highlight", use: "Stars, bulls and warnings", auto: false },
-  { key: "danger", name: "Danger", use: "Discard and delete", auto: false },
+  { key: "page", auto: true },
+  { key: "cards", auto: true },
+  { key: "text", auto: true },
+  { key: "accent", auto: false },
+  { key: "second", auto: false },
+  { key: "highlight", auto: false },
+  { key: "danger", auto: false },
 ] as const;
 
 export type RoleInfo = (typeof ROLES)[number];
 type Role = RoleInfo["key"];
+
+export const themeName = (theme: Theme, t: Messages) => theme.name.trim() || t.theme.untitled;
 
 export const isAuto = (theme: Theme, role: Role) => theme[role] === undefined;
 

@@ -13,6 +13,7 @@ import {
   type Segment,
   segmentFor,
 } from "@/game/segments";
+import { useT } from "@/i18n/LanguageProvider";
 
 const ARMED = {
   1: { tile: "bg-card", text: "text-foreground" },
@@ -63,6 +64,7 @@ export function TilesPad({
   onDart: (segment: Segment) => void;
   onUndo: () => void;
 }) {
+  const t = useT();
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   const armed = ARMED[multiplier];
 
@@ -126,11 +128,13 @@ export function TilesPad({
             </Key>
           );
         })}
-        <Key label="Miss" onPress={() => hit("Miss")} className="flex-1 rounded-2xl bg-muted">
-          <Text className="font-nunito-bold text-base text-muted-foreground">Miss</Text>
+        <Key label={t.miss} onPress={() => hit("Miss")} className="flex-1 rounded-2xl bg-muted">
+          <Text className="font-nunito-bold text-base text-muted-foreground">{t.miss}</Text>
         </Key>
-        <Key label="Undo" onPress={onUndo} className="flex-1 rounded-2xl bg-muted">
-          <Text className="font-nunito-bold text-base text-muted-foreground">Undo</Text>
+        <Key label={t.undo} onPress={onUndo} className="flex-1 rounded-2xl bg-muted">
+          <Text className="font-nunito-bold text-base text-muted-foreground" numberOfLines={1} adjustsFontSizeToFit>
+            {t.undo}
+          </Text>
         </Key>
       </View>
     </View>

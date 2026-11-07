@@ -10,6 +10,7 @@ export function NameDialog({
   initial = "",
   placeholder,
   action,
+  closeLabel,
   optional,
   children,
   onOpenChange,
@@ -20,6 +21,7 @@ export function NameDialog({
   initial?: string;
   placeholder: string;
   action: string;
+  closeLabel?: string;
   optional?: boolean;
   children?: ReactNode;
   onOpenChange: (open: boolean) => void;
@@ -37,7 +39,7 @@ export function NameDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-80">
+      <DialogContent className="w-80" closeLabel={closeLabel}>
         <DialogHeader>
           <DialogTitle className="font-nunito-black">{title}</DialogTitle>
         </DialogHeader>

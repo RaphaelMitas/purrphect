@@ -10,11 +10,13 @@ import { Text } from "./text";
 export function AppHeader({
   title,
   back,
+  backLabel = "Back",
   onBack,
   right,
 }: {
   title: string;
   back?: boolean;
+  backLabel?: string;
   onBack?: () => void;
   right?: ReactNode;
 }) {
@@ -25,7 +27,7 @@ export function AppHeader({
         <Button
           variant="ghost"
           size="icon"
-          accessibilityLabel="Back"
+          accessibilityLabel={backLabel}
           className="-ml-2 rounded-full"
           onPress={onBack ?? goBack}
         >

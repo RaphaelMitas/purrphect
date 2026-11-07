@@ -5,13 +5,15 @@ import { Text } from "@purrphect/ui/text";
 import { View } from "react-native";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import type { TrendPoint } from "@/game/stats";
+import { useT } from "@/i18n/LanguageProvider";
 import { percent } from "@/lib/format";
 
 export function TrendChart({ points, height = 170 }: { points: TrendPoint[]; height?: number }) {
   const palette = usePalette();
+  const t = useT();
   const [{ width }, onLayout] = useLayoutSize();
   if (points.length < 2) {
-    return <Text className="py-6 text-center text-sm text-muted-foreground">Play two matches to see a trend.</Text>;
+    return <Text className="py-6 text-center text-sm text-muted-foreground">{t.stats.trendEmpty}</Text>;
   }
   const values = points.flatMap((p) => [p.average, p.first9Average]);
   const min = Math.floor(Math.min(...values) / 10) * 10;
@@ -115,6 +117,7 @@ export function RateBars({
   rows: { label: string; rate: number; detail?: string }[];
   tone?: "pink" | "mint";
 }) {
+  const t = useT();
   return (
     <View className="gap-2">
       {rows.map((r) => (
@@ -122,7 +125,7 @@ export function RateBars({
           <Text className="w-16 font-nunito-black text-xs">{r.label}</Text>
           <Meter value={r.rate} className="flex-1" fill={tone === "mint" ? "bg-mint" : "bg-pink"} />
           <Text className="w-20 text-right text-xs text-muted-foreground">
-            {percent(r.rate)}
+            {percent(t, r.rate)}
             {r.detail ? ` · ${r.detail}` : ""}
           </Text>
         </View>

@@ -6,6 +6,7 @@ import { ThemeView } from "@purrphect/ui/theme-view";
 import { View } from "react-native";
 import { DartBoard } from "@/components/DartBoard";
 import { ThrowerCard } from "@/components/match/ThrowerCard";
+import { useT } from "@/i18n/LanguageProvider";
 
 export function ThemeThumb({ theme, height = 88 }: { theme: Theme; height?: number }) {
   return (
@@ -30,6 +31,7 @@ export function ThemeThumb({ theme, height = 88 }: { theme: Theme; height?: numb
 
 export function ThemePreview() {
   const { pink } = usePalette();
+  const t = useT();
   return (
     <View className="gap-3">
       <ThrowerCard
@@ -46,11 +48,11 @@ export function ThemePreview() {
         <DartBoard size={140} />
         <View className="flex-1 gap-2">
           <View className="gap-1 rounded-3xl bg-card px-3 py-2">
-            <Text className="text-sm">Leave 32 for D16.</Text>
-            <Text className="text-xs text-butter-ink">Leo can finish first.</Text>
+            <Text className="text-sm">{t.theme.previewCheckout}</Text>
+            <Text className="text-xs text-butter-ink">{t.theme.previewWarning}</Text>
           </View>
           <Button className="h-12 rounded-2xl">
-            <Text>New game</Text>
+            <Text>{t.newGame}</Text>
           </Button>
         </View>
       </View>

@@ -8,6 +8,7 @@ import { hexToHsl, hslToHex, type Theme } from "@purrphect/ui/theme";
 import { useState } from "react";
 import { View } from "react-native";
 import { ColorSwatches } from "@/components/ColorSwatches";
+import { useT } from "@/i18n/LanguageProvider";
 import { isAuto, type RoleInfo, roleColor } from "@/lib/themes";
 
 const HUES = [0, 60, 120, 180, 240, 300, 359];
@@ -37,6 +38,7 @@ export function ColorDialog({
   onChange: (patch: Partial<Theme>) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const color = roleColor(theme, role.key);
   const [hsl, setHsl] = useState(() => hexToHsl(color));
   const [h, s, l] = hsl;
@@ -57,31 +59,29 @@ export function ColorDialog({
         <DialogHeader className="flex-row items-center gap-3">
           <View className="size-11 rounded-full border-2 border-border" style={{ backgroundColor: color }} />
           <View className="flex-1">
-            <DialogTitle className="font-nunito-black">{role.name}</DialogTitle>
-            <Text className="text-xs text-muted-foreground">{role.use}</Text>
+            <DialogTitle className="font-nunito-black">{t.theme.roles[role.key].name}</DialogTitle>
+            <Text className="text-xs text-muted-foreground">{t.theme.roles[role.key].use}</Text>
           </View>
         </DialogHeader>
         {role.auto && (
           <View className="gap-1">
             <Segmented
               options={[
-                { value: "auto", label: "Auto" },
-                { value: "custom", label: "Custom" },
+                { value: "auto", label: t.theme.auto },
+                { value: "custom", label: t.custom },
               ]}
               value={auto ? "auto" : "custom"}
               onChange={(v) => (v === "auto" ? set(undefined) : pick(color))}
             />
-            <Text className="px-1 text-xs text-muted-foreground">
-              {auto ? "Follows Mood and Warmth." : "Fixed. Mood and Warmth no longer change it."}
-            </Text>
+            <Text className="px-1 text-xs text-muted-foreground">{auto ? t.theme.autoHint : t.theme.fixedHint}</Text>
           </View>
         )}
         <View className={cn("gap-4", auto && "opacity-40")} pointerEvents={auto ? "none" : "auto"}>
           <ColorSwatches colors={role.auto ? NEUTRALS : COLORS} value={color} onChange={pick} />
           <View className="gap-3">
-            <Text className="font-nunito-black text-sm">Fine tune</Text>
+            <Text className="font-nunito-black text-sm">{t.theme.fineTune}</Text>
             <Slider
-              label="Hue"
+              label={t.theme.hue}
               value={Math.round(h)}
               min={0}
               max={359}
@@ -89,7 +89,7 @@ export function ColorDialog({
               onChange={(hue) => tune([hue, s, l])}
             />
             <Slider
-              label="Shade"
+              label={t.theme.shade}
               value={Math.round(l)}
               min={2}
               max={98}
@@ -100,7 +100,7 @@ export function ColorDialog({
         </View>
         <DialogFooter>
           <Button onPress={onClose}>
-            <Text>Done</Text>
+            <Text>{t.theme.done}</Text>
           </Button>
         </DialogFooter>
       </DialogContent>
