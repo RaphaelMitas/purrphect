@@ -90,7 +90,10 @@ function computeRoutes(remaining: number, dartsLeft: number, out: OutRule): Rout
         const a = SCORING_SEGMENTS[i];
         const b = SCORING_SEGMENTS[j];
         if (!a || !b) continue;
-        const [first, second] = setupCost(a) <= setupCost(b) ? [a, b] : [b, a];
+        const [first, second] =
+          a.multiplier > b.multiplier || (a.multiplier === b.multiplier && setupCost(a) <= setupCost(b))
+            ? [a, b]
+            : [b, a];
         for (const f of byValue.get(remaining - a.value - b.value) ?? []) {
           found.push({
             darts: [first.segment, second.segment, f.segment],
@@ -123,7 +126,7 @@ export function setupShot(remaining: number, dartsLeft: number, out: OutRule): S
     if (leaves < 2) continue;
     const next = bestRoute(leaves, 3, out);
     if (!next) continue;
-    const cost = setupCost(d) + next.cost;
+    const cost = setupCost(d) + next.cost - d.value / 10;
     if (!best || cost < best.cost) best = { aim: d.segment, leaves, cost };
   }
   return best ? { aim: best.aim, leaves: best.leaves } : scoreBig;
@@ -133,6 +136,7 @@ export interface MissFallback {
   single: Segment;
   leaves: number;
   route: Route | undefined;
+  setup: SetupShot | undefined;
 }
 
 export function missFallback(
@@ -144,10 +148,15 @@ export function missFallback(
   const first = route.darts[0];
   if (!first || route.darts.length < 2) return undefined;
   const aimed = info(first);
-  if (aimed.multiplier !== 3 || aimed.number === 0 || aimed.number === 25) return undefined;
-  const single = segmentFor(aimed.number, 1);
+  if (aimed.multiplier !== 3 || aimed.number === 25 || aimed.number === 0) return undefined;
   const leaves = remaining - aimed.number;
-  return { single, leaves, route: bestRoute(leaves, dartsLeft - 1, out) };
+  const next = bestRoute(leaves, dartsLeft - 1, out);
+  return {
+    single: segmentFor(aimed.number, 1),
+    leaves,
+    route: next,
+    setup: next ? undefined : setupShot(leaves, dartsLeft - 1, out),
+  };
 }
 
 export function isOneDartFinish(remaining: number, out: OutRule): boolean {

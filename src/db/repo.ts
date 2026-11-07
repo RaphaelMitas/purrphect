@@ -97,12 +97,14 @@ export async function addGuest(db: SQLiteDatabase): Promise<Player> {
 
 export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   const rows = await db.getAllAsync<SetupRow>(
-    "SELECT id, name, favorite, rules, player_ids, last_used_at FROM setups ORDER BY last_used_at DESC LIMIT 30",
+    `SELECT id, name, favorite, rules, player_ids, last_used_at FROM setups
+     WHERE favorite = 1 OR id IN (SELECT id FROM setups ORDER BY last_used_at DESC LIMIT 30)
+     ORDER BY last_used_at DESC`,
   );
   return rows.map(toSetup);
 }
 
-const signature = (rules: Rules, playerIds: string[]) => JSON.stringify([rules, playerIds]);
+const signature = (r: Rules, playerIds: string[]) => JSON.stringify([r.start, r.out, r.firstTo, r.finish, playerIds]);
 
 export async function recordSetupUse(db: SQLiteDatabase, rules: Rules, playerIds: string[]): Promise<string> {
   const id = randomUUID();
@@ -177,15 +179,9 @@ export async function latestOpenMatch(db: SQLiteDatabase): Promise<Match | null>
 
 export async function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
   await db.withExclusiveTransactionAsync(async (tx) => {
-    await tx.runAsync("DELETE FROM darts WHERE match_id = ? AND seq >= ?", matchId, segments.length);
-    const last = await tx.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM darts WHERE match_id = ?", matchId);
-    for (let seq = last?.n ?? 0; seq < segments.length; seq++) {
-      await tx.runAsync(
-        "INSERT INTO darts (match_id, seq, segment) VALUES (?, ?, ?)",
-        matchId,
-        seq,
-        segments[seq] ?? "Miss",
-      );
+    await tx.runAsync("DELETE FROM darts WHERE match_id = ?", matchId);
+    for (const [seq, segment] of segments.entries()) {
+      await tx.runAsync("INSERT INTO darts (match_id, seq, segment) VALUES (?, ?, ?)", matchId, seq, segment);
     }
     await tx.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
   });
@@ -193,6 +189,15 @@ export async function saveDarts(db: SQLiteDatabase, matchId: string, segments: r
 
 export async function deleteMatch(db: SQLiteDatabase, matchId: string) {
   await db.runAsync("DELETE FROM matches WHERE id = ?", matchId);
+}
+
+export async function loadPlayersAndMatches(db: SQLiteDatabase) {
+  const [players, matches] = await Promise.all([listPlayers(db), finishedMatches(db)]);
+  return { players, matches };
+}
+
+export function byId(players: readonly Player[]): Map<string, Player> {
+  return new Map(players.map((p) => [p.id, p]));
 }
 
 export async function finishedMatches(db: SQLiteDatabase): Promise<PlayedMatch[]> {

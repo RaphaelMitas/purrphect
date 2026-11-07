@@ -47,7 +47,7 @@ export function NameDialog({
         />
         <DialogFooter>
           <Button onPress={submit} disabled={!name.trim()}>
-            <Text className="font-nunito-black">{action}</Text>
+            <Text>{action}</Text>
           </Button>
         </DialogFooter>
       </DialogContent>

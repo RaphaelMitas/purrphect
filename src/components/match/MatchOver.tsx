@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Cat } from "@/components/Cat";
+import { RankRow } from "@/components/RankRow";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import type { Player } from "@/db/repo";
@@ -15,11 +16,13 @@ export function MatchOver({
   onUndo,
   onRematch,
   onHome,
+  busy,
 }: {
   standings: Standing[];
   onUndo: () => void;
   onRematch: () => void;
   onHome: () => void;
+  busy: boolean;
 }) {
   const winner = standings[0];
   return (
@@ -31,24 +34,21 @@ export function MatchOver({
         </View>
         <View>
           {standings.map((s, i) => (
-            <View key={s.player.id} className="h-10 flex-row items-center gap-2 border-t border-border">
-              <Text className="w-6 font-nunito-black text-sm text-muted-foreground">{i + 1}.</Text>
-              <Cat size={20} color={s.player.color} blush={false} />
-              <Text className="flex-1 font-nunito-bold">{s.player.name}</Text>
+            <RankRow key={s.player.id} rank={`${i + 1}.`} color={s.player.color} name={s.player.name}>
               <Text className="text-xs text-muted-foreground">avg {s.average.toFixed(1)}</Text>
               <Text className="w-14 text-right font-nunito-black">{s.legsWon} legs</Text>
-            </View>
+            </RankRow>
           ))}
         </View>
         <View className="flex-row gap-2">
-          <Button variant="secondary" className="flex-1 rounded-2xl" onPress={onUndo}>
-            <Text className="font-nunito-black">Undo</Text>
+          <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onUndo}>
+            <Text>Undo</Text>
           </Button>
-          <Button variant="secondary" className="flex-1 rounded-2xl" onPress={onHome}>
-            <Text className="font-nunito-black">Home</Text>
+          <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onHome}>
+            <Text>Home</Text>
           </Button>
-          <Button className="flex-1 rounded-2xl" onPress={onRematch}>
-            <Text className="font-nunito-black">Rematch</Text>
+          <Button className="flex-1 rounded-2xl" disabled={busy} onPress={onRematch}>
+            <Text>Rematch</Text>
           </Button>
         </View>
       </View>

@@ -1,19 +1,14 @@
-import { useState } from "react";
-import { type LayoutChangeEvent, View } from "react-native";
-import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import { View } from "react-native";
+import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import { Meter } from "@/components/Meter";
 import { Text } from "@/components/ui/text";
 import type { TrendPoint } from "@/game/stats";
+import { useLayoutSize } from "@/hooks/useLayoutSize";
 import { usePalette } from "@/lib/theme";
-import { cn } from "@/lib/utils";
-
-function useWidth(): [number, (e: LayoutChangeEvent) => void] {
-  const [width, setWidth] = useState(0);
-  return [width, (e) => setWidth(e.nativeEvent.layout.width)];
-}
 
 export function TrendChart({ points, height = 170 }: { points: TrendPoint[]; height?: number }) {
   const palette = usePalette();
-  const [width, onLayout] = useWidth();
+  const [{ width }, onLayout] = useLayoutSize();
   if (points.length < 2) {
     return <Text className="py-6 text-center text-sm text-muted-foreground">Play two matches to see a trend.</Text>;
   }
@@ -69,7 +64,7 @@ export function ColumnBars({
   height?: number;
 }) {
   const palette = usePalette();
-  const [width, onLayout] = useWidth();
+  const [{ width }, onLayout] = useLayoutSize();
   const max = Math.max(1, ...data.map((d) => d.value));
   const slot = width / Math.max(1, data.length);
   const bar = Math.min(44, slot * 0.6);
@@ -78,49 +73,34 @@ export function ColumnBars({
       {width > 0 && (
         <Svg width={width} height={height}>
           {data.map((d, i) => {
-            const h = (d.value / max) * (height - 44);
-            const cx = slot * i + slot / 2;
-            return (
-              <SvgText
-                key={`v${d.label}`}
-                x={cx}
-                y={height - 24 - h - 6}
-                fontSize={12}
-                fontFamily="Nunito_800ExtraBold"
-                fill={palette.foreground}
-                textAnchor="middle"
-              >
-                {d.value}
-              </SvgText>
-            );
-          })}
-          {data.map((d, i) => {
             const h = Math.max(2, (d.value / max) * (height - 44));
             const cx = slot * i + slot / 2;
             return (
-              <Rect
-                key={d.label}
-                x={cx - bar / 2}
-                y={height - 24 - h}
-                width={bar}
-                height={h}
-                rx={8}
-                fill={d.highlight ? palette.butter : palette.pink}
-              />
+              <G key={d.label}>
+                <SvgText
+                  x={cx}
+                  y={height - 30 - h}
+                  fontSize={12}
+                  fontFamily="Nunito_800ExtraBold"
+                  fill={palette.foreground}
+                  textAnchor="middle"
+                >
+                  {d.value}
+                </SvgText>
+                <Rect
+                  x={cx - bar / 2}
+                  y={height - 24 - h}
+                  width={bar}
+                  height={h}
+                  rx={8}
+                  fill={d.highlight ? palette.butter : palette.pink}
+                />
+                <SvgText x={cx} y={height - 6} fontSize={11} fill={palette.mutedForeground} textAnchor="middle">
+                  {d.label}
+                </SvgText>
+              </G>
             );
           })}
-          {data.map((d, i) => (
-            <SvgText
-              key={`t${d.label}`}
-              x={slot * i + slot / 2}
-              y={height - 6}
-              fontSize={11}
-              fill={palette.mutedForeground}
-              textAnchor="middle"
-            >
-              {d.label}
-            </SvgText>
-          ))}
         </Svg>
       )}
     </View>
@@ -139,12 +119,7 @@ export function RateBars({
       {rows.map((r) => (
         <View key={r.label} className="flex-row items-center gap-2">
           <Text className="w-16 font-nunito-black text-xs">{r.label}</Text>
-          <View className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
-            <View
-              className={cn("h-full rounded-full", tone === "mint" ? "bg-mint" : "bg-pink")}
-              style={{ width: `${Math.round(r.rate * 100)}%` }}
-            />
-          </View>
+          <Meter value={r.rate} className="flex-1" fill={tone === "mint" ? "bg-mint" : "bg-pink"} />
           <Text className="w-20 text-right text-xs text-muted-foreground">
             {Math.round(r.rate * 100)}%{r.detail ? ` · ${r.detail}` : ""}
           </Text>

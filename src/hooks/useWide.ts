@@ -1,5 +1,6 @@
 import { useWindowDimensions } from "react-native";
 
 export function useWide(): boolean {
-  return useWindowDimensions().width >= 768;
+  const { width, height } = useWindowDimensions();
+  return Math.min(width, height) >= 600;
 }

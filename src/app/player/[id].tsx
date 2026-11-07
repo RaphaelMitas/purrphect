@@ -1,41 +1,36 @@
 import { useLocalSearchParams } from "expo-router";
-import type { SQLiteDatabase } from "expo-sqlite";
 import { useMemo } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/components/AppHeader";
 import { Cat } from "@/components/Cat";
 import { DartBoard } from "@/components/DartBoard";
+import { Meter } from "@/components/Meter";
 import { Panel } from "@/components/Panel";
+import { RankRow } from "@/components/RankRow";
 import { RateBars, TrendChart } from "@/components/StatCharts";
 import { Text } from "@/components/ui/text";
-import { finishedMatches, listPlayers } from "@/db/repo";
+import { byId, loadPlayersAndMatches } from "@/db/repo";
 import { BADGES, LEVELS, progressFor, XP_RULES } from "@/game/levels";
-import { averageTrend, doubleRates, playerStats } from "@/game/stats";
-import { replay } from "@/game/x01";
+import { doubleRates, playerStats } from "@/game/stats";
+import { replay, standings } from "@/game/x01";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
 import { ordinal, relativeDay } from "@/lib/format";
 import { usePalette } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-async function loadPlayer(db: SQLiteDatabase) {
-  const [players, matches] = await Promise.all([listPlayers(db), finishedMatches(db)]);
-  return { players, matches };
-}
-
 export default function PlayerCard() {
   const wide = useWide();
   const palette = usePalette();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [data] = useFocusData(loadPlayer);
+  const [data] = useFocusData(loadPlayersAndMatches);
   const player = data?.players.find((p) => p.id === id);
   const matches = data?.matches ?? [];
 
-  const progress = useMemo(() => progressFor(matches, id), [matches, id]);
   const stats = useMemo(() => playerStats(matches, id), [matches, id]);
-  const trend = useMemo(() => averageTrend(matches, id), [matches, id]);
-  const names = useMemo(() => new Map((data?.players ?? []).map((p) => [p.id, p.name])), [data]);
+  const progress = useMemo(() => progressFor(stats), [stats]);
+  const players = useMemo(() => byId(data?.players ?? []), [data]);
 
   const recent = useMemo(
     () =>
@@ -46,19 +41,16 @@ export default function PlayerCard() {
         .map((m) => {
           const state = replay(m.rules, m.playerIds.length, m.segments);
           const me = m.playerIds.indexOf(id);
-          const rank =
-            [...state.legsWon.keys()].sort((a, b) => (state.legsWon[b] ?? 0) - (state.legsWon[a] ?? 0)).indexOf(me) + 1;
           const others = m.playerIds.filter((p) => p !== id);
-          const vs = others.length === 1 ? (names.get(others[0] ?? "") ?? "?") : `${m.playerIds.length} players`;
+          const vs =
+            others.length === 1 ? (players.get(others[0] ?? "")?.name ?? "?") : `${m.playerIds.length} players`;
           const result =
             m.playerIds.length === 2
               ? `${state.legsWon[me] ?? 0} – ${state.legsWon[1 - me] ?? 0}`
-              : state.winner === me
-                ? "1st"
-                : ordinal(rank);
+              : ordinal(standings(state).indexOf(me) + 1);
           return { id: m.id, vs, when: relativeDay(m.finishedAt), start: m.rules.start, result };
         }),
-    [matches, id, names],
+    [matches, id, players],
   );
 
   if (!player) return <SafeAreaView className="flex-1 bg-background" />;
@@ -76,9 +68,7 @@ export default function PlayerCard() {
         </Text>
       </View>
       <View className="w-full gap-1">
-        <View className="h-3 overflow-hidden rounded-full bg-muted">
-          <View className="h-full rounded-full bg-pink" style={{ width: `${Math.round(share * 100)}%` }} />
-        </View>
+        <Meter value={share} />
         <Text className="text-center text-xs text-muted-foreground">
           {progress.nextXp
             ? `${progress.xp} / ${progress.nextXp} XP · ${progress.nextXp - progress.xp} to ${progress.nextName}`
@@ -125,18 +115,16 @@ export default function PlayerCard() {
         const reached = i + 1 <= progress.level;
         const current = i + 1 === progress.level;
         return (
-          <View
+          <RankRow
             key={l.name}
-            className={cn(
-              "h-9 flex-row items-center gap-2 border-t border-border px-1",
-              current && "rounded-xl border-transparent bg-butter-soft",
-            )}
+            rank={i + 1}
+            color={reached ? player.color : palette.border}
+            name={l.name}
+            highlight={current}
+            muted={!reached}
           >
-            <Text className="w-5 text-center font-nunito-black text-xs text-muted-foreground">{i + 1}</Text>
-            <Cat size={18} color={reached ? player.color : palette.border} blush={false} />
-            <Text className={cn("flex-1 font-nunito-bold text-sm", !reached && "text-muted-foreground")}>{l.name}</Text>
             <Text className="text-xs text-muted-foreground">{current ? "now" : reached ? "done" : `${l.xp} XP`}</Text>
-          </View>
+          </RankRow>
         );
       })}
     </Panel>
@@ -162,7 +150,7 @@ export default function PlayerCard() {
         ))}
       </Panel>
       <Panel title="Form" hint="average per match">
-        <TrendChart points={trend.slice(-12)} height={120} />
+        <TrendChart points={stats.trend.slice(-12)} height={120} />
       </Panel>
       <Panel title="Recent matches">
         {recent.length === 0 && <Text className="text-sm text-muted-foreground">No finished matches yet.</Text>}

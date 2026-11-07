@@ -2,7 +2,16 @@ import * as Haptics from "expo-haptics";
 import { type ReactNode, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { BOARD_NUMBERS, type BoardNumber, type Multiplier, type Segment, segmentFor } from "@/game/segments";
+import {
+  BOARD_NUMBERS,
+  type BoardNumber,
+  info,
+  label,
+  type Multiplier,
+  type Segment,
+  segmentFor,
+  tone,
+} from "@/game/segments";
 import { cn } from "@/lib/utils";
 
 const ARMED = {
@@ -63,7 +72,6 @@ export function TilesPad({
   onUndo: () => void;
 }) {
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
-  const prefix = multiplier === 2 ? "D" : multiplier === 3 ? "T" : "";
   const armed = ARMED[multiplier];
 
   const hit = (segment: Segment) => {
@@ -73,8 +81,7 @@ export function TilesPad({
   };
   const toggle = (m: Multiplier) => setMultiplier((cur) => (cur === m ? 1 : m));
   const planIndex = (segment: Segment) => plan.indexOf(segment);
-  const numberPlan = (n: BoardNumber) =>
-    plan.findIndex((s) => s === segmentFor(n, 1) || s === segmentFor(n, 2) || s === segmentFor(n, 3));
+  const numberPlan = (n: BoardNumber) => plan.findIndex((s) => info(s).number === n);
 
   const tile = (n: BoardNumber) => {
     const main = segmentFor(n, multiplier);
@@ -83,18 +90,15 @@ export function TilesPad({
       return (
         <View key={n} className="flex-1 overflow-hidden rounded-2xl bg-card">
           <Key
-            label={`${prefix}${n}`}
+            label={label(main)}
             onPress={() => hit(main)}
             highlighted={mainIndex >= 0}
-            className={cn("flex-1 rounded-2xl", armed.tile)}
+            className={cn("flex-[3] rounded-2xl", armed.tile)}
           >
-            <Text className={cn("font-nunito-black text-2xl", armed.text)}>
-              {prefix}
-              {n}
-            </Text>
+            <Text className={cn("font-nunito-black text-2xl", armed.text)}>{label(main)}</Text>
             {mainIndex >= 0 && <PlanBadge index={mainIndex} />}
           </Key>
-          <View className="flex-row">
+          <View className="min-h-10 flex-[2] flex-row">
             {([2, 3] as const).map((m) => {
               const s = segmentFor(n, m);
               const i = planIndex(s);
@@ -104,10 +108,10 @@ export function TilesPad({
                   label={s}
                   onPress={() => hit(s)}
                   highlighted={i >= 0}
-                  className={cn("flex-1 rounded-xl py-2", m === 2 ? "bg-mint-soft" : "bg-pink-soft")}
+                  className={cn("flex-1 rounded-xl", m === 2 ? "bg-mint-soft" : "bg-pink-soft")}
                 >
                   <Text className={cn("font-nunito-black text-sm", m === 2 ? "text-mint-ink" : "text-pink-ink")}>
-                    {m === 2 ? "D" : "T"}
+                    {s[0]}
                   </Text>
                   {i >= 0 && <PlanBadge index={i} />}
                 </Key>
@@ -119,19 +123,16 @@ export function TilesPad({
     }
     const i = numberPlan(n);
     const planned = plan[i];
-    const suffix = planned?.startsWith("D") ? "D" : planned?.startsWith("T") ? "T" : undefined;
+    const suffix = planned && tone(planned) !== "single" ? planned[0] : undefined;
     return (
       <Key
         key={n}
-        label={`${prefix}${n}`}
+        label={label(main)}
         onPress={() => hit(main)}
         highlighted={i >= 0}
         className={cn("flex-1 rounded-2xl", armed.tile)}
       >
-        <Text className={cn("font-nunito-black text-xl", armed.text)}>
-          {prefix}
-          {n}
-        </Text>
+        <Text className={cn("font-nunito-black text-xl", armed.text)}>{label(main)}</Text>
         {i >= 0 && <PlanBadge index={i} suffix={suffix} />}
       </Key>
     );

@@ -1,4 +1,4 @@
-import { bestRoute, type MissFallback, missFallback, type Route, routes, type SetupShot, setupShot } from "./checkout";
+import { bestRoute, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
 import { info, type Segment } from "./segments";
 import { type MatchState, upNext } from "./x01";
 
@@ -42,8 +42,9 @@ export interface Suggestion {
 export function suggest(s: MatchState, rates: HitRates = DEFAULT_HIT_RATES): Suggestion {
   const remaining = s.remaining[s.current] ?? s.rules.start;
   const dartsLeft = 3 - s.visit.length;
-  const route = routes(remaining, dartsLeft, s.rules.out)[0];
-  const setup = route ? undefined : setupShot(remaining, dartsLeft, s.rules.out);
+  const playing = s.winner === null;
+  const route = playing ? bestRoute(remaining, dartsLeft, s.rules.out) : undefined;
+  const setup = playing && !route ? setupShot(remaining, dartsLeft, s.rules.out) : undefined;
   return {
     remaining,
     dartsLeft,

@@ -19,7 +19,7 @@ export default function RootLayout() {
   return (
     <SQLiteProvider databaseName="dart-purrphect.db" onInit={migrate}>
       <ThemeProvider value={NAV_THEME[scheme]}>
-        <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+        <StatusBar style="auto" />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: PALETTE[scheme].background } }} />
         <PortalHost />
       </ThemeProvider>

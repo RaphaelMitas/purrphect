@@ -1,5 +1,4 @@
-import type { PlayedMatch } from "./stats";
-import { replay } from "./x01";
+import type { PlayerStats } from "./stats";
 
 export const LEVELS = [
   { name: "Kitten", xp: 0 },
@@ -48,40 +47,23 @@ export interface Progress {
 }
 
 const DAY = 24 * 60 * 60 * 1000;
-const dayIndex = (at: number) => Math.floor((at - new Date(at).getTimezoneOffset() * 60 * 1000) / DAY);
+export const dayIndex = (at: number) => Math.floor((at - new Date(at).getTimezoneOffset() * 60 * 1000) / DAY);
 
-export function progressFor(matches: readonly PlayedMatch[], playerId: string): Progress {
-  const counts: Record<XpKey, number> = { legPlayed: 0, legWon: 0, ton: 0, oneEighty: 0, bigFinish: 0, streakDay: 0 };
+export function progressFor(stats: PlayerStats): Progress {
+  const counts: Record<XpKey, number> = {
+    legPlayed: stats.legsPlayed,
+    legWon: stats.legsWon,
+    ton: stats.bands["100+"] + stats.bands["140+"],
+    oneEighty: stats.bands["180"],
+    bigFinish: stats.bigFinishes,
+    streakDay: 0,
+  };
   const badges = new Set<BadgeKey>();
-  const days = new Set<number>();
-
-  for (const m of matches) {
-    const p = m.playerIds.indexOf(playerId);
-    if (p < 0) continue;
-    days.add(dayIndex(m.finishedAt));
-    const state = replay(m.rules, m.playerIds.length, m.segments);
-    const legDarts = new Map<number, number>();
-    for (const v of state.visits) {
-      if (v.player !== p) continue;
-      legDarts.set(v.leg, (legDarts.get(v.leg) ?? 0) + v.darts.length);
-      if (v.scored === 180) {
-        counts.oneEighty++;
-        badges.add("first180");
-      } else if (v.scored >= 100) counts.ton++;
-      if (v.checkout && v.scored >= 100) {
-        counts.bigFinish++;
-        badges.add("bigFinish");
-      }
-      if (v.checkout && v.darts.at(-1) === "Bull") badges.add("bullFinish");
-    }
-    for (const [i, leg] of state.legs.entries()) {
-      if (!leg.order.includes(p)) continue;
-      counts.legPlayed++;
-      if (leg.order[0] !== p) continue;
-      counts.legWon++;
-      if ((legDarts.get(i) ?? Infinity) <= 15) badges.add("fifteenDarter");
-    }
-  }
+  if (stats.bands["180"] > 0) badges.add("first180");
+  if (stats.bigFinishes > 0) badges.add("bigFinish");
+  if (stats.bullFinishes > 0) badges.add("bullFinish");
+  if (stats.bestLegDarts !== null && stats.bestLegDarts <= 15) badges.add("fifteenDarter");
+  const days = new Set(stats.playedAt.map(dayIndex));
 
   let streak = 0;
   let bestStreak = 0;

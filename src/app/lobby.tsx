@@ -7,11 +7,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/components/AppHeader";
 import { Cat } from "@/components/Cat";
 import { NameDialog } from "@/components/NameDialog";
+import { Panel } from "@/components/Panel";
+import { RankRow } from "@/components/RankRow";
 import { Segmented } from "@/components/Segmented";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { addGuest, addPlayer, createMatch, listPlayers, listSetups, type Player } from "@/db/repo";
+import { addGuest, addPlayer, byId, createMatch, listPlayers, listSetups, type Player } from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
@@ -54,12 +56,11 @@ async function loadLobby(db: SQLiteDatabase) {
   return { players, setups };
 }
 
-function SettingRow({ label, children, unit }: { label: string; children: ReactNode; unit?: string }) {
+function SettingRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <View className="flex-row items-center gap-3">
-      <Text className="w-16 font-nunito-bold text-xs text-muted-foreground">{label}</Text>
-      {children}
-      {unit && <Text className="font-nunito-bold text-xs text-muted-foreground">{unit}</Text>}
+    <View className="gap-1.5">
+      <Text className="font-nunito-bold text-xs text-muted-foreground">{label}</Text>
+      <View className="flex-row">{children}</View>
     </View>
   );
 }
@@ -78,8 +79,9 @@ export default function Lobby() {
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
   const [adding, setAdding] = useState(false);
   const [preloaded, setPreloaded] = useState(false);
+  const [starting, setStarting] = useState(false);
 
-  const players = useMemo(() => new Map((data?.players ?? []).map((p) => [p.id, p])), [data?.players]);
+  const players = useMemo(() => byId(data?.players ?? []), [data?.players]);
 
   useEffect(() => {
     if (preloaded || !data) return;
@@ -130,17 +132,18 @@ export default function Lobby() {
   };
 
   const begin = async () => {
-    if (!canStart) return;
+    if (!canStart || starting) return;
+    setStarting(true);
     const rules: Rules = { start: startValue, out, firstTo: legsValue, finish };
     const id = await createMatch(db, rules, selected);
     router.replace(`/match/${id}`);
   };
+  const full = selected.length >= MAX_PLAYERS;
 
   const roster = (data?.players ?? []).filter((p) => !p.guest || selected.includes(p.id));
 
   const who = (
-    <View className="gap-3 rounded-3xl bg-card p-4">
-      <Text className="font-nunito-black text-base">Who's playing?</Text>
+    <Panel title="Who's playing?" hint={`${selected.length} / ${MAX_PLAYERS}`}>
       <View className="flex-row flex-wrap gap-2">
         {roster.map((p) => {
           const index = selected.indexOf(p.id);
@@ -173,42 +176,46 @@ export default function Lobby() {
             </Pressable>
           );
         })}
-        <Pressable
-          onPress={() => setAdding(true)}
-          className="w-20 items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border p-2"
-        >
-          <Icon as={Plus} className="size-6 text-pink" />
-          <Text className="font-nunito-bold text-xs">Player</Text>
-        </Pressable>
-        <Pressable
-          onPress={async () => added(await addGuest(db))}
-          className="w-20 items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border p-2"
-        >
-          <Icon as={Plus} className="size-6 text-muted-foreground" />
-          <Text className="font-nunito-bold text-xs">Guest</Text>
-        </Pressable>
+        {[
+          { label: "Player", tint: "text-pink", onPress: () => setAdding(true) },
+          { label: "Guest", tint: "text-muted-foreground", onPress: async () => added(await addGuest(db)) },
+        ].map((b) => (
+          <Pressable
+            key={b.label}
+            accessibilityRole="button"
+            accessibilityLabel={`Add ${b.label.toLowerCase()}`}
+            disabled={full}
+            onPress={b.onPress}
+            className={cn(
+              "w-20 items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border p-2",
+              full && "opacity-40",
+            )}
+          >
+            <Icon as={Plus} className={cn("size-6", b.tint)} />
+            <Text className="font-nunito-bold text-xs">{b.label}</Text>
+          </Pressable>
+        ))}
       </View>
-    </View>
+    </Panel>
   );
 
   const order = (
-    <View className="gap-1 rounded-3xl bg-card p-4">
-      <View className="flex-row items-center justify-between pb-1">
-        <Text className="font-nunito-black text-base">Order</Text>
+    <Panel
+      title="Order"
+      className="gap-1"
+      right={
         <Pressable onPress={shuffle} className="flex-row items-center gap-1 rounded-full bg-pink-soft px-3 py-1.5">
           <Icon as={Shuffle} className="size-3.5 text-pink-ink" />
           <Text className="font-nunito-black text-xs text-pink-ink">Shuffle</Text>
         </Pressable>
-      </View>
+      }
+    >
       {selected.length === 0 && <Text className="py-2 text-sm text-muted-foreground">Tap players to add them.</Text>}
       {selected.map((id, i) => {
         const p = players.get(id);
         if (!p) return null;
         return (
-          <View key={id} className="h-11 flex-row items-center gap-2 border-t border-border">
-            <Text className="w-5 text-center font-nunito-black text-xs text-muted-foreground">{i + 1}</Text>
-            <Cat size={22} color={p.color} blush={false} />
-            <Text className="flex-1 font-nunito-bold text-sm">{p.name}</Text>
+          <RankRow key={id} rank={i + 1} color={p.color} name={p.name}>
             <Pressable
               accessibilityLabel={`Move ${p.name} up`}
               disabled={i === 0}
@@ -231,16 +238,17 @@ export default function Lobby() {
             <Pressable accessibilityLabel={`Remove ${p.name}`} onPress={() => toggle(id)} className="p-1.5">
               <Icon as={X} className="size-5 text-muted-foreground" />
             </Pressable>
-          </View>
+          </RankRow>
         );
       })}
-    </View>
+    </Panel>
   );
 
   const settings = (
-    <View className="gap-3 rounded-3xl bg-card p-4">
+    <Panel title="Rules">
       <SettingRow label="Start">
         <Segmented
+          className="flex-1"
           options={START_OPTIONS}
           value={start}
           onChange={setStart}
@@ -248,10 +256,11 @@ export default function Lobby() {
         />
       </SettingRow>
       <SettingRow label="Out">
-        <Segmented options={OUT_OPTIONS} value={out} onChange={setOut} />
+        <Segmented className="flex-1" options={OUT_OPTIONS} value={out} onChange={setOut} />
       </SettingRow>
-      <SettingRow label="First to" unit="legs">
+      <SettingRow label="First to (legs)">
         <Segmented
+          className="flex-1"
           options={LEG_OPTIONS}
           value={legs}
           onChange={setLegs}
@@ -259,16 +268,16 @@ export default function Lobby() {
         />
       </SettingRow>
       <SettingRow label="Finish">
-        <Segmented options={FINISH_OPTIONS} value={finish} onChange={setFinish} />
+        <Segmented className="flex-1" options={FINISH_OPTIONS} value={finish} onChange={setFinish} />
       </SettingRow>
       {!startValid && <Text className="text-xs text-destructive">Start score between 2 and 9999.</Text>}
       {!legsValid && <Text className="text-xs text-destructive">First to between 1 and 99 legs.</Text>}
-      <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart} onPress={begin}>
-        <Text className="font-nunito-black text-lg">
+      <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
+        <Text className="text-lg">
           {selected.length ? `Start · ${selected.length} player${selected.length > 1 ? "s" : ""}` : "Pick players"}
         </Text>
       </Button>
-    </View>
+    </Panel>
   );
 
   return (

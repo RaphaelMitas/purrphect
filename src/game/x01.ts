@@ -174,6 +174,10 @@ export function upNext(s: MatchState): number[] {
   return order;
 }
 
+export function threeDartAverage(points: number, darts: number): number {
+  return darts ? (points / darts) * 3 : 0;
+}
+
 export function matchAverage(s: MatchState, player: number): number {
   let points = 0;
   let darts = 0;
@@ -182,9 +186,11 @@ export function matchAverage(s: MatchState, player: number): number {
     points += v.scored;
     darts += v.darts.length;
   }
-  return darts ? (points / darts) * 3 : 0;
+  return threeDartAverage(points, darts);
 }
 
-export function lastVisit(s: MatchState, player: number): VisitRecord | undefined {
-  return s.visits.findLast((v) => v.player === player);
+export function standings(s: MatchState): number[] {
+  return Array.from({ length: s.playerCount }, (_, p) => p).sort(
+    (a, b) => (s.legsWon[b] ?? 0) - (s.legsWon[a] ?? 0) || matchAverage(s, b) - matchAverage(s, a),
+  );
 }

@@ -16,7 +16,6 @@
     "@expo-google-fonts/nunito": "^0.4.2",
     "@rn-primitives/dialog": "^1.5.2",
     "@rn-primitives/portal": "^1.5.3",
-    "@rn-primitives/separator": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

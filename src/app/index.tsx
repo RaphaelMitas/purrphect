@@ -7,20 +7,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/components/AppHeader";
 import { Cat } from "@/components/Cat";
 import { NameDialog } from "@/components/NameDialog";
+import { Panel } from "@/components/Panel";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import {
-  finishedMatches,
+  byId,
+  deleteMatch,
   latestOpenMatch,
-  listPlayers,
   listSetups,
+  loadPlayersAndMatches,
   type Player,
   renameSetup,
   type Setup,
   setFavorite,
 } from "@/db/repo";
 import { progressFor } from "@/game/levels";
+import { playerStats } from "@/game/stats";
 import { replay } from "@/game/x01";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
@@ -29,11 +32,10 @@ import { usePalette } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 async function loadHome(db: SQLiteDatabase) {
-  const [players, setups, open, matches] = await Promise.all([
-    listPlayers(db),
+  const [{ players, matches }, setups, open] = await Promise.all([
+    loadPlayersAndMatches(db),
     listSetups(db),
     latestOpenMatch(db),
-    finishedMatches(db),
   ]);
   return { players, setups, open, matches };
 }
@@ -73,7 +75,14 @@ export default function Home() {
   const wide = useWide();
   const [data, reload] = useFocusData(loadHome);
   const [renaming, setRenaming] = useState<Setup | null>(null);
-  const players = useMemo(() => new Map((data?.players ?? []).map((p) => [p.id, p])), [data?.players]);
+  const players = useMemo(() => byId(data?.players ?? []), [data?.players]);
+  const regulars = useMemo(
+    () =>
+      (data?.players ?? [])
+        .filter((p) => !p.guest)
+        .map((p) => ({ player: p, progress: progressFor(playerStats(data?.matches ?? [], p.id)) })),
+    [data],
+  );
 
   const toggleFavorite = async (s: Setup) => {
     await setFavorite(db, s.id, !s.favorite);
@@ -83,10 +92,13 @@ export default function Home() {
 
   const favourites = data?.setups.filter((s) => s.favorite) ?? [];
   const recents = data?.setups.slice(0, 8) ?? [];
-  const regulars = data?.players.filter((p) => !p.guest) ?? [];
-
   const open = data?.open;
   const openState = open ? replay(open.rules, open.playerIds.length, open.segments) : null;
+  const openPlayer = open && openState ? players.get(open.playerIds[openState.current] ?? "") : undefined;
+  const discard = async (matchId: string) => {
+    await deleteMatch(db, matchId);
+    reload();
+  };
 
   const play = (
     <View className="gap-3">
@@ -95,23 +107,24 @@ export default function Home() {
           onPress={() => router.push(`/match/${open.id}`)}
           className="flex-row items-center gap-3 rounded-3xl border-2 border-pink bg-card p-4 active:opacity-80"
         >
-          <Cat size={40} color={players.get(open.playerIds[openState.current] ?? "")?.color} />
+          <Cat size={40} color={openPlayer?.color} />
           <View className="flex-1">
             <Text className="font-nunito-black text-base">Continue match</Text>
             <Text className="text-xs text-muted-foreground">
-              {rulesSummary(open.rules)} · {players.get(open.playerIds[openState.current] ?? "")?.name} on{" "}
-              {openState.remaining[openState.current]}
+              {rulesSummary(open.rules)} · {openPlayer?.name} on {openState.remaining[openState.current]}
             </Text>
           </View>
+          <Button variant="ghost" size="sm" onPress={() => discard(open.id)}>
+            <Text className="text-muted-foreground">Discard</Text>
+          </Button>
           <Text className="font-nunito-black text-pink-ink">Resume</Text>
         </Pressable>
       )}
       <Button size="lg" className="h-16 rounded-3xl" onPress={() => router.push("/lobby")}>
-        <Text className="font-nunito-black text-xl">New game</Text>
+        <Text className="text-xl">New game</Text>
       </Button>
 
-      <View className="gap-2 rounded-3xl bg-card p-4">
-        <Text className="font-nunito-black text-base">Favourites</Text>
+      <Panel title="Favourites" hint={favourites.length > 0 ? "long press to name" : undefined}>
         {favourites.length === 0 ? (
           <Text className="text-sm text-muted-foreground">Star a recent setup to keep it here.</Text>
         ) : (
@@ -135,11 +148,9 @@ export default function Home() {
             ))}
           </View>
         )}
-        {favourites.length > 0 && (
-          <Text className="text-[11px] text-muted-foreground">Long press a favourite to name it.</Text>
-        )}
+      </Panel>
 
-        <Text className="mt-2 font-nunito-black text-base">Recent</Text>
+      <Panel title="Recent" className="gap-1">
         {recents.length === 0 && <Text className="text-sm text-muted-foreground">Your games show up here.</Text>}
         {recents.map((s) => (
           <Pressable
@@ -160,34 +171,30 @@ export default function Home() {
             <Text className="w-16 text-right text-xs text-muted-foreground">{relativeDay(s.lastUsedAt)}</Text>
           </Pressable>
         ))}
-      </View>
+      </Panel>
     </View>
   );
 
   const people = (
-    <View className="gap-2 rounded-3xl bg-card p-4">
-      <Text className="font-nunito-black text-base">Players</Text>
+    <Panel title="Players" className="gap-1">
       {regulars.length === 0 && (
         <Text className="text-sm text-muted-foreground">Add players when you start a game.</Text>
       )}
-      {regulars.map((p) => {
-        const progress = progressFor(data?.matches ?? [], p.id);
-        return (
-          <Link key={p.id} href={`/player/${p.id}`} asChild>
-            <Pressable className="flex-row items-center gap-3 border-t border-border py-2 active:opacity-70">
-              <Cat size={30} color={p.color} />
-              <View className="flex-1">
-                <Text className="font-nunito-bold text-base">{p.name}</Text>
-                <Text className="text-xs text-muted-foreground">
-                  Lv. {progress.level} · {progress.name}
-                </Text>
-              </View>
-              <Text className="text-xs text-muted-foreground">{progress.xp} XP</Text>
-            </Pressable>
-          </Link>
-        );
-      })}
-    </View>
+      {regulars.map(({ player: p, progress }) => (
+        <Link key={p.id} href={`/player/${p.id}`} asChild>
+          <Pressable className="flex-row items-center gap-3 border-t border-border py-2 active:opacity-70">
+            <Cat size={30} color={p.color} />
+            <View className="flex-1">
+              <Text className="font-nunito-bold text-base">{p.name}</Text>
+              <Text className="text-xs text-muted-foreground">
+                Lv. {progress.level} · {progress.name}
+              </Text>
+            </View>
+            <Text className="text-xs text-muted-foreground">{progress.xp} XP</Text>
+          </Pressable>
+        </Link>
+      ))}
+    </Panel>
   );
 
   return (
@@ -196,13 +203,9 @@ export default function Home() {
         title="Dart Purrphect"
         right={
           <Link href="/stats" asChild>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Statistics"
-              className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
-            >
+            <Button variant="ghost" size="icon" accessibilityLabel="Statistics" className="rounded-full">
               <Icon as={BarChart3} className="size-6 text-foreground" />
-            </Pressable>
+            </Button>
           </Link>
         }
       />

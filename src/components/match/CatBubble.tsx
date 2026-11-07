@@ -45,13 +45,17 @@ export function CatBubble({
             <Route darts={route.darts} />
             <Text className="font-nunito-black text-sm text-pink-ink">{Math.round(chance * 100)}%</Text>
           </View>
+        ) : setup && setup.leaves > 170 ? (
+          <View className="flex-row flex-wrap items-center gap-2">
+            <Text className="text-sm">{remaining} to go. Score big</Text>
+            <Route darts={[setup.aim]} />
+          </View>
         ) : setup ? (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">No out from {remaining}. Aim</Text>
             <Route darts={[setup.aim]} />
-            <Text className="text-sm">
-              to leave <Text className="font-nunito-black text-sm">{setup.leaves}</Text>
-            </Text>
+            <Text className="text-sm">to leave</Text>
+            <Text className="font-nunito-black text-sm">{setup.leaves}</Text>
           </View>
         ) : null}
         {fallback && !compact && (
@@ -59,7 +63,16 @@ export function CatBubble({
             <Text className="text-xs text-muted-foreground">
               Miss into the {label(fallback.single)}? Then {fallback.leaves}:
             </Text>
-            {fallback.route ? <Route darts={fallback.route.darts} /> : <Text className="text-xs">just score</Text>}
+            {fallback.route ? (
+              <Route darts={fallback.route.darts} />
+            ) : fallback.setup ? (
+              <>
+                <Text className="text-xs text-muted-foreground">aim</Text>
+                <Route darts={[fallback.setup.aim]} />
+              </>
+            ) : (
+              <Text className="text-xs">just score</Text>
+            )}
           </View>
         )}
         {onFinish.length > 0 && (

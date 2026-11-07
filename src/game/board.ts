@@ -11,6 +11,7 @@ export const RINGS = {
   numbers: 220,
 };
 export const BOARD_RADIUS = 232;
+export const SEGMENT_DEGREES = 18;
 
 export function polar(radius: number, degrees: number): [number, number] {
   const t = (degrees * Math.PI) / 180;
@@ -22,8 +23,8 @@ export function hitTest(x: number, y: number): Segment {
   if (r <= RINGS.bull) return "Bull";
   if (r <= RINGS.outerBull) return "25";
   if (r > RINGS.doubleOut) return "Miss";
-  const angle = ((Math.atan2(x, -y) * 180) / Math.PI + 369) % 360;
-  const number = BOARD_ORDER[Math.floor(angle / 18)] ?? 20;
+  const angle = ((Math.atan2(x, -y) * 180) / Math.PI + 360 + SEGMENT_DEGREES / 2) % 360;
+  const number = BOARD_ORDER[Math.floor(angle / SEGMENT_DEGREES)] ?? 20;
   if (r > RINGS.doubleIn) return segmentFor(number, 2);
   if (r > RINGS.trebleIn && r <= RINGS.trebleOut) return segmentFor(number, 3);
   return segmentFor(number, 1);
@@ -33,7 +34,7 @@ export function segmentCenter(segment: Segment): [number, number] {
   const { number, multiplier } = info(segment);
   if (number === 0 || segment === "Bull") return [0, 0];
   if (number === 25) return [0, -(RINGS.bull + RINGS.outerBull) / 2];
-  const angle = BOARD_ORDER.indexOf(number) * 18;
+  const angle = BOARD_ORDER.indexOf(number) * SEGMENT_DEGREES;
   const r =
     multiplier === 3
       ? (RINGS.trebleIn + RINGS.trebleOut) / 2

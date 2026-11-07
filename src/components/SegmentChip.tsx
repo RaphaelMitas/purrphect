@@ -25,11 +25,19 @@ const SIZE = {
   lg: ["h-11 min-w-14 rounded-xl px-3", "text-xl"],
 } as const;
 
-export function SegmentChip({ segment, size = "md" }: { segment: Segment; size?: keyof typeof SIZE }) {
+export function SegmentChip({
+  segment,
+  size = "md",
+  className,
+}: {
+  segment: Segment;
+  size?: keyof typeof SIZE;
+  className?: string;
+}) {
   const t = tone(segment);
   const [box, text] = SIZE[size];
   return (
-    <View className={cn("items-center justify-center border-2", box, BOX[t])}>
+    <View className={cn("items-center justify-center border-2", box, BOX[t], className)}>
       <Text className={cn("font-nunito-black", text, INK[t])}>{label(segment)}</Text>
     </View>
   );

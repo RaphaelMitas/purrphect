@@ -14,6 +14,10 @@ describe("checkout routes", () => {
     expect(route(32)).toEqual(["D16"]);
   });
 
+  it("throws the treble before the single so a miss still leaves a finish", () => {
+    expect(route(120)).toEqual(["T20", "S20", "D20"]);
+  });
+
   it("re-plans with fewer darts", () => {
     expect(route(62, 2)).toEqual(["T10", "D16"]);
     expect(route(41, 1)).toBeUndefined();
@@ -38,6 +42,10 @@ describe("setup shots", () => {
 
   it("leaves a clean double with the last dart", () => {
     expect(setupShot(41, 1, "double")).toEqual({ aim: "S1", leaves: 40 });
+  });
+
+  it("prefers scoring with the last dart when every leave needs three darts", () => {
+    expect(setupShot(159, 1, "double").aim).toBe("T20");
   });
 });
 

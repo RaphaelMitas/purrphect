@@ -3,16 +3,8 @@ import { Cat } from "@/components/Cat";
 import { SegmentChip } from "@/components/SegmentChip";
 import { Text } from "@/components/ui/text";
 import type { Player } from "@/db/repo";
-import { label, type Segment, tone } from "@/game/segments";
+import { label, type Segment } from "@/game/segments";
 import { cn } from "@/lib/utils";
-
-const SLOT = {
-  treble: "border-pink/40 bg-pink-soft",
-  double: "border-mint/50 bg-mint-soft",
-  bull: "border-butter/60 bg-butter-soft",
-  single: "border-border bg-card",
-  miss: "border-border bg-muted",
-};
 
 export function DartSlots({
   thrown,
@@ -30,14 +22,7 @@ export function DartSlots({
         const next = plan[i - thrown.length];
         const h = compact ? "h-11" : "h-14";
         if (done) {
-          return (
-            <View
-              key={i}
-              className={cn("flex-1 items-center justify-center rounded-2xl border-2", h, SLOT[tone(done)])}
-            >
-              <SegmentChip segment={done} size="sm" />
-            </View>
-          );
+          return <SegmentChip key={i} segment={done} className={cn("flex-1 rounded-2xl", h)} />;
         }
         return (
           <View

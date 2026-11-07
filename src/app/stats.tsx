@@ -1,5 +1,4 @@
 import { Link } from "expo-router";
-import type { SQLiteDatabase } from "expo-sqlite";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,8 +9,8 @@ import { Panel } from "@/components/Panel";
 import { Segmented } from "@/components/Segmented";
 import { ColumnBars, Kpi, RateBars, TrendChart } from "@/components/StatCharts";
 import { Text } from "@/components/ui/text";
-import { finishedMatches, listPlayers } from "@/db/repo";
-import { averageTrend, doubleRates, playerStats } from "@/game/stats";
+import { loadPlayersAndMatches } from "@/db/repo";
+import { doubleRates, playerStats } from "@/game/stats";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
 import { cn } from "@/lib/utils";
@@ -23,14 +22,9 @@ const RANGES = [
 ] as const;
 type Range = (typeof RANGES)[number]["value"];
 
-async function loadStats(db: SQLiteDatabase) {
-  const [players, matches] = await Promise.all([listPlayers(db), finishedMatches(db)]);
-  return { players, matches };
-}
-
 export default function Stats() {
   const wide = useWide();
-  const [data] = useFocusData(loadStats);
+  const [data] = useFocusData(loadPlayersAndMatches);
   const [range, setRange] = useState<Range>("30");
   const [chosen, setChosen] = useState<string | null>(null);
 
@@ -48,7 +42,6 @@ export default function Stats() {
   }, [data, range]);
 
   const stats = useMemo(() => (player ? playerStats(matches, player.id) : null), [matches, player]);
-  const trend = useMemo(() => (player ? averageTrend(matches, player.id) : []), [matches, player]);
 
   const body =
     !player || !stats ? (
@@ -69,13 +62,14 @@ export default function Stats() {
         <View className={cn("gap-4", wide && "flex-row")}>
           <View className="flex-[3] gap-4">
             <Panel title="Average per match" hint="pink 3-dart · mint first 9">
-              <TrendChart points={trend} />
+              <TrendChart points={stats.trend} />
             </Panel>
             <View className={cn("gap-4", wide && "flex-row")}>
               <Panel title="Visits" className="flex-1">
                 <ColumnBars
                   data={[
                     { label: "60+", value: stats.bands["60+"] },
+                    { label: "80+", value: stats.bands["80+"] },
                     { label: "100+", value: stats.bands["100+"] },
                     { label: "140+", value: stats.bands["140+"] },
                     { label: "180", value: stats.bands["180"], highlight: true },
@@ -112,7 +106,7 @@ export default function Stats() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerClassName="gap-2"
-            className="flex-1"
+            className={wide ? "flex-1" : "grow-0"}
           >
             {played.map((p) => (
               <Pressable
@@ -130,7 +124,7 @@ export default function Stats() {
             ))}
           </ScrollView>
           <View className={cn("flex-row", wide ? "w-72" : "")}>
-            <Segmented options={RANGES} value={range} onChange={setRange} />
+            <Segmented className="flex-1" options={RANGES} value={range} onChange={setRange} />
           </View>
         </View>
         {body}

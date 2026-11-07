@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { usePalette } from "@/lib/theme";
@@ -20,23 +21,26 @@ export function Segmented<T extends string>({
   onChange,
   custom,
   size = "md",
+  className,
 }: {
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
   custom?: CustomField & { value: T };
   size?: "md" | "lg";
+  className?: string;
 }) {
   const palette = usePalette();
+  const [focusCustom, setFocusCustom] = useState(false);
   return (
-    <View className="flex-1 flex-row rounded-full bg-muted p-1">
+    <View className={cn("flex-row rounded-full bg-muted p-1", className)}>
       {options.map((o) => {
         const selected = o.value === value;
         if (selected && custom && o.value === custom.value) {
           return (
             <View key={o.value} className="flex-1 rounded-full border-2 border-foreground bg-card px-2">
               <TextInput
-                autoFocus
+                autoFocus={focusCustom}
                 keyboardType="number-pad"
                 maxLength={4}
                 value={custom.text}
@@ -54,7 +58,10 @@ export function Segmented<T extends string>({
             key={o.value}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            onPress={() => onChange(o.value)}
+            onPress={() => {
+              setFocusCustom(o.value === custom?.value);
+              onChange(o.value);
+            }}
             className={cn(
               "flex-1 items-center justify-center rounded-full px-2",
               size === "lg" ? "py-2.5" : "py-2",

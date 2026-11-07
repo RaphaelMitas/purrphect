@@ -4,7 +4,7 @@ import { type GestureResponderEvent, View } from "react-native";
 import Svg, { Circle, G, Path, Text as SvgText } from "react-native-svg";
 import { SegmentChip } from "@/components/SegmentChip";
 import { Text } from "@/components/ui/text";
-import { BOARD_RADIUS, hitTest, polar, RINGS, segmentCenter } from "@/game/board";
+import { BOARD_RADIUS, hitTest, polar, RINGS, SEGMENT_DEGREES, segmentCenter } from "@/game/board";
 import { BOARD_ORDER, info, type Segment, segmentFor } from "@/game/segments";
 import { type Palette, usePalette } from "@/lib/theme";
 
@@ -16,21 +16,52 @@ function arc(r1: number, r2: number, a1: number, a2: number) {
   return `M${x1} ${y1}A${r2} ${r2} 0 0 1 ${x2} ${y2}L${x3} ${y3}A${r1} ${r1} 0 0 0 ${x4} ${y4}Z`;
 }
 
-function segmentPaths(segment: Segment): string[] {
+function SegmentShape({
+  segment,
+  fill,
+  stroke,
+  strokeWidth,
+}: {
+  segment: Segment;
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+}) {
   const { number, multiplier } = info(segment);
-  if (number === 0 || number === 25) return [];
+  if (number === 0) return null;
+  if (number === 25) {
+    return (
+      <Circle
+        r={multiplier === 2 ? RINGS.bull : RINGS.outerBull}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
+    );
+  }
   const i = BOARD_ORDER.indexOf(number);
-  const a1 = i * 18 - 9;
-  const a2 = i * 18 + 9;
-  if (multiplier === 3) return [arc(RINGS.trebleIn, RINGS.trebleOut, a1, a2)];
-  if (multiplier === 2) return [arc(RINGS.doubleIn, RINGS.doubleOut, a1, a2)];
-  return [arc(RINGS.outerBull, RINGS.trebleIn, a1, a2), arc(RINGS.trebleOut, RINGS.doubleIn, a1, a2)];
+  const a1 = i * SEGMENT_DEGREES - SEGMENT_DEGREES / 2;
+  const a2 = a1 + SEGMENT_DEGREES;
+  const rings: [number, number][] =
+    multiplier === 3
+      ? [[RINGS.trebleIn, RINGS.trebleOut]]
+      : multiplier === 2
+        ? [[RINGS.doubleIn, RINGS.doubleOut]]
+        : [
+            [RINGS.outerBull, RINGS.trebleIn],
+            [RINGS.trebleOut, RINGS.doubleIn],
+          ];
+  return rings.map(([r1, r2]) => (
+    <Path key={r1} d={arc(r1, r2, a1, a2)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+  ));
 }
 
 type Heat = Partial<Record<Segment, number>>;
 
+const LOUPE_WIDTH = 130;
+
 const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; plan: readonly Segment[]; heat?: Heat }) {
-  const max = heat ? Math.max(1, ...Object.values(heat)) : 1;
+  const max = Math.max(1, ...Object.entries(heat ?? {}).flatMap(([s, n]) => (s === "Miss" ? [] : [n])));
   const fill = (segment: Segment, base: string) =>
     heat ? `rgba(255,111,163,${(0.06 + ((heat[segment] ?? 0) / max) * 0.9).toFixed(2)})` : base;
   const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : palette.boardFace);
@@ -48,14 +79,18 @@ const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; pla
           [segmentFor(n, 3), ring],
           [segmentFor(n, 2), ring],
         ];
-        const [tx, ty] = polar(RINGS.numbers + 1, i * 18);
+        const [tx, ty] = polar(RINGS.numbers + 1, i * SEGMENT_DEGREES);
         return (
           <G key={n}>
-            {parts.flatMap(([segment, color]) =>
-              segmentPaths(segment).map((d) => (
-                <Path key={d} d={d} fill={fill(segment, color)} stroke={stroke(segment)} strokeWidth={width(segment)} />
-              )),
-            )}
+            {parts.map(([segment, color]) => (
+              <SegmentShape
+                key={segment}
+                segment={segment}
+                fill={fill(segment, color)}
+                stroke={stroke(segment)}
+                strokeWidth={width(segment)}
+              />
+            ))}
             <SvgText
               x={tx}
               y={ty + 7}
@@ -69,8 +104,15 @@ const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; pla
           </G>
         );
       })}
-      <Circle r={RINGS.outerBull} fill={fill("25", palette.mint)} stroke={stroke("25")} strokeWidth={width("25")} />
-      <Circle r={RINGS.bull} fill={fill("Bull", palette.pink)} stroke={stroke("Bull")} strokeWidth={width("Bull")} />
+      {(["25", "Bull"] as const).map((segment) => (
+        <SegmentShape
+          key={segment}
+          segment={segment}
+          fill={fill(segment, segment === "Bull" ? palette.pink : palette.mint)}
+          stroke={stroke(segment)}
+          strokeWidth={width(segment)}
+        />
+      ))}
       {plan.map((segment, i) => {
         const [x, y] = segmentCenter(segment);
         return (
@@ -111,10 +153,11 @@ export function DartBoard({
 
   const track = (e: GestureResponderEvent) => {
     const { locationX, locationY } = e.nativeEvent;
-    const segment = hitTest(locationX * scale - BOARD_RADIUS, locationY * scale - BOARD_RADIUS);
-    if (segment !== last.current) void Haptics.selectionAsync();
+    const hit = hitTest(locationX * scale - BOARD_RADIUS, locationY * scale - BOARD_RADIUS);
+    const segment = hit === "Miss" ? null : hit;
+    if (segment && segment !== last.current) void Haptics.selectionAsync();
     last.current = segment;
-    setPress({ segment, x: locationX, y: locationY });
+    setPress(segment ? { segment, x: locationX, y: locationY } : null);
   };
 
   const commit = () => {
@@ -150,17 +193,8 @@ export function DartBoard({
           viewBox={`${-BOARD_RADIUS} ${-BOARD_RADIUS} ${BOARD_RADIUS * 2} ${BOARD_RADIUS * 2}`}
         >
           <Face palette={palette} plan={plan} heat={heat} />
-          {press &&
-            segmentPaths(press.segment).map((d) => (
-              <Path key={d} d={d} fill={palette.butter} stroke={palette.foreground} strokeWidth={3} />
-            ))}
-          {press && (press.segment === "25" || press.segment === "Bull") && (
-            <Circle
-              r={press.segment === "Bull" ? RINGS.bull : RINGS.outerBull}
-              fill={palette.butter}
-              stroke={palette.foreground}
-              strokeWidth={3}
-            />
+          {press && (
+            <SegmentShape segment={press.segment} fill={palette.butter} stroke={palette.foreground} strokeWidth={3} />
           )}
         </Svg>
       </View>
@@ -168,7 +202,10 @@ export function DartBoard({
         <View
           pointerEvents="none"
           className="absolute flex-row items-center gap-2 rounded-2xl bg-foreground py-2 pl-2 pr-3"
-          style={{ left: press.x - 60, top: press.y - 96 }}
+          style={{
+            left: Math.min(Math.max(press.x - 60, 0), size - LOUPE_WIDTH),
+            top: press.y < 110 ? press.y + 40 : press.y - 96,
+          }}
         >
           <SegmentChip segment={press.segment} size="lg" />
           <Text className="font-nunito-black text-2xl text-background">{info(press.segment).value}</Text>
