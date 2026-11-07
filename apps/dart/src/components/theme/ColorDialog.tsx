@@ -5,11 +5,12 @@ import { Segmented } from "@purrphect/ui/segmented";
 import { Slider } from "@purrphect/ui/slider";
 import { Text } from "@purrphect/ui/text";
 import { hexToHsl, hslToHex, type Theme } from "@purrphect/ui/theme";
+import { useState } from "react";
 import { View } from "react-native";
 import { ColorSwatches } from "@/components/ColorSwatches";
 import { ROLES, type Role, roleColor } from "@/lib/themes";
 
-const HUES = [0, 60, 120, 180, 240, 300, 360];
+const HUES = [0, 60, 120, 180, 240, 300, 359];
 
 const COLORS = [350, 0, 15, 30, 45, 140, 160, 185, 205, 230, 260, 290].flatMap((h) => [
   hslToHex(h, 92, 71),
@@ -30,18 +31,27 @@ export function ColorDialog({
   onChange,
   onClose,
 }: {
-  role: Role | null;
+  role: Role;
   theme: Theme;
   portalHost: string;
   onChange: (patch: Partial<Theme>) => void;
   onClose: () => void;
 }) {
   const info = ROLES.find((r) => r.key === role);
-  if (!info || !role) return null;
   const color = roleColor(theme, role);
+  const [hsl, setHsl] = useState(() => hexToHsl(color));
+  if (!info) return null;
+  const [h, s, l] = hsl;
   const auto = info.auto && theme[role] === undefined;
-  const [h, s, l] = hexToHsl(color);
   const set = (value: string | undefined) => onChange({ [role]: value });
+  const tune = (next: [number, number, number]) => {
+    setHsl(next);
+    set(hslToHex(...next));
+  };
+  const pick = (swatch: string) => {
+    setHsl(hexToHsl(swatch));
+    set(swatch);
+  };
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -69,24 +79,24 @@ export function ColorDialog({
           </View>
         )}
         <View className={cn("gap-4", auto && "opacity-40")} pointerEvents={auto ? "none" : "auto"}>
-          <ColorSwatches colors={info.auto ? NEUTRALS : COLORS} value={color} onChange={set} />
+          <ColorSwatches colors={info.auto ? NEUTRALS : COLORS} value={color} onChange={pick} />
           <View className="gap-3">
             <Text className="font-nunito-black text-sm">Fine tune</Text>
             <Slider
               label="Hue"
               value={Math.round(h)}
               min={0}
-              max={360}
+              max={359}
               colors={HUES.map((hue) => hslToHex(hue, 80, 65))}
-              onChange={(hue) => set(hslToHex(hue, s, l))}
+              onChange={(hue) => tune([hue, s, l])}
             />
             <Slider
               label="Shade"
               value={Math.round(l)}
               min={2}
               max={98}
-              colors={[hslToHex(h, s, 4), color, hslToHex(h, s, 96)]}
-              onChange={(lightness) => set(hslToHex(h, s, lightness))}
+              colors={[hslToHex(h, s, 2), hslToHex(h, s, 50), hslToHex(h, s, 98)]}
+              onChange={(lightness) => tune([h, s, lightness])}
             />
           </View>
         </View>

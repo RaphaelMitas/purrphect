@@ -101,7 +101,12 @@ export function TilesPad({
             onPress={() => toggle(m)}
             className={cn("h-11 flex-1 rounded-full", multiplier === m ? (m === 2 ? "bg-mint" : "bg-pink") : "bg-card")}
           >
-            <Text className={cn("font-nunito-black text-base", multiplier === m ? "text-white" : ARMED[m].text)}>
+            <Text
+              className={cn(
+                "font-nunito-black text-base",
+                multiplier === m ? (m === 2 ? "text-mint-foreground" : "text-pink-foreground") : ARMED[m].text,
+              )}
+            >
               {m === 2 ? "Double" : "Triple"}
             </Text>
           </Key>

@@ -25,7 +25,8 @@ export default function ThemeScreen() {
   const themes = useThemes();
   const system: Slot = useColorScheme() === "dark" ? "dark" : "light";
   const [focus, setFocus] = useState<Slot>(system);
-  const focused = slotTheme(themes, focus);
+  const inSlot = { light: slotTheme(themes, "light"), dark: slotTheme(themes, "dark") };
+  const focused = inSlot[focus];
 
   const fork = (theme: Theme, name: string) => {
     const copy = { ...theme, id: randomUUID(), name };
@@ -47,7 +48,7 @@ export default function ThemeScreen() {
                 key={slot}
                 accessibilityRole="button"
                 accessibilityState={{ selected: focus === slot }}
-                accessibilityLabel={`${label}: ${slotTheme(themes, slot).name}`}
+                accessibilityLabel={`${label}: ${inSlot[slot].name}`}
                 onPress={() => setFocus(slot)}
                 className={cn(
                   "flex-1 gap-2 rounded-3xl border-2 bg-card p-2.5 active:opacity-80",
@@ -73,9 +74,9 @@ export default function ThemeScreen() {
                     </View>
                   )}
                 </View>
-                <ThemeThumb theme={slotTheme(themes, slot)} height={72} />
+                <ThemeThumb theme={inSlot[slot]} height={72} />
                 <Text className="font-nunito-black text-sm" numberOfLines={1}>
-                  {slotTheme(themes, slot).name}
+                  {inSlot[slot].name}
                 </Text>
               </Pressable>
             ))}

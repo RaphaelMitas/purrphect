@@ -6,7 +6,7 @@ import { cn } from "@purrphect/ui/lib/utils";
 import { Panel } from "@purrphect/ui/panel";
 import { Slider } from "@purrphect/ui/slider";
 import { Text } from "@purrphect/ui/text";
-import { hslToHex, MOODS, type Theme } from "@purrphect/ui/theme";
+import { autoColors, MOODS, type Theme } from "@purrphect/ui/theme";
 import { ThemeView } from "@purrphect/ui/theme-view";
 import { PortalHost } from "@rn-primitives/portal";
 import { Redirect, router, useLocalSearchParams } from "expo-router";
@@ -18,10 +18,13 @@ import { ColorDialog } from "@/components/theme/ColorDialog";
 import { ThemedStatusBar } from "@/components/theme/ThemedStatusBar";
 import { ThemePreview } from "@/components/theme/ThemePreview";
 import { updateThemes, useThemes } from "@/hooks/useThemes";
-import { isCustom, ROLES, type Role, roleColor, themeById, withoutTheme, withTheme } from "@/lib/themes";
+import { isCustom, ROLES, type Role, roleColor, themeById, withoutTheme, withUpdatedTheme } from "@/lib/themes";
 
 const PORTAL = "theme-editor";
 const MOOD_NAMES = { bright: "Bright", soft: "Soft", dim: "Dim", dark: "Dark", black: "Black" } as const;
+const WARMTH_STOPS = [0, 25, 50, 75, 100];
+
+const persist = (theme: Theme) => updateThemes((s) => withUpdatedTheme(s, theme));
 
 export default function EditThemeRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,18 +38,22 @@ function Editor({ initial }: { initial: Theme }) {
   const [draft, setDraft] = useState(initial);
   const [role, setRole] = useState<Role | null>(null);
   const latest = useRef(draft);
-  const deleted = useRef(false);
+  const saved = useRef(initial);
   const change = (patch: Partial<Theme>) => setDraft((d) => ({ ...d, ...patch }));
 
   useEffect(() => {
     latest.current = draft;
-    const save = setTimeout(() => updateThemes((s) => withTheme(s, draft)), 300);
-    return () => clearTimeout(save);
+    if (draft === saved.current) return;
+    const timer = setTimeout(() => {
+      saved.current = draft;
+      persist(draft);
+    }, 300);
+    return () => clearTimeout(timer);
   }, [draft]);
 
   useEffect(
     () => () => {
-      if (!deleted.current) updateThemes((s) => withTheme(s, latest.current));
+      if (latest.current !== saved.current) persist(latest.current);
     },
     [],
   );
@@ -58,7 +65,6 @@ function Editor({ initial }: { initial: Theme }) {
         text: "Delete",
         style: "destructive",
         onPress: () => {
-          deleted.current = true;
           updateThemes((s) => withoutTheme(s, draft.id));
           router.back();
         },
@@ -91,17 +97,14 @@ function Editor({ initial }: { initial: Theme }) {
           <ThemePreview />
 
           <Panel title="Feel" hint="sets page, cards and text">
-            <View className="flex-row justify-between">
-              <Text className="font-nunito-black text-sm">Mood</Text>
-              <Text className="text-xs text-muted-foreground">{MOOD_NAMES[draft.mood]}</Text>
-            </View>
+            <Text className="font-nunito-black text-sm">Mood</Text>
             <Slider
               label="Mood"
               valueText={MOOD_NAMES[draft.mood]}
               value={mood}
               min={0}
               max={MOODS.length - 1}
-              colors={["#FFFFFF", "#FFF1E8", "#3A2D33", "#1B1318", "#060506"]}
+              colors={MOODS.map((m) => autoColors({ ...draft, mood: m, page: undefined }).page)}
               onChange={(i) => change({ mood: MOODS[i] ?? draft.mood })}
             />
             <View className="flex-row justify-between px-0.5">
@@ -123,7 +126,7 @@ function Editor({ initial }: { initial: Theme }) {
               value={draft.warmth}
               min={0}
               max={100}
-              colors={[0, 25, 50, 75, 100].map((w) => hslToHex(220 + 1.8 * w, 60, 90))}
+              colors={WARMTH_STOPS.map((w) => autoColors({ ...draft, warmth: w, mood: "soft", page: undefined }).page)}
               onChange={(warmth) => change({ warmth })}
             />
           </Panel>
@@ -160,7 +163,16 @@ function Editor({ initial }: { initial: Theme }) {
           </Button>
         </ScrollView>
       </SafeAreaView>
-      <ColorDialog role={role} theme={draft} portalHost={PORTAL} onChange={change} onClose={() => setRole(null)} />
+      {role && (
+        <ColorDialog
+          key={role}
+          role={role}
+          theme={draft}
+          portalHost={PORTAL}
+          onChange={change}
+          onClose={() => setRole(null)}
+        />
+      )}
       <PortalHost name={PORTAL} />
     </ThemeView>
   );

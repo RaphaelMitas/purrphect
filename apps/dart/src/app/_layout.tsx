@@ -7,7 +7,8 @@ import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
 import { ThemeProvider } from "expo-router/react-navigation";
 import { SQLiteProvider } from "expo-sqlite";
-import { useMemo } from "react";
+import * as SystemUI from "expo-system-ui";
+import { useEffect, useMemo } from "react";
 import { useColorScheme } from "react-native";
 import { migrate } from "@/db/schema";
 import { useThemes } from "@/hooks/useThemes";
@@ -16,6 +17,9 @@ import { slotTheme } from "@/lib/themes";
 function Navigation() {
   const palette = usePalette();
   const theme = useMemo(() => navigationTheme(palette), [palette]);
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(palette.background).catch(console.error);
+  }, [palette.background]);
   return (
     <ThemeProvider value={theme}>
       <Stack

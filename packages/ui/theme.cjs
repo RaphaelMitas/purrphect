@@ -164,14 +164,21 @@ function themeTokens(theme) {
   const accent = hexToRgb(theme.accent);
   const [accentHue] = rgbToHsl(accent);
   const cards = theme.cards ? hexToRgb(theme.cards) : mix(page, WHITE, dark ? 0.06 : 0.9);
-  const text = theme.text ? hexToRgb(theme.text) : dark ? hslToRgb(accentHue, 67, 96) : hslToRgb(accentHue, 17, 20);
-  const darkest = luminance(page) < luminance(text) ? page : text;
-  const on = (rgb) => (contrast(rgb, WHITE) >= 2.2 ? WHITE : darkest);
+  const lightText = hslToRgb(accentHue, 67, 96);
+  const darkText = hslToRgb(accentHue, 17, 20);
+  const autoText = contrast(lightText, page) > contrast(darkText, page) ? lightText : darkText;
+  const text = theme.text ? hexToRgb(theme.text) : autoText;
+  const on = (rgb) => (contrast(rgb, WHITE) >= 2.2 ? WHITE : darkText);
   const soft = (rgb) => mix(page, rgb, dark ? 0.24 : 0.16);
   const ink = (rgb) => readable(rgb, soft(rgb), 3);
   const tone = (name, hex) => {
     const rgb = hexToRgb(hex);
-    return { [name]: triplet(rgb), [`${name}-soft`]: triplet(soft(rgb)), [`${name}-ink`]: triplet(ink(rgb)) };
+    return {
+      [name]: triplet(rgb),
+      [`${name}-foreground`]: triplet(on(rgb)),
+      [`${name}-soft`]: triplet(soft(rgb)),
+      [`${name}-ink`]: triplet(ink(rgb)),
+    };
   };
   const muted = dark ? mix(cards, text, 0.05) : mix(mix(page, accent, 0.07), text, 0.04);
   const border = dark ? mix(cards, text, 0.08) : mix(mix(page, accent, 0.14), text, 0.05);

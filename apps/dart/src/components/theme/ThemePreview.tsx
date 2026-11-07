@@ -1,11 +1,11 @@
 import { Button } from "@purrphect/ui/button";
-import { Cat } from "@purrphect/ui/cat";
+import { usePalette } from "@purrphect/ui/lib/theme";
 import { Text } from "@purrphect/ui/text";
 import type { Theme } from "@purrphect/ui/theme";
 import { ThemeView } from "@purrphect/ui/theme-view";
 import { View } from "react-native";
 import { DartBoard } from "@/components/DartBoard";
-import { SegmentChip } from "@/components/SegmentChip";
+import { ThrowerCard } from "@/components/match/ThrowerCard";
 
 export function ThemeThumb({ theme, height = 88 }: { theme: Theme; height?: number }) {
   return (
@@ -29,28 +29,19 @@ export function ThemeThumb({ theme, height = 88 }: { theme: Theme; height?: numb
 }
 
 export function ThemePreview() {
+  const { pink } = usePalette();
   return (
     <View className="gap-3">
-      <View className="gap-3 rounded-3xl border-2 border-pink bg-card p-3">
-        <View className="flex-row items-center gap-3">
-          <Cat size={40} />
-          <View className="flex-1">
-            <View className="flex-row items-center gap-2">
-              <Text className="font-nunito-black text-lg">Mia</Text>
-              <View className="rounded-full bg-pink px-2 py-0.5">
-                <Text className="font-nunito-black text-[10px] text-primary-foreground">THROWING</Text>
-              </View>
-            </View>
-            <Text className="text-xs text-muted-foreground">avg 72.5 · legs 1</Text>
-          </View>
-          <Text className="font-nunito-black text-5xl leading-[52px]">132</Text>
-        </View>
-        <View className="flex-row gap-2">
-          <SegmentChip segment="T20" className="flex-1" />
-          <SegmentChip segment="D16" className="flex-1" />
-          <SegmentChip segment="Bull" className="flex-1" />
-        </View>
-      </View>
+      <ThrowerCard
+        player={{ id: "preview", name: "Mia", color: pink, guest: false, deleted: false }}
+        remaining={132}
+        average={72.5}
+        visitScore={60}
+        legsWon={1}
+        thrown={["T20"]}
+        plan={["D16", "Bull"]}
+        compact
+      />
       <View className="flex-row items-center gap-3">
         <DartBoard size={140} />
         <View className="flex-1 gap-2">

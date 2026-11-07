@@ -37,6 +37,7 @@ export type TokenName =
   | "input"
   | "ring"
   | ToneName
+  | `${ToneName}-foreground`
   | `${ToneName}-soft`
   | `${ToneName}-ink`
   | "board-face"

@@ -69,7 +69,7 @@ export function Slider({
       </View>
       <View
         pointerEvents="none"
-        className="absolute rounded-full border-[3px] border-foreground bg-white shadow-sm shadow-black/20"
+        className="absolute rounded-full border-[3px] border-foreground bg-card shadow-sm shadow-black/20"
         style={{ left, width: THUMB, height: THUMB }}
       />
     </View>

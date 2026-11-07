@@ -6,8 +6,16 @@ const KEY = "themes";
 const listeners = new Set<() => void>();
 let state: ThemeState | undefined;
 
+function stored(): string | null {
+  try {
+    return Storage.getItemSync(KEY);
+  } catch {
+    return null;
+  }
+}
+
 const read = () => {
-  state ??= parseThemeState(Storage.getItemSync(KEY));
+  state ??= parseThemeState(stored());
   return state;
 };
 

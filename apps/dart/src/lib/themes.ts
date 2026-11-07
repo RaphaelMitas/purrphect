@@ -1,4 +1,5 @@
 import { autoColors, MOODS, PRESETS, type Theme } from "@purrphect/ui/theme";
+import { isRecord } from "@/db/parse";
 
 export type Slot = "light" | "dark";
 
@@ -13,7 +14,7 @@ export const ROLES = [
   { key: "page", name: "Page", use: "Behind everything", auto: true },
   { key: "cards", name: "Cards", use: "Panels, tiles and dialogs", auto: true },
   { key: "text", name: "Text", use: "Muted text and borders follow it", auto: true },
-  { key: "accent", name: "Accent", use: "Buttons, the thrower card, the board", auto: false },
+  { key: "accent", name: "Accent", use: "Buttons, the board, the next dart", auto: false },
   { key: "second", name: "Second accent", use: "Board rings, doubles, the first 9 line", auto: false },
   { key: "highlight", name: "Highlight", use: "Stars, bulls and warnings", auto: false },
   { key: "danger", name: "Danger", use: "Discard and delete", auto: false },
@@ -38,6 +39,8 @@ export function slotTheme(state: ThemeState, slot: Slot): Theme {
   return theme;
 }
 
+const bySlot = (pick: (slot: Slot) => string): Record<Slot, string> => ({ light: pick("light"), dark: pick("dark") });
+
 export const withSlot = (state: ThemeState, slot: Slot, id: string): ThemeState => ({
   ...state,
   slots: { ...state.slots, [slot]: id },
@@ -50,12 +53,14 @@ export const withTheme = (state: ThemeState, theme: Theme): ThemeState => ({
     : [...state.custom, theme],
 });
 
-export function withoutTheme(state: ThemeState, id: string): ThemeState {
-  const slot = (s: Slot) => (state.slots[s] === id ? DEFAULT_THEMES.slots[s] : state.slots[s]);
-  return { slots: { light: slot("light"), dark: slot("dark") }, custom: state.custom.filter((t) => t.id !== id) };
-}
+export const withUpdatedTheme = (state: ThemeState, theme: Theme): ThemeState =>
+  isCustom(state, theme.id) ? withTheme(state, theme) : state;
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+export const withoutTheme = (state: ThemeState, id: string): ThemeState => ({
+  slots: bySlot((s) => (state.slots[s] === id ? DEFAULT_THEMES.slots[s] : state.slots[s])),
+  custom: state.custom.filter((t) => t.id !== id),
+});
+
 const isHex = (v: unknown): v is string => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v);
 const optionalHex = (v: unknown) => (isHex(v) ? v : undefined);
 
@@ -92,7 +97,7 @@ export function parseThemeState(json: string | null): ThemeState {
       const id = slots[s];
       return typeof id === "string" ? id : DEFAULT_THEMES.slots[s];
     };
-    return { slots: { light: slot("light"), dark: slot("dark") }, custom };
+    return { slots: bySlot(slot), custom };
   } catch {
     return DEFAULT_THEMES;
   }

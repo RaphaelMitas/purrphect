@@ -3,7 +3,12 @@ const plugin = require("tailwindcss/plugin");
 const tokens = require("./tokens.cjs");
 
 const hsl = (name) => `hsl(var(--${name}) / <alpha-value>)`;
-const tone = (name) => ({ DEFAULT: hsl(name), soft: hsl(`${name}-soft`), ink: hsl(`${name}-ink`) });
+const tone = (name) => ({
+  DEFAULT: hsl(name),
+  foreground: hsl(`${name}-foreground`),
+  soft: hsl(`${name}-soft`),
+  ink: hsl(`${name}-ink`),
+});
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {

@@ -1,6 +1,7 @@
 import {
   contrast,
   hexToRgb,
+  hslToHex,
   MOODS,
   PRESETS,
   type Theme,
@@ -9,7 +10,15 @@ import {
   tripletToHex,
 } from "@purrphect/ui/theme";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_THEMES, parseThemeState, slotTheme, withoutTheme, withSlot, withTheme } from "./themes";
+import {
+  DEFAULT_THEMES,
+  parseThemeState,
+  slotTheme,
+  withoutTheme,
+  withSlot,
+  withTheme,
+  withUpdatedTheme,
+} from "./themes";
 
 const rgb = (tokens: TokenSet, name: keyof TokenSet) => hexToRgb(tripletToHex(tokens[name]));
 const ratio = (tokens: TokenSet, a: keyof TokenSet, b: keyof TokenSet) => contrast(rgb(tokens, a), rgb(tokens, b));
@@ -27,6 +36,15 @@ describe("generated themes", () => {
       expect(ratio(tokens, "muted-foreground", "background"), where).toBeGreaterThanOrEqual(3);
       for (const tone of ["pink", "mint", "butter"] as const) {
         expect(ratio(tokens, `${tone}-ink`, `${tone}-soft`), `${where} ${tone}`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it("pick whichever auto text reads better on a hand-picked page, mid-greys included", () => {
+    for (const preset of PRESETS) {
+      for (let lightness = 0; lightness <= 100; lightness += 2) {
+        const tokens = themeTokens({ ...preset, page: hslToHex(220, 10, lightness) });
+        expect(ratio(tokens, "foreground", "background"), `${preset.id} ${lightness}`).toBeGreaterThanOrEqual(3);
       }
     }
   });
@@ -49,6 +67,11 @@ describe("theme state", () => {
     const after = withoutTheme(state, "mine");
     expect(after.slots).toEqual(DEFAULT_THEMES.slots);
     expect(after.custom).toEqual([]);
+  });
+
+  it("does not bring a deleted theme back when a stale editor saves it", () => {
+    const deleted = withoutTheme(withTheme(DEFAULT_THEMES, mine), "mine");
+    expect(withUpdatedTheme(deleted, { ...mine, name: "Renamed" })).toBe(deleted);
   });
 
   it("falls back to defaults for unreadable storage and drops invalid custom themes", () => {
