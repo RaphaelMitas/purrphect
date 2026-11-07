@@ -20,6 +20,8 @@ export const PLAYER_COLORS = [
   "#7C8CFF",
 ] as const;
 
+export const playerColor = (i: number): string => PLAYER_COLORS[i % PLAYER_COLORS.length] ?? PLAYER_COLORS[0];
+
 export interface Player {
   id: string;
   name: string;
@@ -72,8 +74,11 @@ export async function listPlayers(db: SQLiteDatabase): Promise<Player[]> {
 }
 
 async function insertPlayer(db: SQLiteDatabase, name: string, guest: boolean): Promise<Player> {
-  const count = await db.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM players");
-  const color = PLAYER_COLORS[(count?.n ?? 0) % PLAYER_COLORS.length] ?? PLAYER_COLORS[0];
+  const used = await db.getAllAsync<{ color: string; n: number }>(
+    "SELECT color, COUNT(*) AS n FROM players GROUP BY color",
+  );
+  const uses = (c: string) => used.find((u) => u.color === c)?.n ?? 0;
+  const color = [...PLAYER_COLORS].sort((a, b) => uses(a) - uses(b))[0] ?? playerColor(0);
   const player: Player = { id: randomUUID(), name, color, guest };
   await db.runAsync(
     "INSERT INTO players (id, name, color, guest, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -154,37 +159,51 @@ async function loadSegments(db: SQLiteDatabase, matchId: string): Promise<Segmen
   return rows.map((r) => parseSegment(r.segment));
 }
 
-const toMatch = async (db: SQLiteDatabase, r: MatchRow): Promise<Match> => ({
+const toMatch = (r: MatchRow, segments: Segment[]): Match => ({
   id: r.id,
   rules: parseRules(r.rules),
   playerIds: parseIds(r.player_ids),
   startedAt: r.started_at,
   finishedAt: r.finished_at,
-  segments: await loadSegments(db, r.id),
+  segments,
 });
 
 const MATCH_COLUMNS = "id, rules, player_ids, started_at, finished_at";
 
 export async function getMatch(db: SQLiteDatabase, id: string): Promise<Match | null> {
   const row = await db.getFirstAsync<MatchRow>(`SELECT ${MATCH_COLUMNS} FROM matches WHERE id = ?`, id);
-  return row ? toMatch(db, row) : null;
+  return row ? toMatch(row, await loadSegments(db, row.id)) : null;
 }
 
 export async function latestOpenMatch(db: SQLiteDatabase): Promise<Match | null> {
   const row = await db.getFirstAsync<MatchRow>(
     `SELECT ${MATCH_COLUMNS} FROM matches WHERE finished_at IS NULL ORDER BY started_at DESC LIMIT 1`,
   );
-  return row ? toMatch(db, row) : null;
+  return row ? toMatch(row, await loadSegments(db, row.id)) : null;
 }
 
-export async function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
-  await db.withExclusiveTransactionAsync(async (tx) => {
-    await tx.runAsync("DELETE FROM darts WHERE match_id = ?", matchId);
-    for (const [seq, segment] of segments.entries()) {
-      await tx.runAsync("INSERT INTO darts (match_id, seq, segment) VALUES (?, ?, ?)", matchId, seq, segment);
-    }
-    await tx.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
-  });
+let pendingSaves: Promise<void> = Promise.resolve();
+
+export function savesSettled(): Promise<void> {
+  return pendingSaves;
+}
+
+// Saves run one after another and rewrite the whole list, so a failed save is repaired by the next one.
+export function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
+  pendingSaves = pendingSaves
+    .then(() =>
+      db.withTransactionAsync(async () => {
+        await db.runAsync("DELETE FROM darts WHERE match_id = ?", matchId);
+        await db.runAsync(
+          "INSERT INTO darts (match_id, seq, segment) SELECT ?, key, value FROM json_each(?)",
+          matchId,
+          JSON.stringify(segments),
+        );
+        await db.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
+      }),
+    )
+    .catch(console.error);
+  return pendingSaves;
 }
 
 export async function deleteMatch(db: SQLiteDatabase, matchId: string) {
@@ -213,13 +232,7 @@ export async function finishedMatches(db: SQLiteDatabase): Promise<PlayedMatch[]
     list.push(parseSegment(d.segment));
     byMatch.set(d.match_id, list);
   }
-  return rows.map((r) => ({
-    id: r.id,
-    rules: parseRules(r.rules),
-    playerIds: parseIds(r.player_ids),
-    segments: byMatch.get(r.id) ?? [],
-    finishedAt: r.finished_at ?? r.started_at,
-  }));
+  return rows.map((r) => ({ ...toMatch(r, byMatch.get(r.id) ?? []), finishedAt: r.finished_at ?? r.started_at }));
 }
 
 export type InputMode = "board" | "tiles";

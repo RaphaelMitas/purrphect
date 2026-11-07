@@ -1,10 +1,10 @@
 import * as Haptics from "expo-haptics";
 import { memo, useRef, useState } from "react";
 import { type GestureResponderEvent, View } from "react-native";
-import Svg, { Circle, G, Path, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, G, Path, Rect, Text as SvgText } from "react-native-svg";
 import { SegmentChip } from "@/components/SegmentChip";
 import { Text } from "@/components/ui/text";
-import { BOARD_RADIUS, hitTest, polar, RINGS, SEGMENT_DEGREES, segmentCenter } from "@/game/board";
+import { BOARD_RADIUS, hitTest, polar, RINGS, ringBands, SEGMENT_DEGREES, segmentCenter } from "@/game/board";
 import { BOARD_ORDER, info, type Segment, segmentFor } from "@/game/segments";
 import { type Palette, usePalette } from "@/lib/theme";
 
@@ -28,7 +28,7 @@ function SegmentShape({
   strokeWidth: number;
 }) {
   const { number, multiplier } = info(segment);
-  if (number === 0) return null;
+  if (number === 0 || multiplier === 0) return null;
   if (number === 25) {
     return (
       <Circle
@@ -42,16 +42,7 @@ function SegmentShape({
   const i = BOARD_ORDER.indexOf(number);
   const a1 = i * SEGMENT_DEGREES - SEGMENT_DEGREES / 2;
   const a2 = a1 + SEGMENT_DEGREES;
-  const rings: [number, number][] =
-    multiplier === 3
-      ? [[RINGS.trebleIn, RINGS.trebleOut]]
-      : multiplier === 2
-        ? [[RINGS.doubleIn, RINGS.doubleOut]]
-        : [
-            [RINGS.outerBull, RINGS.trebleIn],
-            [RINGS.trebleOut, RINGS.doubleIn],
-          ];
-  return rings.map(([r1, r2]) => (
+  return ringBands(multiplier).map(([r1, r2]) => (
     <Path key={r1} d={arc(r1, r2, a1, a2)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
   ));
 }
@@ -63,7 +54,11 @@ const LOUPE_WIDTH = 130;
 const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; plan: readonly Segment[]; heat?: Heat }) {
   const max = Math.max(1, ...Object.entries(heat ?? {}).flatMap(([s, n]) => (s === "Miss" ? [] : [n])));
   const fill = (segment: Segment, base: string) =>
-    heat ? `rgba(255,111,163,${(0.06 + ((heat[segment] ?? 0) / max) * 0.9).toFixed(2)})` : base;
+    heat
+      ? `${palette.pink}${Math.round((0.06 + ((heat[segment] ?? 0) / max) * 0.9) * 255)
+          .toString(16)
+          .padStart(2, "0")}`
+      : base;
   const stroke = (segment: Segment) => (plan.includes(segment) ? palette.foreground : palette.boardFace);
   const width = (segment: Segment) => (plan.includes(segment) ? 4 : 1.5);
 
@@ -113,14 +108,15 @@ const Face = memo(function Face({ palette, plan, heat }: { palette: Palette; pla
           strokeWidth={width(segment)}
         />
       ))}
-      {plan.map((segment, i) => {
+      {[...new Set(plan)].map((segment) => {
         const [x, y] = segmentCenter(segment);
+        const order = plan.flatMap((s, i) => (s === segment ? [i + 1] : [])).join("·");
+        const width = 12 + order.length * 7;
         return (
-          // biome-ignore lint/suspicious/noArrayIndexKey: routes repeat segments (T20 T20 Bull), position is the identity
-          <G key={i} transform={`translate(${x + 16 + i * 4} ${y - 16})`}>
-            <Circle r={12} fill={palette.foreground} />
+          <G key={segment} transform={`translate(${x + 14} ${y - 16})`}>
+            <Rect x={-width / 2} y={-12} width={width} height={24} rx={12} fill={palette.foreground} />
             <SvgText y={5} fontSize={14} fontFamily="Nunito_800ExtraBold" fill={palette.background} textAnchor="middle">
-              {i + 1}
+              {order}
             </SvgText>
           </G>
         );

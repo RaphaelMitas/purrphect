@@ -108,11 +108,9 @@ export function TilesPad({
                   label={s}
                   onPress={() => hit(s)}
                   highlighted={i >= 0}
-                  className={cn("flex-1 rounded-xl", m === 2 ? "bg-mint-soft" : "bg-pink-soft")}
+                  className={cn("flex-1 rounded-xl", ARMED[m].tile)}
                 >
-                  <Text className={cn("font-nunito-black text-sm", m === 2 ? "text-mint-ink" : "text-pink-ink")}>
-                    {s[0]}
-                  </Text>
+                  <Text className={cn("font-nunito-black text-sm", ARMED[m].text)}>{s[0]}</Text>
                   {i >= 0 && <PlanBadge index={i} />}
                 </Key>
               );
@@ -150,12 +148,7 @@ export function TilesPad({
             onPress={() => toggle(m)}
             className={cn("h-11 flex-1 rounded-full", multiplier === m ? (m === 2 ? "bg-mint" : "bg-pink") : "bg-card")}
           >
-            <Text
-              className={cn(
-                "font-nunito-black text-base",
-                multiplier === m ? "text-white" : m === 2 ? "text-mint-ink" : "text-pink-ink",
-              )}
-            >
+            <Text className={cn("font-nunito-black text-base", multiplier === m ? "text-white" : ARMED[m].text)}>
               {m === 2 ? "Double" : "Triple"}
             </Text>
           </Key>

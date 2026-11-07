@@ -1,6 +1,6 @@
 import { bestRoute, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
 import { info, type Segment } from "./segments";
-import { type MatchState, upNext } from "./x01";
+import type { MatchState } from "./x01";
 
 export interface HitRates {
   single: number;
@@ -36,7 +36,6 @@ export interface Suggestion {
   chance: number;
   fallback: MissFallback | undefined;
   setup: SetupShot | undefined;
-  onFinish: number[];
 }
 
 export function suggest(s: MatchState, rates: HitRates = DEFAULT_HIT_RATES): Suggestion {
@@ -53,6 +52,5 @@ export function suggest(s: MatchState, rates: HitRates = DEFAULT_HIT_RATES): Sug
     chance: route ? finishChance(route, dartsLeft, rates) : 0,
     fallback: route ? missFallback(route, remaining, dartsLeft, s.rules.out) : undefined,
     setup,
-    onFinish: upNext(s).filter((p) => bestRoute(s.remaining[p] ?? Infinity, 3, s.rules.out)),
   };
 }

@@ -30,16 +30,20 @@ export function hitTest(x: number, y: number): Segment {
   return segmentFor(number, 1);
 }
 
+export function ringBands(multiplier: 1 | 2 | 3): [number, number][] {
+  if (multiplier === 3) return [[RINGS.trebleIn, RINGS.trebleOut]];
+  if (multiplier === 2) return [[RINGS.doubleIn, RINGS.doubleOut]];
+  return [
+    [RINGS.outerBull, RINGS.trebleIn],
+    [RINGS.trebleOut, RINGS.doubleIn],
+  ];
+}
+
 export function segmentCenter(segment: Segment): [number, number] {
   const { number, multiplier } = info(segment);
   if (number === 0 || segment === "Bull") return [0, 0];
   if (number === 25) return [0, -(RINGS.bull + RINGS.outerBull) / 2];
-  const angle = BOARD_ORDER.indexOf(number) * SEGMENT_DEGREES;
-  const r =
-    multiplier === 3
-      ? (RINGS.trebleIn + RINGS.trebleOut) / 2
-      : multiplier === 2
-        ? (RINGS.doubleIn + RINGS.doubleOut) / 2
-        : (RINGS.trebleOut + RINGS.doubleIn) / 2;
-  return polar(r, angle);
+  if (multiplier === 0) return [0, 0];
+  const [inner, outer] = ringBands(multiplier).at(-1) ?? [0, 0];
+  return polar((inner + outer) / 2, BOARD_ORDER.indexOf(number) * SEGMENT_DEGREES);
 }

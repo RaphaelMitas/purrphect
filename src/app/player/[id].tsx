@@ -16,7 +16,7 @@ import { doubleRates, playerStats } from "@/game/stats";
 import { replay, standings } from "@/game/x01";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
-import { ordinal, relativeDay } from "@/lib/format";
+import { ordinal, percent, relativeDay } from "@/lib/format";
 import { usePalette } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -25,12 +25,12 @@ export default function PlayerCard() {
   const palette = usePalette();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [data] = useFocusData(loadPlayersAndMatches);
-  const player = data?.players.find((p) => p.id === id);
+  const players = useMemo(() => byId(data?.players ?? []), [data]);
+  const player = players.get(id);
   const matches = data?.matches ?? [];
 
   const stats = useMemo(() => playerStats(matches, id), [matches, id]);
   const progress = useMemo(() => progressFor(stats), [stats]);
-  const players = useMemo(() => byId(data?.players ?? []), [data]);
 
   const recent = useMemo(
     () =>
@@ -53,7 +53,14 @@ export default function PlayerCard() {
     [matches, id, players],
   );
 
-  if (!player) return <SafeAreaView className="flex-1 bg-background" />;
+  if (!player) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
+        <AppHeader title="Player" back />
+        {data && <Text className="p-6 text-center text-muted-foreground">This player doesn't exist anymore.</Text>}
+      </SafeAreaView>
+    );
+  }
 
   const span = (progress.nextXp ?? progress.xp) - progress.levelXp;
   const share = progress.nextXp ? (progress.xp - progress.levelXp) / Math.max(1, span) : 1;
@@ -78,7 +85,7 @@ export default function PlayerCard() {
       <View className="flex-row gap-6">
         {[
           [stats.average.toFixed(1), "avg"],
-          [`${Math.round(stats.checkoutRate * 100)}%`, "checkout"],
+          [percent(stats.checkoutRate), "checkout"],
           [String(stats.legsWon), "legs won"],
         ].map(([v, l]) => (
           <View key={l} className="items-center">
@@ -145,7 +152,7 @@ export default function PlayerCard() {
         />
         {doubleRates(stats, 1).map((d) => (
           <Text key={d.label} className="text-xs text-muted-foreground">
-            Most tried double <Text className="font-nunito-black text-xs">{d.label}</Text> · {Math.round(d.rate * 100)}%
+            Most tried double <Text className="font-nunito-black text-xs">{d.label}</Text> · {percent(d.rate)}
           </Text>
         ))}
       </Panel>

@@ -22,6 +22,10 @@ export function relativeDay(at: number, now = Date.now()): string {
   return new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
 
+export function percent(rate: number): string {
+  return `${Math.round(rate * 100)}%`;
+}
+
 export function ordinal(n: number): string {
   return `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"}`;
 }

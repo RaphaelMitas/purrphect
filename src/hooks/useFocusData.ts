@@ -1,6 +1,7 @@
 import { useFocusEffect } from "expo-router";
 import { type SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { useCallback, useRef, useState } from "react";
+import { savesSettled } from "@/db/repo";
 
 export function useFocusData<T>(load: (db: SQLiteDatabase) => Promise<T>): [T | undefined, () => void] {
   const db = useSQLiteContext();
@@ -10,8 +11,8 @@ export function useFocusData<T>(load: (db: SQLiteDatabase) => Promise<T>): [T | 
 
   const reload = useCallback(() => {
     let active = true;
-    loadRef
-      .current(db)
+    savesSettled()
+      .then(() => loadRef.current(db))
       .then((value) => {
         if (active) setData(value);
       })

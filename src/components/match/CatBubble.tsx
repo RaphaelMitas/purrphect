@@ -5,6 +5,7 @@ import { Text } from "@/components/ui/text";
 import type { Player } from "@/db/repo";
 import type { Suggestion } from "@/game/predict";
 import { label, type Segment } from "@/game/segments";
+import { percent } from "@/lib/format";
 
 function Route({ darts }: { darts: readonly Segment[] }) {
   return (
@@ -43,7 +44,7 @@ export function CatBubble({
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{remaining} left. Go</Text>
             <Route darts={route.darts} />
-            <Text className="font-nunito-black text-sm text-pink-ink">{Math.round(chance * 100)}%</Text>
+            <Text className="font-nunito-black text-sm text-pink-ink">{percent(chance)}</Text>
           </View>
         ) : setup && setup.leaves > 170 ? (
           <View className="flex-row flex-wrap items-center gap-2">

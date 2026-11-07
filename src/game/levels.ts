@@ -46,7 +46,7 @@ export interface Progress {
   bestStreak: number;
 }
 
-const DAY = 24 * 60 * 60 * 1000;
+export const DAY = 24 * 60 * 60 * 1000;
 export const dayIndex = (at: number) => Math.floor((at - new Date(at).getTimezoneOffset() * 60 * 1000) / DAY);
 
 export function progressFor(stats: PlayerStats): Progress {

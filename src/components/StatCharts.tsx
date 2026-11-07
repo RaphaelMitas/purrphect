@@ -4,6 +4,7 @@ import { Meter } from "@/components/Meter";
 import { Text } from "@/components/ui/text";
 import type { TrendPoint } from "@/game/stats";
 import { useLayoutSize } from "@/hooks/useLayoutSize";
+import { percent } from "@/lib/format";
 import { usePalette } from "@/lib/theme";
 
 export function TrendChart({ points, height = 170 }: { points: TrendPoint[]; height?: number }) {
@@ -121,7 +122,8 @@ export function RateBars({
           <Text className="w-16 font-nunito-black text-xs">{r.label}</Text>
           <Meter value={r.rate} className="flex-1" fill={tone === "mint" ? "bg-mint" : "bg-pink"} />
           <Text className="w-20 text-right text-xs text-muted-foreground">
-            {Math.round(r.rate * 100)}%{r.detail ? ` · ${r.detail}` : ""}
+            {percent(r.rate)}
+            {r.detail ? ` · ${r.detail}` : ""}
           </Text>
         </View>
       ))}

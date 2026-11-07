@@ -2,7 +2,7 @@ import { Link, router } from "expo-router";
 import { type SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { BarChart3, Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/components/AppHeader";
 import { Cat } from "@/components/Cat";
@@ -20,6 +20,7 @@ import {
   type Player,
   renameSetup,
   type Setup,
+  savesSettled,
   setFavorite,
 } from "@/db/repo";
 import { progressFor } from "@/game/levels";
@@ -95,10 +96,19 @@ export default function Home() {
   const open = data?.open;
   const openState = open ? replay(open.rules, open.playerIds.length, open.segments) : null;
   const openPlayer = open && openState ? players.get(open.playerIds[openState.current] ?? "") : undefined;
-  const discard = async (matchId: string) => {
-    await deleteMatch(db, matchId);
-    reload();
-  };
+  const discard = (matchId: string) =>
+    Alert.alert("Discard this match?", "Its darts won't count towards stats.", [
+      { text: "Keep", style: "cancel" },
+      {
+        text: "Discard",
+        style: "destructive",
+        onPress: async () => {
+          await savesSettled();
+          await deleteMatch(db, matchId);
+          reload();
+        },
+      },
+    ]);
 
   const play = (
     <View className="gap-3">
@@ -228,6 +238,7 @@ export default function Home() {
         initial={renaming?.name ?? ""}
         placeholder="Thursday crew"
         action="Save"
+        optional
         onOpenChange={(o) => !o && setRenaming(null)}
         onSubmit={async (name) => {
           if (!renaming) return;

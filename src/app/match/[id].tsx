@@ -1,7 +1,7 @@
 import { useKeepAwake } from "expo-keep-awake";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/components/AppHeader";
@@ -23,8 +23,8 @@ import {
   type InputMode,
   listPlayers,
   type Match,
-  PLAYER_COLORS,
   type Player,
+  playerColor,
   saveDarts,
   setInputMode,
 } from "@/db/repo";
@@ -33,7 +33,7 @@ import { suggest } from "@/game/predict";
 import type { Segment } from "@/game/segments";
 import { type MatchEvent, matchAverage, replay, standings, upNext } from "@/game/x01";
 import { useLayoutSize } from "@/hooks/useLayoutSize";
-import { useWide } from "@/hooks/useWide";
+import { useTablet, useWide } from "@/hooks/useWide";
 import { ordinal, rulesSummary } from "@/lib/format";
 
 const MODES = [
@@ -65,6 +65,7 @@ export default function MatchScreen() {
   useKeepAwake();
   const db = useSQLiteContext();
   const wide = useWide();
+  const tablet = useTablet();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -72,7 +73,6 @@ export default function MatchScreen() {
   const [mode, setMode] = useState<InputMode>("board");
   const [toast, setToast] = useState<{ message: string | null; stamp: number }>({ message: null, stamp: 0 });
   const [busy, setBusy] = useState(false);
-  const saving = useRef(Promise.resolve());
 
   useEffect(() => {
     let active = true;
@@ -90,7 +90,7 @@ export default function MatchScreen() {
               players.get(pid) ?? {
                 id: pid,
                 name: "Player",
-                color: PLAYER_COLORS[i % PLAYER_COLORS.length] ?? "#FF6FA3",
+                color: playerColor(i),
                 guest: true,
               },
           ),
@@ -119,10 +119,7 @@ export default function MatchScreen() {
   const persist = (next: Segment[]) => {
     setSegments(next);
     const after = replay(match.rules, match.playerIds.length, next);
-    // saveDarts rewrites the whole list, so a failed save is repaired by the next one.
-    saving.current = saving.current
-      .then(() => saveDarts(db, match.id, next, after.winner !== null))
-      .catch(console.error);
+    void saveDarts(db, match.id, next, after.winner !== null);
     return after;
   };
   const throwDart = (segment: Segment) => {
@@ -137,14 +134,19 @@ export default function MatchScreen() {
     setMode(m);
     void setInputMode(db, m);
   };
-  const leave = async (next?: () => Promise<string>) => {
+  const leave = () => {
+    if (!busy) router.dismissTo("/");
+  };
+  const rematch = async () => {
     if (busy) return;
     setBusy(true);
-    await saving.current;
-    if (next) router.replace(`/match/${await next()}`);
-    else router.dismissTo("/");
+    try {
+      router.replace(`/match/${await createMatch(db, match.rules, match.playerIds)}`);
+    } catch (error) {
+      console.error(error);
+      setBusy(false);
+    }
   };
-  const rematch = () => leave(() => createMatch(db, match.rules, match.playerIds));
 
   const thrower = players[state.current];
   const remainingOf = (p: Player) => state.remaining[players.indexOf(p)] ?? 0;
@@ -170,10 +172,10 @@ export default function MatchScreen() {
       legsWon={state.legsWon[state.current] ?? 0}
       thrown={state.visit}
       plan={suggestion.plan}
-      compact={!wide}
+      compact={!tablet}
     />
   );
-  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} remainingOf={remainingOf} compact={!wide} />;
+  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} remainingOf={remainingOf} compact={!tablet} />;
   const boardButtons = (
     <View className="flex-row gap-2">
       {[
@@ -194,7 +196,7 @@ export default function MatchScreen() {
         {boardButtons}
       </>
     ) : (
-      <TilesPad direct={wide} plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
+      <TilesPad direct={tablet} plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
   return (

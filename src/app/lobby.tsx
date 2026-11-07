@@ -126,17 +126,21 @@ export default function Lobby() {
       return next;
     });
 
-  const added = async (player: Player) => {
+  const added = (player: Player) => {
     reload();
-    setSelected((cur) => (cur.length < MAX_PLAYERS ? [...cur, player.id] : cur));
+    toggle(player.id);
   };
 
   const begin = async () => {
     if (!canStart || starting) return;
     setStarting(true);
-    const rules: Rules = { start: startValue, out, firstTo: legsValue, finish };
-    const id = await createMatch(db, rules, selected);
-    router.replace(`/match/${id}`);
+    try {
+      const rules: Rules = { start: startValue, out, firstTo: legsValue, finish };
+      router.replace(`/match/${await createMatch(db, rules, selected)}`);
+    } catch (error) {
+      console.error(error);
+      setStarting(false);
+    }
   };
   const full = selected.length >= MAX_PLAYERS;
 
@@ -178,7 +182,11 @@ export default function Lobby() {
         })}
         {[
           { label: "Player", tint: "text-pink", onPress: () => setAdding(true) },
-          { label: "Guest", tint: "text-muted-foreground", onPress: async () => added(await addGuest(db)) },
+          {
+            label: "Guest",
+            tint: "text-muted-foreground",
+            onPress: () => void addGuest(db).then(added).catch(console.error),
+          },
         ].map((b) => (
           <Pressable
             key={b.label}

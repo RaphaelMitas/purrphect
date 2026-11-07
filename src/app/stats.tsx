@@ -10,9 +10,11 @@ import { Segmented } from "@/components/Segmented";
 import { ColumnBars, Kpi, RateBars, TrendChart } from "@/components/StatCharts";
 import { Text } from "@/components/ui/text";
 import { loadPlayersAndMatches } from "@/db/repo";
+import { DAY } from "@/game/levels";
 import { doubleRates, playerStats } from "@/game/stats";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useWide } from "@/hooks/useWide";
+import { percent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const RANGES = [
@@ -37,7 +39,7 @@ export default function Stats() {
   const matches = useMemo(() => {
     const all = data?.matches ?? [];
     if (range === "all") return all;
-    const since = Date.now() - Number(range) * 86_400_000;
+    const since = Date.now() - Number(range) * DAY;
     return all.filter((m) => m.finishedAt >= since);
   }, [data, range]);
 
@@ -54,7 +56,7 @@ export default function Stats() {
         <View className="flex-row flex-wrap gap-3">
           <Kpi label="3-dart avg" value={stats.average.toFixed(1)} />
           <Kpi label="First 9 avg" value={stats.first9Average.toFixed(1)} />
-          <Kpi label="Checkout %" value={`${Math.round(stats.checkoutRate * 100)}`} />
+          <Kpi label="Checkout" value={percent(stats.checkoutRate)} />
           <Kpi label="180s" value={String(stats.bands["180"])} />
           <Kpi label="High finish" value={String(stats.highestFinish || "–")} />
           <Kpi label="Best leg" value={stats.bestLegDarts ? `${stats.bestLegDarts} darts` : "–"} />

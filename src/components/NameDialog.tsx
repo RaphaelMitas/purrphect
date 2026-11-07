@@ -10,6 +10,7 @@ export function NameDialog({
   initial = "",
   placeholder,
   action,
+  optional,
   onOpenChange,
   onSubmit,
 }: {
@@ -18,6 +19,7 @@ export function NameDialog({
   initial?: string;
   placeholder: string;
   action: string;
+  optional?: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (name: string) => void;
 }) {
@@ -26,7 +28,7 @@ export function NameDialog({
     if (open) setName(initial);
   }, [open, initial]);
   const submit = () => {
-    if (!name.trim()) return;
+    if (!optional && !name.trim()) return;
     onSubmit(name.trim());
     onOpenChange(false);
   };
@@ -46,7 +48,7 @@ export function NameDialog({
           maxLength={24}
         />
         <DialogFooter>
-          <Button onPress={submit} disabled={!name.trim()}>
+          <Button onPress={submit} disabled={!optional && !name.trim()}>
             <Text>{action}</Text>
           </Button>
         </DialogFooter>

@@ -9,7 +9,16 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.purrphect.dart",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
+      }
     },
     "android": {
       "package": "com.purrphect.dart",
@@ -33,7 +42,9 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
           "backgroundColor": "#FFF7F2",
-          "dark": { "backgroundColor": "#1C1418" }
+          "dark": {
+            "backgroundColor": "#1C1418"
+          }
         }
       ],
       "expo-sqlite",
