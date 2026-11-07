@@ -106,9 +106,9 @@ export const de = {
     checkoutGo: (n: number) => `Noch ${n}. Wirf`,
     scoreBig: (n: number) => `Noch ${n}. Scoren auf`,
     noOut: (n: number) => `Kein Finish auf ${n}. Wirf`,
-    toLeave: "für Rest",
+    toLeave: "dann Rest",
     missInto: (single: string, leaves: number) => `Nur die ${single}? Dann ${leaves}:`,
-    aim: "wirf",
+    aim: "Wirf",
     justScore: "einfach Punkte holen",
     more: (names: string, n: number) => `${names} +${n} weitere`,
     canFinish: (names: string, count: number) =>

@@ -2,13 +2,11 @@ import type { Messages } from "./en";
 
 const plural = (n: number, one: string, many: string) => `${n} ${n < 2 ? one : many}`;
 
-const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);
-
 const playerCount = (n: number) => plural(n, "joueur", "joueurs");
 
 export const fr = {
   locale: "fr",
-  ordinal,
+  ordinal: (n: number) => (n === 1 ? "1er" : `${n}e`),
   playerCount,
   and: (names: string[]) => names.join(" et "),
 
@@ -95,7 +93,7 @@ export const fr = {
     leg: (n: number) => `Leg ${n}`,
     bust: (name: string) => `Bust, ${name} !`,
     oneEighty: "One hundred and eighty!",
-    finishes: (name: string, place: number) => `${name} termine ${ordinal(place)} !`,
+    finishes: (name: string, place: number) => `${name} prend la ${place === 1 ? "1re" : `${place}e`} place !`,
     gameShot: (name: string) => `Game shot, ${name} !`,
     throwing: "AU LANCER",
     avg: "moy.",
@@ -110,7 +108,7 @@ export const fr = {
     checkoutGo: (n: number) => `Reste ${n}. Vise`,
     scoreBig: (n: number) => `Reste ${n}. Marque des points sur`,
     noOut: (n: number) => `Pas de finish à ${n}. Vise`,
-    toLeave: "pour laisser",
+    toLeave: "pour te laisser",
     missInto: (single: string, leaves: number) => `Simple ${single} ? Alors ${leaves} :`,
     aim: "vise",
     justScore: "marque des points",
