@@ -31,8 +31,8 @@ type TokenSet = Record<TokenName, string>;
 
 declare const tokens: {
   light: TokenSet;
-  dark: TokenSet;
-  cssVars: (set: TokenSet) => Record<string, string>;
+  dark: Omit<TokenSet, "radius">;
+  cssVars: (set: Partial<TokenSet>) => Record<string, string>;
 };
 
 export = tokens;

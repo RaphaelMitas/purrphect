@@ -300,7 +300,7 @@ jobs:
           pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
 
   store-ios-screenshots:
-    needs: [check, tag, screenshots-ios, compose]
+    needs: [check, tag, store-ios, screenshots-ios, compose]
     if: >-
       !cancelled() && needs.tag.result == 'success' &&
       needs.screenshots-ios.result == 'success' && needs.compose.result == 'success'
