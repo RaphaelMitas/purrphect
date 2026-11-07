@@ -94,7 +94,7 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # A re-run after a failed capture must not build and submit this version again.
+      # A re-run after the release is tagged must not build and submit this version again.
       - name: Check for an earlier ship
         id: earlier
         if: "!inputs.dry_run"

@@ -25,7 +25,6 @@ runs:
         arch: x86_64
         target: google_apis
         profile: ${{ inputs.profile }}
-        # Extra cores speed up the software-rendered emulator.
         cores: 3
         emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
