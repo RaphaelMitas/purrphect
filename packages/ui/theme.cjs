@@ -136,18 +136,17 @@ const triplet = (rgb) => {
   return `${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%`;
 };
 
-const isDarkRgb = (rgb) => luminance(rgb) < 0.2;
-
 const isLightOn = (text, page) => luminance(text) > luminance(page);
 
 const snap = (rgb) => hslToRgb(...rgbToHsl(rgb).map(Math.round)).map(Math.round);
 
 // Contrast is measured on the rounded values the tokens actually carry.
-function readable(rgb, page, min) {
+function readable(rgb, surfaces, lighten, min) {
   const [h, s, l] = rgbToHsl(rgb);
-  const step = isDarkRgb(page) ? 1 : -1;
+  const step = lighten ? 1 : -1;
+  const worst = (color) => Math.min(...surfaces.map((surface) => contrast(snap(color), snap(surface))));
   let out = rgb;
-  for (let next = l + step; contrast(snap(out), snap(page)) < min && next >= 0 && next <= 100; next += step) {
+  for (let next = l + step; worst(out) < min && next >= 0 && next <= 100; next += step) {
     out = hslToRgb(h, s, next);
   }
   return out;
@@ -172,7 +171,7 @@ function themeTokens(theme) {
   const cards = theme.cards ? hexToRgb(theme.cards) : mix(page, WHITE, dark ? 0.06 : 0.9);
   const on = (rgb) => (contrast(rgb, WHITE) >= 2.2 ? WHITE : darkText);
   const soft = (rgb) => mix(page, rgb, dark ? 0.24 : 0.16);
-  const ink = (rgb) => readable(rgb, soft(rgb), 3);
+  const ink = (rgb) => readable(rgb, [soft(rgb), page, cards], dark, 3);
   const tone = (name, hex) => {
     const rgb = hexToRgb(hex);
     return {
@@ -196,7 +195,7 @@ function themeTokens(theme) {
     secondary: triplet(soft(accent)),
     "secondary-foreground": triplet(ink(accent)),
     muted: triplet(muted),
-    "muted-foreground": triplet(readable(mix(text, page, dark ? 0.35 : 0.45), muted, 3)),
+    "muted-foreground": triplet(readable(mix(text, page, dark ? 0.35 : 0.45), [page, cards, muted], dark, 3)),
     accent: triplet(muted),
     "accent-foreground": triplet(text),
     ...tone("destructive", theme.danger),

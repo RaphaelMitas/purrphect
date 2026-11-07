@@ -23,20 +23,28 @@ import {
 const rgb = (tokens: TokenSet, name: keyof TokenSet) => hexToRgb(tripletToHex(tokens[name]));
 const ratio = (tokens: TokenSet, a: keyof TokenSet, b: keyof TokenSet) => contrast(rgb(tokens, a), rgb(tokens, b));
 
+const SURFACES = ["background", "card"] as const;
+const TEXT_ON: [keyof TokenSet, readonly (keyof TokenSet)[], number][] = [
+  ["foreground", [...SURFACES, "muted"], 7],
+  ["muted-foreground", [...SURFACES, "muted"], 3],
+  ...(["pink", "mint", "butter", "destructive"] as const).map(
+    (tone): [keyof TokenSet, readonly (keyof TokenSet)[], number] => [`${tone}-ink`, [...SURFACES, `${tone}-soft`], 3],
+  ),
+];
+
 describe("generated themes", () => {
   const variants = PRESETS.flatMap((preset) =>
     MOODS.flatMap((mood) => [0, 25, 50, 75, 100].map((warmth) => ({ ...preset, mood, warmth }))),
   );
 
-  it("keep text, muted text and chip ink readable at every mood and warmth", () => {
+  it("keep every text colour readable on every surface it sits on, at every mood and warmth", () => {
     for (const theme of variants) {
       const tokens = themeTokens(theme);
-      const where = `${theme.id} ${theme.mood} ${theme.warmth}`;
-      expect(ratio(tokens, "foreground", "background"), where).toBeGreaterThanOrEqual(7);
-      expect(ratio(tokens, "muted-foreground", "background"), where).toBeGreaterThanOrEqual(3);
-      expect(ratio(tokens, "muted-foreground", "muted"), where).toBeGreaterThanOrEqual(3);
-      for (const tone of ["pink", "mint", "butter", "destructive"] as const) {
-        expect(ratio(tokens, `${tone}-ink`, `${tone}-soft`), `${where} ${tone}`).toBeGreaterThanOrEqual(3);
+      for (const [text, surfaces, min] of TEXT_ON) {
+        for (const surface of surfaces) {
+          const where = `${theme.id} ${theme.mood} ${theme.warmth}: ${text} on ${surface}`;
+          expect(ratio(tokens, text, surface), where).toBeGreaterThanOrEqual(min);
+        }
       }
     }
   });
