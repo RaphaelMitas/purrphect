@@ -13,7 +13,7 @@ export function parseRules(json: string): Rules {
   const out = OUT_RULES.find((o) => o === v.out);
   const finish = FINISH_MODES.find((f) => f === v.finish);
   if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !out || !finish) throw new Error("Invalid rules");
-  return { start: v.start, firstTo: v.firstTo, out, finish };
+  return { start: v.start, firstTo: v.firstTo, out, finish, randomOrder: v.randomOrder === true };
 }
 
 export function parseIds(json: string): string[] {

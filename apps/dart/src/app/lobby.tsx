@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { addGuest, addPlayer, byId, createMatch, listPlayers, listSetups, type Player } from "@/db/repo";
 import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
 import { useFocusData } from "@/hooks/useFocusData";
+import { shuffled } from "@/lib/shuffle";
 
 const START_OPTIONS = [
   { value: "301", label: "301" },
@@ -35,6 +36,10 @@ const LEG_OPTIONS = [
   { value: "3", label: "3" },
   { value: "5", label: "5" },
   { value: "custom", label: "Custom" },
+] as const;
+const ORDER_OPTIONS = [
+  { value: "listed", label: "As listed" },
+  { value: "random", label: "Random each game" },
 ] as const;
 const FINISH_OPTIONS = [
   { value: "leg", label: "Leg ends" },
@@ -77,6 +82,7 @@ export default function Lobby() {
   const [legs, setLegs] = useState<LegOption>("3");
   const [legsCustom, setLegsCustom] = useState("");
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
+  const [randomOrder, setRandomOrder] = useState(DEFAULT_RULES.randomOrder);
   const [adding, setAdding] = useState(false);
   const [preloaded, setPreloaded] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -98,6 +104,7 @@ export default function Lobby() {
     setLegs(l);
     setLegsCustom(lc);
     setFinish(setup.rules.finish);
+    setRandomOrder(setup.rules.randomOrder);
   }, [data, preloaded, setupId, players]);
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
@@ -117,15 +124,7 @@ export default function Lobby() {
       if (item) next.splice(index + by, 0, item);
       return next;
     });
-  const shuffle = () =>
-    setSelected((cur) => {
-      const next = [...cur];
-      for (let i = next.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [next[i], next[j]] = [next[j] ?? "", next[i] ?? ""];
-      }
-      return next;
-    });
+  const shuffle = () => setSelected((cur) => shuffled(cur));
 
   const added = (player: Player) => {
     reload();
@@ -136,7 +135,7 @@ export default function Lobby() {
     if (!canStart || starting) return;
     setStarting(true);
     try {
-      const rules: Rules = { start: startValue, out, firstTo: legsValue, finish };
+      const rules: Rules = { start: startValue, out, firstTo: legsValue, finish, randomOrder };
       router.replace(`/match/${await createMatch(db, rules, selected)}`);
     } catch (error) {
       console.error(error);
@@ -217,6 +216,7 @@ export default function Lobby() {
   const order = (
     <Panel
       title="Order"
+      hint={randomOrder ? "shuffled every game" : undefined}
       className="gap-1"
       right={
         <Pressable onPress={shuffle} className="flex-row items-center gap-1 rounded-full bg-pink-soft px-3 py-1.5">
@@ -284,6 +284,14 @@ export default function Lobby() {
       </SettingRow>
       <SettingRow label="Finish">
         <Segmented className="flex-1" options={FINISH_OPTIONS} value={finish} onChange={setFinish} />
+      </SettingRow>
+      <SettingRow label="Throwing order">
+        <Segmented
+          className="flex-1"
+          options={ORDER_OPTIONS}
+          value={randomOrder ? "random" : "listed"}
+          onChange={(v) => setRandomOrder(v === "random")}
+        />
       </SettingRow>
       {!startValid && <Text className="text-xs text-destructive">Start score between 2 and 9999.</Text>}
       {!legsValid && <Text className="text-xs text-destructive">First to between 1 and 99 legs.</Text>}

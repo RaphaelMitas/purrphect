@@ -2,6 +2,7 @@ name: E2E
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: e2e-${{ github.ref }}
@@ -14,7 +15,9 @@ env:
   FORCE_COLOR: 3
 
 jobs:
+  # macOS runners are scarce: pull requests test on Android, iOS runs on request and in every release's screenshot job.
   ios:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: macos-26
     timeout-minutes: 60
     steps:

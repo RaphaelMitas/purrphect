@@ -8,9 +8,10 @@ export interface Rules {
   out: OutRule;
   firstTo: number;
   finish: FinishMode;
+  randomOrder: boolean;
 }
 
-export const DEFAULT_RULES: Rules = { start: 501, out: "double", firstTo: 3, finish: "leg" };
+export const DEFAULT_RULES: Rules = { start: 501, out: "double", firstTo: 3, finish: "leg", randomOrder: false };
 
 export function canFinishWith(dart: SegmentInfo, out: OutRule): boolean {
   if (dart.multiplier === 0) return false;

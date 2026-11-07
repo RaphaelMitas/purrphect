@@ -181,7 +181,6 @@ export default function MatchScreen() {
     <View className="flex-row gap-2">
       {[
         { label: "Miss", onPress: () => throwDart("Miss") },
-        { label: "Bounce out", onPress: () => throwDart("Miss") },
         { label: "Undo", onPress: undo },
       ].map((b) => (
         <Button key={b.label} variant="secondary" className="h-12 flex-1 rounded-2xl" onPress={b.onPress}>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { progressFor } from "./levels";
+import { DEFAULT_RULES } from "./rules";
 import type { Segment } from "./segments";
 import { type PlayedMatch, playerStats } from "./stats";
 
@@ -13,7 +14,7 @@ const segments: Segment[] = [
 ];
 const match: PlayedMatch = {
   id: "m1",
-  rules: { start: 501, out: "double", firstTo: 1, finish: "leg" },
+  rules: { ...DEFAULT_RULES, firstTo: 1 },
   playerIds: ["ruffy", "lou"],
   segments,
   finishedAt: Date.UTC(2026, 10, 7, 20),

@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import type { Rules } from "@/game/rules";
 import type { Segment } from "@/game/segments";
 import type { PlayedMatch } from "@/game/stats";
+import { shuffled } from "@/lib/shuffle";
 import { parseIds, parseRules, parseSegment } from "./parse";
 
 const PLAYER_COLORS = [
@@ -109,9 +110,11 @@ export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   return rows.map(toSetup);
 }
 
-const signature = (r: Rules, playerIds: string[]) => JSON.stringify([r.start, r.out, r.firstTo, r.finish, playerIds]);
+const signature = (r: Rules, playerIds: string[]) =>
+  JSON.stringify([r.start, r.out, r.firstTo, r.finish, r.randomOrder, playerIds]);
 
-export async function recordSetupUse(db: SQLiteDatabase, rules: Rules, playerIds: string[]): Promise<string> {
+export async function recordSetupUse(db: SQLiteDatabase, rules: Rules, players: string[]): Promise<string> {
+  const playerIds = rules.randomOrder ? [...players].sort() : players;
   const id = randomUUID();
   await db.runAsync(
     `INSERT INTO setups (id, rules, player_ids, signature, last_used_at) VALUES (?, ?, ?, ?, ?)
@@ -137,8 +140,9 @@ export async function renameSetup(db: SQLiteDatabase, setupId: string, name: str
   await db.runAsync("UPDATE setups SET name = ? WHERE id = ?", name.trim() || null, setupId);
 }
 
-export async function createMatch(db: SQLiteDatabase, rules: Rules, playerIds: string[]): Promise<string> {
-  const setupId = await recordSetupUse(db, rules, playerIds);
+export async function createMatch(db: SQLiteDatabase, rules: Rules, players: string[]): Promise<string> {
+  const setupId = await recordSetupUse(db, rules, players);
+  const playerIds = rules.randomOrder ? shuffled(players) : players;
   const id = randomUUID();
   await db.runAsync(
     "INSERT INTO matches (id, setup_id, rules, player_ids, started_at) VALUES (?, ?, ?, ?, ?)",

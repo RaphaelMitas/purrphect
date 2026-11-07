@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { Rules } from "./rules";
+import { DEFAULT_RULES, type Rules } from "./rules";
 import type { Segment } from "./segments";
 import { replay, upNext } from "./x01";
 
-const rules = (r: Partial<Rules> = {}): Rules => ({ start: 501, out: "double", firstTo: 1, finish: "leg", ...r });
+const rules = (r: Partial<Rules> = {}): Rules => ({ ...DEFAULT_RULES, firstTo: 1, ...r });
 const miss3: Segment[] = ["Miss", "Miss", "Miss"];
 const max: Segment[] = ["T20", "T20", "T20"];
 const nineDarter: Segment[] = [...max, ...miss3, ...max, ...miss3, "T20", "T19", "D12"];

@@ -5,6 +5,7 @@ import type { Rules } from "@/game/rules";
 export function rulesSummary(rules: Rules): string {
   const parts = [String(rules.start), `${rules.out} out`, `first to ${rules.firstTo}`];
   if (rules.finish === "places") parts.push("places");
+  if (rules.randomOrder) parts.push("random order");
   return parts.join(" · ");
 }
 
