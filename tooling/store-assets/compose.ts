@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { catSvg } from "@purrphect/ui/cat-svg";
+import { CAT_ASPECT, catSvg } from "@purrphect/ui/cat-svg";
 import tokens from "@purrphect/ui/tokens";
 import { chromium } from "playwright";
 
@@ -127,7 +127,7 @@ function layout(spec: Spec, capture: { width: number; height: number }) {
   const side = 7 * u;
   const header = (portrait ? 0.15 : 0.2) * spec.height;
   const catW = (portrait ? 24 : 15) * u;
-  const peek = catW * (255 / 229) * 0.56;
+  const peek = catW * CAT_ASPECT * 0.56;
   const top = header + peek;
   const short = Math.min(capture.width, capture.height);
   const border = 2 * spec.bezel * short;
@@ -161,7 +161,7 @@ function layout(spec: Spec, capture: { width: number; height: number }) {
       "bezel-w": bezel,
       "screen-w": screenW,
       "screen-h": screenH,
-      radius: spec.radius * Math.min(screenW, screenH),
+      "screen-radius": spec.radius * Math.min(screenW, screenH),
     },
   };
 }

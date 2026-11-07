@@ -1,4 +1,4 @@
-import { type Palette, usePalette } from "@purrphect/ui/lib/theme";
+import { PALETTE, type Palette, usePalette } from "@purrphect/ui/lib/theme";
 import { Text } from "@purrphect/ui/text";
 import * as Haptics from "expo-haptics";
 import { useColorScheme } from "nativewind";
@@ -56,7 +56,7 @@ const NO_PLAN: readonly Segment[] = [];
 
 // The board's own shades: in dark mode the singles must stand out from the page background.
 const BOARD = {
-  light: { face: "#FFFFFF", singleA: "#FFF7F2", singleB: "#FFE3EE" },
+  light: { face: PALETTE.light.card, singleA: PALETTE.light.background, singleB: PALETTE.light.pinkSoft },
   dark: { face: "#241A1F", singleA: "#2E2228", singleB: "#44283A" },
 };
 
@@ -67,7 +67,7 @@ const Face = memo(function Face({
   heat,
 }: {
   palette: Palette;
-  board: (typeof BOARD)["light"];
+  board: { face: string; singleA: string; singleB: string };
   plan: readonly Segment[];
   heat?: Heat;
 }) {
