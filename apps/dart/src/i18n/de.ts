@@ -27,7 +27,7 @@ export const de = {
   today: "Heute",
   yesterday: "Gestern",
   rules: {
-    in: { double: "Double In", master: "Master In", straight: "Straight In" },
+    in: { double: "Double In", master: "Master In" },
     out: { double: "Double Out", master: "Master Out", straight: "Straight Out" },
     firstTo: (n: number) => `First to ${n}`,
     places: "Plätze",

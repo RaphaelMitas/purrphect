@@ -33,7 +33,7 @@ export const en = {
   today: "Today",
   yesterday: "Yesterday",
   rules: {
-    in: { double: "double in", master: "master in", straight: "straight in" } satisfies Record<RingRule, string>,
+    in: { double: "double in", master: "master in" } satisfies Record<GetInRule, string>,
     out: { double: "double out", master: "master out", straight: "straight out" } satisfies Record<RingRule, string>,
     firstTo: (n: number) => `first to ${n}`,
     places: "places",

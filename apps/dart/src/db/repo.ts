@@ -143,7 +143,7 @@ export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   return rows.map(toSetup);
 }
 
-// Straight-in, fixed-order setups keep the signature shape older saves were stored with.
+// Optional parts are appended only when set, so older saves keep their signature.
 const signature = (r: Rules, playerIds: string[]) =>
   JSON.stringify([
     r.start,

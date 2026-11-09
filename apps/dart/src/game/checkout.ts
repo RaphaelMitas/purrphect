@@ -114,7 +114,15 @@ export function bestRoute(remaining: number, dartsLeft: number, out: RingRule): 
 export function finishRoute(rules: Rules, remaining: number, dartsLeft: number): Route | undefined {
   const all = routes(remaining, dartsLeft, rules.out);
   if (isIn(rules, remaining)) return all[0];
-  return all.find((r) => r.darts[0] && meetsRule(info(r.darts[0]), rules.in));
+  for (const route of all) {
+    const setups = route.darts.length === 1 ? route.darts : route.darts.slice(0, -1);
+    const entry = setups.findIndex((d) => meetsRule(info(d), rules.in));
+    if (entry < 0) continue;
+    const darts = [...route.darts];
+    const [dart] = darts.splice(entry, 1);
+    return dart ? { ...route, darts: [dart, ...darts] } : undefined;
+  }
+  return undefined;
 }
 
 export interface SetupShot {

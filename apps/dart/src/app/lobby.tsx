@@ -113,7 +113,7 @@ export default function Lobby() {
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
-  // From 3, getting in on a double leaves 1 or overshoots, so some in and out pairs can never finish.
+  // Some in and out pairs can never finish from 3; 4 is the lowest start every pair can finish from.
   const minStart = inRule === "straight" ? 2 : 4;
   const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
   const legsValid = Number.isInteger(legsValue) && legsValue >= 1 && legsValue <= 99;

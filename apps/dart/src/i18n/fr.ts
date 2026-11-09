@@ -29,7 +29,7 @@ export const fr = {
   today: "Aujourd'hui",
   yesterday: "Hier",
   rules: {
-    in: { double: "double in", master: "master in", straight: "straight in" },
+    in: { double: "double in", master: "master in" },
     out: { double: "double out", master: "master out", straight: "straight out" },
     firstTo: (n: number) => `first to ${n}`,
     places: "places",
