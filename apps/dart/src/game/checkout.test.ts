@@ -7,6 +7,8 @@ import { info } from "./segments";
 const route = (remaining: number, darts = 3, out: "double" | "master" | "straight" = "double") =>
   bestRoute(remaining, darts, out)?.darts;
 
+const BOGEYS = [169, 168, 166, 165, 163, 162, 159];
+
 describe("checkout routes", () => {
   it("finds the standard double-out routes", () => {
     expect(route(170)).toEqual(["T20", "T20", "Bull"]);
@@ -33,7 +35,7 @@ describe("checkout routes", () => {
   });
 
   it("has no route for bogey numbers", () => {
-    for (const bogey of [169, 168, 166, 165, 163, 162, 159]) expect(route(bogey)).toBeUndefined();
+    for (const bogey of BOGEYS) expect(route(bogey)).toBeUndefined();
   });
 
   it("respects master and straight out", () => {
@@ -48,8 +50,7 @@ describe("checkout chart", () => {
   it("lists a valid double-out route for every finishable score", () => {
     for (let score = 2; score <= 170; score++) {
       const listed = CHECKOUT_CHART[score] ?? [];
-      const bogey = [169, 168, 166, 165, 163, 162, 159].includes(score);
-      expect(listed.length > 0, `${score}`).toBe(!bogey);
+      expect(listed.length > 0, `${score}`).toBe(!BOGEYS.includes(score));
       expect(listed.length, `${score}`).toBeLessThanOrEqual(2);
       for (const darts of listed) {
         const last = darts.at(-1);
