@@ -25,23 +25,7 @@ describe("visitCall", () => {
     expect(callAfter(["Miss", "Miss", "Miss"])).toBe("noScore");
   });
 
-  it("calls game shot when a leg is won and the match goes on", () => {
-    expect(callAfter(["D20"], { start: 40, firstTo: 2 })).toBe("gameShot");
-  });
-
-  it("calls the match when the last leg is won", () => {
-    expect(callAfter(["D20"], { start: 40 })).toBe("matchShot");
-  });
-
-  it("calls game shot for a finisher while others play on", () => {
-    expect(callAfter(["D20"], { start: 40, finish: "places", firstTo: 2 }, 3)).toBe("gameShot");
-  });
-
-  it("calls the match on the winning checkout even while others play on", () => {
-    expect(callAfter(["D20"], { start: 40, finish: "places" }, 3)).toBe("matchShot");
-  });
-
-  it("calls game shot, not the match, when the runner-up's checkout ends the leg", () => {
-    expect(callAfter(["D20", "D20"], { start: 40, finish: "places" }, 3)).toBe("gameShot");
+  it("calls a checkout by its total", () => {
+    expect(callAfter(["D20"], { start: 40 })).toBe(40);
   });
 });

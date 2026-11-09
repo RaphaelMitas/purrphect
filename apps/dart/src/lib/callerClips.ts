@@ -171,8 +171,6 @@ import call171 from "../../assets/sounds/caller/171.mp3";
 import call174 from "../../assets/sounds/caller/174.mp3";
 import call177 from "../../assets/sounds/caller/177.mp3";
 import call180 from "../../assets/sounds/caller/180.mp3";
-import callGameShot from "../../assets/sounds/caller/gameShot.mp3";
-import callMatchShot from "../../assets/sounds/caller/matchShot.mp3";
 import callNoScore from "../../assets/sounds/caller/noScore.mp3";
 
 export const CALL_CLIPS: Readonly<Partial<Record<Call, number>>> = {
@@ -347,7 +345,5 @@ export const CALL_CLIPS: Readonly<Partial<Record<Call, number>>> = {
   174: call174,
   177: call177,
   180: call180,
-  gameShot: callGameShot,
-  matchShot: callMatchShot,
   noScore: callNoScore,
 };

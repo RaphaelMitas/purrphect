@@ -29,7 +29,7 @@ ONES = "zero one two three four five six seven eight nine ten eleven twelve thir
 TENS = "_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()
 DARTS = {0, 25, 50, *range(1, 21), *range(2, 41, 2), *range(3, 61, 3)}
 SCORES = sorted({a + b + c for a in DARTS for b in DARTS for c in DARTS} - {0})
-PHRASES = {"noScore": "No score.", "gameShot": "Game shot!", "matchShot": "Game shot, and the match!"}
+PHRASES = {"noScore": "No score."}
 
 
 def words(n: int) -> str:
@@ -110,11 +110,9 @@ def main():
     )
     calm = model.create_voice_clone_prompt(ref_audio=str(REFS / "voice.wav"), x_vector_only_mode=True)
     lift = model.create_voice_clone_prompt(ref_audio=str(REFS / "lift.wav"), ref_text="One hundred and forty!")
-    hype = model.create_voice_clone_prompt(ref_audio=str(REFS / "voice.wav"), ref_text="One hundred and eighty!")
 
     lines = {str(n): (script(n), calm if n < 100 else lift) for n in SCORES if n != 180}
-    delivery = {"noScore": calm, "gameShot": lift, "matchShot": hype}
-    lines |= {key: (text, delivery[key]) for key, text in PHRASES.items()}
+    lines |= {key: (text, calm) for key, text in PHRASES.items()}
 
     failed = []
     for i, (key, (text, prompt)) in enumerate(lines.items()):
