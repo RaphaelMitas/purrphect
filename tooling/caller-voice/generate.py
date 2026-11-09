@@ -49,13 +49,15 @@ def script(n: int) -> str:
     return f"One-hundred-and-{head + '-' if head else ''}{last.upper()}!"
 
 
+def norm(text: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
+
+
 def heard_ok(key: str, heard: str) -> bool:
-    text = re.sub(r"[^a-z0-9 ]", "", heard.lower().replace("-", " ")).split()
     if key in PHRASES:
-        return text == re.sub(r"[^a-z ]", "", PHRASES[key].lower()).split()
-    n = int(key)
-    spoken = "one hundred" if n == 100 else " ".join(re.sub(r"[^a-z ]", " ", script(n).lower()).split())
-    return " ".join(text) in {str(n), spoken, spoken.replace(" and ", " ")}
+        return norm(heard) == norm(PHRASES[key])
+    spoken = norm(script(int(key)))
+    return norm(heard) in {key, spoken, spoken.replace(" and ", " ")}
 
 
 def longest_pause(audio: np.ndarray, sr: int) -> float:
@@ -69,18 +71,19 @@ def longest_pause(audio: np.ndarray, sr: int) -> float:
     return longest / 100
 
 
-def encode(audio: np.ndarray, sr: int, dst: Path):
+def encode(src: Path, dst: Path):
     partial = dst.with_suffix(".part.mp3")
-    with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
-        sf.write(tmp.name, audio, sr)
-        trim = "silenceremove=start_periods=1:start_threshold=-45dB"
-        chain = f"{trim},areverse,{trim},afade=t=in:d=0.04,areverse,afade=t=in:d=0.005,dynaudnorm=p=0.9:m=8,volume=-1dB"
+    trim = "silenceremove=start_periods=1:start_threshold=-45dB"
+    chain = f"{trim},areverse,{trim},afade=t=in:d=0.04,areverse,afade=t=in:d=0.005,dynaudnorm=p=0.9:m=8,volume=-1dB"
+    try:
         subprocess.run(
-            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", tmp.name, "-af", chain,
+            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-af", chain,
              "-ar", "24000", "-ac", "1", "-b:a", "48k", str(partial)],
             check=True,
         )
-    partial.replace(dst)
+        partial.replace(dst)
+    finally:
+        partial.unlink(missing_ok=True)
 
 
 def write_clips_ts(keys: list[str]):
@@ -125,18 +128,17 @@ def main():
             with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
                 sf.write(tmp.name, audio, sr)
                 heard = mlx_whisper.transcribe(tmp.name, path_or_hf_repo="mlx-community/whisper-large-v3-turbo", language="en")["text"]
-            if heard_ok(key, heard) and longest_pause(audio, sr) <= 0.2 and len(audio) / sr < 5:
-                encode(audio, sr, dst)
-                print(f"{key}: {text} -> {heard.strip()} (attempt {attempt + 1})", flush=True)
-                break
+                if heard_ok(key, heard) and longest_pause(audio, sr) <= 0.2 and len(audio) / sr < 5:
+                    encode(Path(tmp.name), dst)
+                    print(f"{key}: {text} -> {heard.strip()} (attempt {attempt + 1})", flush=True)
+                    break
         else:
             failed.append(key)
             print(f"{key}: FAILED after {args.attempts} attempts, last heard {heard.strip()!r}", flush=True)
 
     if failed:
         sys.exit(f"Re-run with more --attempts to retry: {', '.join(failed)}")
-    hype_180, sr = sf.read(REFS / "180.wav")
-    encode(hype_180, sr, OUT / "180.mp3")
+    encode(REFS / "180.wav", OUT / "180.mp3")
     write_clips_ts([str(n) for n in SCORES] + sorted(PHRASES))
 
 
