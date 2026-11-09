@@ -36,12 +36,14 @@ export function CatBubble({
   compact?: boolean;
 }) {
   const t = useT();
-  const { route, setup, fallback, remaining, chance } = suggestion;
+  const { route, setup, fallback, remaining, chance, getIn } = suggestion;
   return (
     <View className="flex-row items-center gap-3">
       <Cat size={compact ? 36 : 56} />
       <View className="flex-1 gap-2 rounded-3xl bg-card px-4 py-3">
-        {route ? (
+        {getIn ? (
+          <Text className="text-sm">{t.match.getIn[getIn]}</Text>
+        ) : route ? (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{t.match.checkoutGo(remaining)}</Text>
             <Route darts={route.darts} />

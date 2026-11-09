@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bestRoute, missFallback, setupShot } from "./checkout";
+import { bestRoute, finishRoute, missFallback, setupShot } from "./checkout";
+import { DEFAULT_RULES, type Rules } from "./rules";
 
 const route = (remaining: number, darts = 3, out: "double" | "master" | "straight" = "double") =>
   bestRoute(remaining, darts, out)?.darts;
@@ -12,6 +13,12 @@ describe("checkout routes", () => {
     expect(route(61)).toEqual(["T15", "D8"]);
     expect(route(40)).toEqual(["D20"]);
     expect(route(32)).toEqual(["D16"]);
+  });
+
+  it("leads with the dart that gets a player in", () => {
+    const doubleIn: Rules = { ...DEFAULT_RULES, start: 160, in: "double" };
+    expect(finishRoute(doubleIn, 160, 3)?.darts).toEqual(["Bull", "T20", "Bull"]);
+    expect(finishRoute(doubleIn, 100, 3)?.darts).toEqual(["T20", "D20"]);
   });
 
   it("throws the treble before the single so a miss still leaves a finish", () => {

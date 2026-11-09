@@ -1,4 +1,4 @@
-import { canFinishWith, type OutRule } from "./rules";
+import { isIn, meetsRule, type RingRule, type Rules } from "./rules";
 import { info, SCORING_SEGMENTS, type Segment, type SegmentInfo, segmentFor } from "./segments";
 
 export interface Route {
@@ -46,11 +46,11 @@ function setupCost(dart: SegmentInfo): number {
   return dart.number >= 16 ? 0 : 1;
 }
 
-const finishersCache = new Map<OutRule, SegmentInfo[]>();
-function finishers(out: OutRule): SegmentInfo[] {
+const finishersCache = new Map<RingRule, SegmentInfo[]>();
+function finishers(out: RingRule): SegmentInfo[] {
   let list = finishersCache.get(out);
   if (!list) {
-    list = SCORING_SEGMENTS.filter((d) => canFinishWith(d, out));
+    list = SCORING_SEGMENTS.filter((d) => meetsRule(d, out));
     finishersCache.set(out, list);
   }
   return list;
@@ -58,7 +58,7 @@ function finishers(out: OutRule): SegmentInfo[] {
 
 const routeCache = new Map<string, Route[]>();
 
-export function routes(remaining: number, dartsLeft: number, out: OutRule): Route[] {
+export function routes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
   const key = `${remaining}:${dartsLeft}:${out}`;
   const cached = routeCache.get(key);
   if (cached) return cached;
@@ -67,7 +67,7 @@ export function routes(remaining: number, dartsLeft: number, out: OutRule): Rout
   return result;
 }
 
-function computeRoutes(remaining: number, dartsLeft: number, out: OutRule): Route[] {
+function computeRoutes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
   if (remaining < 1 || remaining > 180 || dartsLeft < 1) return [];
   const fin = finishers(out);
   const byValue = new Map<number, SegmentInfo[]>();
@@ -107,8 +107,21 @@ function computeRoutes(remaining: number, dartsLeft: number, out: OutRule): Rout
   return found.sort((x, y) => x.cost - y.cost);
 }
 
-export function bestRoute(remaining: number, dartsLeft: number, out: OutRule): Route | undefined {
+export function bestRoute(remaining: number, dartsLeft: number, out: RingRule): Route | undefined {
   return routes(remaining, dartsLeft, out)[0];
+}
+
+export function finishRoute(rules: Rules, remaining: number, dartsLeft: number): Route | undefined {
+  const all = routes(remaining, dartsLeft, rules.out);
+  if (isIn(rules, remaining)) return all[0];
+  for (const route of all) {
+    const setups = route.darts.length === 1 ? route.darts : route.darts.slice(0, -1);
+    const entry = setups.findIndex((d) => meetsRule(info(d), rules.in));
+    const dart = setups[entry];
+    if (!dart) continue;
+    return { ...route, darts: [dart, ...route.darts.filter((_, i) => i !== entry)] };
+  }
+  return undefined;
 }
 
 export interface SetupShot {
@@ -117,7 +130,7 @@ export interface SetupShot {
 }
 
 // Only called when there is no finish in hand.
-export function setupShot(remaining: number, dartsLeft: number, out: OutRule): SetupShot {
+export function setupShot(remaining: number, dartsLeft: number, out: RingRule): SetupShot {
   const scoreBig: SetupShot = { aim: "T20", leaves: remaining - 60 };
   if (dartsLeft > 1 && scoreBig.leaves >= 2) return scoreBig;
   let best: (SetupShot & { cost: number }) | undefined;
@@ -143,7 +156,7 @@ export function missFallback(
   route: Route,
   remaining: number,
   dartsLeft: number,
-  out: OutRule,
+  out: RingRule,
 ): MissFallback | undefined {
   const first = route.darts[0];
   if (!first || route.darts.length < 2) return undefined;
@@ -157,8 +170,4 @@ export function missFallback(
     route: next,
     setup: next ? undefined : setupShot(leaves, dartsLeft - 1, out),
   };
-}
-
-export function isOneDartFinish(remaining: number, out: OutRule): boolean {
-  return routes(remaining, 1, out).length > 0;
 }

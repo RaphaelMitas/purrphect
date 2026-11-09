@@ -31,7 +31,7 @@ import {
   savesSettled,
   setInputMode,
 } from "@/db/repo";
-import { bestRoute } from "@/game/checkout";
+import { finishRoute } from "@/game/checkout";
 import { suggest } from "@/game/predict";
 import type { Segment } from "@/game/segments";
 import { type MatchEvent, matchAverage, replay, standings, upNext } from "@/game/x01";
@@ -150,7 +150,7 @@ export default function MatchScreen() {
     const player = players[i];
     const remaining = state.remaining[i] ?? 0;
     return player
-      ? [{ player, remaining, average: matchAverage(state, i), out: bestRoute(remaining, 3, match.rules.out) }]
+      ? [{ player, remaining, average: matchAverage(state, i), out: finishRoute(match.rules, remaining, 3) }]
       : [];
   });
   const onFinish = queue.filter((q) => q.out);
