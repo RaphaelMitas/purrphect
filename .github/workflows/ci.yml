@@ -27,5 +27,5 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      - name: Check, lint, typecheck, test, build website
+      - name: Verify
         run: pnpm verify

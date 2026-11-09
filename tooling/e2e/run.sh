@@ -34,31 +34,28 @@ run_android() (
   avd=purrphect-e2e
   port=5580
   serial="emulator-$port"
-  lock="$HOME/.android/$avd.lock"
-
-  # Every worktree shares the AVD name and port, so only one Android run at a time.
-  mkdir -p "$HOME/.android"
-  if ! mkdir "$lock" 2> /dev/null; then
-    echo "Another Android E2E run holds $lock; remove it if none is running." >&2
-    exit 1
-  fi
-  emulator_pid=
-  cleanup() {
-    trap '' INT TERM
-    if [ -n "$emulator_pid" ]; then
-      adb -s "$serial" emu kill > /dev/null 2>&1 || kill "$emulator_pid" 2> /dev/null || true
-      wait "$emulator_pid" 2> /dev/null || true
-    fi
-    avdmanager delete avd --name "$avd" > /dev/null 2>&1 || true
-    rmdir "$lock"
-  }
-  trap cleanup EXIT
-  trap 'exit 130' INT TERM
 
   if adb devices | grep "^$serial[[:space:]]" > /dev/null; then
     echo "$serial is already running; stop it first." >&2
     exit 1
   fi
+
+  emulator_pid=
+  cleanup() {
+    trap '' INT TERM
+    if [ -n "$emulator_pid" ]; then
+      adb -s "$serial" emu kill > /dev/null 2>&1 || kill "$emulator_pid" 2> /dev/null || true
+      for _ in $(seq 30); do
+        kill -0 "$emulator_pid" 2> /dev/null || break
+        sleep 1
+      done
+      kill -9 "$emulator_pid" 2> /dev/null || true
+    fi
+    avdmanager delete avd --name "$avd" > /dev/null 2>&1 || true
+  }
+  trap cleanup EXIT
+  trap 'exit 130' INT TERM
+
   [ -d "$ANDROID_HOME/system-images/android-35/google_apis/$abi" ] || sdkmanager --install "$image"
   echo no | avdmanager create avd --force --name "$avd" --package "$image" --device pixel_7 > /dev/null
 
@@ -66,22 +63,15 @@ run_android() (
     > /dev/null 2>&1 &
   emulator_pid=$!
 
-  apk=$(ANDROID_ABI="$abi" bash "$here/build-android-apk.sh")
+  apk=$(bash "$here/build-android-apk.sh" "$abi")
 
-  booted=
-  for _ in $(seq 150); do
-    if ! kill -0 "$emulator_pid" 2> /dev/null; then
-      echo "The emulator exited before it finished booting." >&2
-      exit 1
-    fi
-    booted=$(adb -s "$serial" shell getprop sys.boot_completed 2> /dev/null | tr -d '\r') || true
-    [ "$booted" = 1 ] && break
+  tries=150
+  until [ "$(adb -s "$serial" shell getprop sys.boot_completed 2> /dev/null | tr -d '\r')" = 1 ]; do
+    kill -0 "$emulator_pid" 2> /dev/null || { echo "The emulator exited before it finished booting." >&2; exit 1; }
+    tries=$((tries - 1))
+    [ "$tries" -gt 0 ] || { echo "$serial did not finish booting." >&2; exit 1; }
     sleep 2
   done
-  if [ "$booted" != 1 ]; then
-    echo "$serial did not finish booting." >&2
-    exit 1
-  fi
   for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
     adb -s "$serial" shell settings put global "$scale" 0
   done
@@ -96,11 +86,23 @@ platforms=("$@")
 [ ${#platforms[@]} -gt 0 ] || platforms=(ios android)
 for platform in "${platforms[@]}"; do
   case "$platform" in
-    ios) run_ios ;;
-    android) run_android ;;
+    ios | android) ;;
     *)
       echo "Unknown platform $platform; use ios, android, or neither for both." >&2
       exit 2
       ;;
   esac
+done
+
+# Maestro's drivers listen on fixed ports and the AVD name is shared, so one run per machine.
+lock="$HOME/.cache/purrphect-e2e.lock"
+mkdir -p "$HOME/.cache"
+if ! mkdir "$lock" 2> /dev/null; then
+  echo "Another E2E run holds $lock; remove it if none is running." >&2
+  exit 1
+fi
+trap 'rmdir "$lock" 2> /dev/null || true' EXIT
+
+for platform in "${platforms[@]}"; do
+  "run_$platform"
 done
