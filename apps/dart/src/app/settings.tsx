@@ -7,10 +7,30 @@ import { Link } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { type SoundKind, setSoundEnabled, useSoundEnabled } from "@/hooks/useSoundSettings";
 import { useThemes } from "@/hooks/useThemes";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage, useT } from "@/i18n/LanguageProvider";
 import { LANGUAGE_OPTIONS } from "@/i18n/language";
 import { slotTheme, themeName } from "@/lib/themes";
+
+function SoundToggle({ kind, label }: { kind: SoundKind; label: string }) {
+  const t = useT();
+  const enabled = useSoundEnabled(kind);
+  return (
+    <View className="flex-row items-center gap-3">
+      <Text className="flex-1 font-nunito-bold text-base">{label}</Text>
+      <Segmented
+        className="w-36"
+        options={[
+          { value: "on", label: t.settingsScreen.on },
+          { value: "off", label: t.settingsScreen.off },
+        ]}
+        value={enabled ? "on" : "off"}
+        onChange={(value) => setSoundEnabled(kind, value === "on")}
+      />
+    </View>
+  );
+}
 
 export default function Settings() {
   const { t, preference, setPreference } = useLanguage();
@@ -27,6 +47,12 @@ export default function Settings() {
             value={preference}
             onChange={setPreference}
           />
+        </Panel>
+        <Panel title={t.settingsScreen.sound}>
+          <View className="gap-3">
+            <SoundToggle kind="knock" label={t.settingsScreen.dartHits} />
+            <SoundToggle kind="caller" label={t.settingsScreen.caller} />
+          </View>
         </Panel>
         <Panel title={t.theme.title}>
           <Link href="/theme" asChild>
