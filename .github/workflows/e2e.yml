@@ -28,31 +28,11 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # Boots while the app builds.
-      - name: Create iOS simulator
-        id: sim
-        uses: ./tooling/github/ios-simulator
-        with:
-          device: "^iPad Air 13-inch"
-
-      - name: Build app
-        id: build
-        uses: ./tooling/github/build-ios-sim
-
       - name: Install Maestro
         uses: ./tooling/github/maestro
 
-      - name: Install app
-        env:
-          UDID: ${{ steps.sim.outputs.udid }}
-          APP: ${{ steps.build.outputs.app-path }}
-        run: |
-          xcrun simctl bootstatus "$UDID"
-          xcrun simctl install "$UDID" "$APP"
-
-      - name: Run Maestro flows
-        working-directory: apps/dart
-        run: pnpm e2e --device "${{ steps.sim.outputs.udid }}"
+      - name: Build app and run Maestro flows
+        run: bash tooling/e2e/run.sh ios
 
       # Maestro's failure bundle sits in hidden dirs, which upload-artifact drops by default.
       - name: Upload Maestro results

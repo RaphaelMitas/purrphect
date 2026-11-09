@@ -10,8 +10,9 @@ export MAESTRO_DRIVER_STARTUP_TIMEOUT=240000
 run_ios() (
   udid=$(bash "$here/ios-simulator.sh" "^iPad Air 13-inch")
   cleanup() {
+    trap '' INT TERM
     xcrun simctl shutdown "$udid" 2> /dev/null || true
-    xcrun simctl delete "$udid"
+    xcrun simctl delete "$udid" || true
   }
   trap cleanup EXIT
   trap 'exit 130' INT TERM
@@ -24,8 +25,7 @@ run_ios() (
 
 run_android() (
   export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
-  sdk="$ANDROID_HOME"
-  export PATH="$sdk/cmdline-tools/latest/bin:$sdk/emulator:$sdk/platform-tools:$PATH"
+  export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
   case "$(uname -m)" in
     arm64 | aarch64) abi=arm64-v8a ;;
     *) abi=x86_64 ;;
@@ -34,33 +34,51 @@ run_android() (
   avd=purrphect-e2e
   port=5580
   serial="emulator-$port"
+  lock="$HOME/.android/$avd.lock"
 
-  if adb devices | grep -q "^$serial[[:space:]]"; then
+  # Every worktree shares the AVD name and port, so only one Android run at a time.
+  mkdir -p "$HOME/.android"
+  if ! mkdir "$lock" 2> /dev/null; then
+    echo "Another Android E2E run holds $lock; remove it if none is running." >&2
+    exit 1
+  fi
+  emulator_pid=
+  cleanup() {
+    trap '' INT TERM
+    if [ -n "$emulator_pid" ]; then
+      adb -s "$serial" emu kill > /dev/null 2>&1 || kill "$emulator_pid" 2> /dev/null || true
+      wait "$emulator_pid" 2> /dev/null || true
+    fi
+    avdmanager delete avd --name "$avd" > /dev/null 2>&1 || true
+    rmdir "$lock"
+  }
+  trap cleanup EXIT
+  trap 'exit 130' INT TERM
+
+  if adb devices | grep "^$serial[[:space:]]" > /dev/null; then
     echo "$serial is already running; stop it first." >&2
     exit 1
   fi
-  [ -d "$sdk/system-images/android-35/google_apis/$abi" ] || sdkmanager --install "$image"
+  [ -d "$ANDROID_HOME/system-images/android-35/google_apis/$abi" ] || sdkmanager --install "$image"
   echo no | avdmanager create avd --force --name "$avd" --package "$image" --device pixel_7 > /dev/null
 
   emulator -avd "$avd" -port "$port" -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none \
     > /dev/null 2>&1 &
   emulator_pid=$!
-  cleanup() {
-    adb -s "$serial" emu kill > /dev/null 2>&1 || kill "$emulator_pid" 2> /dev/null || true
-    wait "$emulator_pid" 2> /dev/null || true
-    avdmanager delete avd --name "$avd" > /dev/null
-  }
-  trap cleanup EXIT
-  trap 'exit 130' INT TERM
 
   apk=$(ANDROID_ABI="$abi" bash "$here/build-android-apk.sh")
 
-  adb -s "$serial" wait-for-device
+  booted=
   for _ in $(seq 150); do
-    [ "$(adb -s "$serial" shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break
+    if ! kill -0 "$emulator_pid" 2> /dev/null; then
+      echo "The emulator exited before it finished booting." >&2
+      exit 1
+    fi
+    booted=$(adb -s "$serial" shell getprop sys.boot_completed 2> /dev/null | tr -d '\r') || true
+    [ "$booted" = 1 ] && break
     sleep 2
   done
-  if [ "$(adb -s "$serial" shell getprop sys.boot_completed | tr -d '\r')" != 1 ]; then
+  if [ "$booted" != 1 ]; then
     echo "$serial did not finish booting." >&2
     exit 1
   fi

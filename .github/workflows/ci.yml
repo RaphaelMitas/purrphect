@@ -27,17 +27,5 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      - name: Check
-        run: pnpm check
-
-      - name: Workspace lint
-        run: pnpm lint:ws
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Test
-        run: pnpm test
-
-      - name: Build website
-        run: pnpm turbo run build --filter @purrphect/dart-web
+      - name: Check, lint, typecheck, test, build website
+        run: pnpm verify
