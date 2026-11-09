@@ -31,10 +31,12 @@ import {
   savesSettled,
   setInputMode,
 } from "@/db/repo";
+import { visitCall } from "@/game/call";
 import { bestRoute } from "@/game/checkout";
 import { suggest } from "@/game/predict";
 import type { Segment } from "@/game/segments";
 import { type MatchEvent, matchAverage, replay, standings, upNext } from "@/game/x01";
+import { useMatchSounds } from "@/hooks/useMatchSounds";
 import type { Messages } from "@/i18n/en";
 import { useT } from "@/i18n/LanguageProvider";
 import { rulesSummary } from "@/lib/format";
@@ -72,6 +74,7 @@ export default function MatchScreen() {
   const [mode, setMode] = useState<InputMode>("board");
   const [toast, setToast] = useState<{ message: string | null; stamp: number }>({ message: null, stamp: 0 });
   const [busy, setBusy] = useState(false);
+  const sounds = useMatchSounds();
 
   useEffect(() => {
     let active = true;
@@ -122,10 +125,13 @@ export default function MatchScreen() {
   const throwDart = (segment: Segment) => {
     if (state.winner !== null || busy) return;
     const after = persist([...segments, segment]);
+    sounds.dart(visitCall(state, after));
     setToast((cur) => ({ message: eventMessage(t, after.lastEvent, players), stamp: cur.stamp + 1 }));
   };
   const undo = () => {
-    if (segments.length && !busy) persist(segments.slice(0, -1));
+    if (!segments.length || busy) return;
+    sounds.cancelCall();
+    persist(segments.slice(0, -1));
   };
   const changeMode = (m: InputMode) => {
     setMode(m);

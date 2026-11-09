@@ -47,3 +47,6 @@ credentials.json
 
 # turbo
 .turbo
+
+# python tooling
+.venv/

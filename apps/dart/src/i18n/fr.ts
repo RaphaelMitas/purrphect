@@ -244,6 +244,11 @@ export const fr = {
   settingsScreen: {
     language: "Langue",
     system: "Système",
+    sound: "Son",
+    dartHits: "Impacts",
+    caller: "Annonceur",
+    on: "Oui",
+    off: "Non",
   },
 
   demo: "Préparation de la démo…",
