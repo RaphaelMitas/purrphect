@@ -1,5 +1,5 @@
 name: "Android toolchain"
-description: "Java 17 and enough Gradle memory to build apps/dart on a Linux runner"
+description: "Java 17, a cached Gradle home, and Gradle settings that survive a Linux runner and flaky download servers"
 
 runs:
   using: composite
@@ -9,8 +9,18 @@ runs:
         distribution: temurin
         java-version: 17
 
+    # Nothing builds Android on main, so PR runs write their own cache; it keeps re-runs and later pushes off the network.
+    - uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-read-only: false
+
     # The template's 512m Metaspace cap OOMs the Gradle daemon; user-home properties override the project's.
+    # Gradle retries 5xx downloads only for ~7s by default; Maven Central and GitHub releases have 504'd for minutes.
     - shell: bash
       run: |
         mkdir -p ~/.gradle
-        printf 'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g\n' >> ~/.gradle/gradle.properties
+        cat >> ~/.gradle/gradle.properties <<'EOF'
+        org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g
+        systemProp.org.gradle.internal.network.retry.max.attempts=7
+        systemProp.org.gradle.internal.network.retry.initial.backOff=5000
+        EOF

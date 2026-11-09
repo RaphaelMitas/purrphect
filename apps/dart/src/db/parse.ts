@@ -1,7 +1,7 @@
-import type { FinishMode, OutRule, Rules } from "@/game/rules";
+import type { FinishMode, RingRule, Rules } from "@/game/rules";
 import { isSegment, type Segment } from "@/game/segments";
 
-const OUT_RULES: readonly OutRule[] = ["double", "master", "straight"];
+const RING_RULES: readonly RingRule[] = ["double", "master", "straight"];
 const FINISH_MODES: readonly FinishMode[] = ["leg", "places"];
 
 export const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
@@ -10,10 +10,13 @@ const isPositiveInt = (v: unknown): v is number => typeof v === "number" && Numb
 export function parseRules(json: string): Rules {
   const v: unknown = JSON.parse(json);
   if (!isRecord(v)) throw new Error("Invalid rules");
-  const out = OUT_RULES.find((o) => o === v.out);
+  const out = RING_RULES.find((o) => o === v.out);
+  const inRule = v.in === undefined ? "straight" : RING_RULES.find((r) => r === v.in);
   const finish = FINISH_MODES.find((f) => f === v.finish);
-  if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !out || !finish) throw new Error("Invalid rules");
-  return { start: v.start, firstTo: v.firstTo, out, finish, randomOrder: v.randomOrder === true };
+  if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !inRule || !out || !finish) {
+    throw new Error("Invalid rules");
+  }
+  return { start: v.start, firstTo: v.firstTo, in: inRule, out, finish, randomOrder: v.randomOrder === true };
 }
 
 export function parseIds(json: string): string[] {

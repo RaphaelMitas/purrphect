@@ -24,6 +24,26 @@ describe("x01 engine", () => {
     expect(replay(rules({ start: 40, out: "straight" }), 2, ["S20", "S20"]).winner).toBe(0);
   });
 
+  it("scores nothing until a dart meets the in rule", () => {
+    const doubleIn = rules({ in: "double" });
+    const s = replay(doubleIn, 2, ["T20", "D10", "S5"]);
+    expect(s.remaining).toEqual([476, 501]);
+    expect(s.visits.at(-1)).toMatchObject({ scored: 25 });
+    expect(replay(doubleIn, 2, ["T20", "S20", "S1"]).remaining).toEqual([501, 501]);
+    expect(replay(rules({ in: "master" }), 2, ["S20", "T20"]).remaining).toEqual([441, 501]);
+  });
+
+  it("voids getting in when the same visit busts", () => {
+    const s = replay(rules({ start: 40, in: "double" }), 2, ["D10", "S19", ...miss3, "S20"]);
+    expect(s.remaining).toEqual([40, 40]);
+  });
+
+  it("counts a dart that gets in and checks out as a finish attempt", () => {
+    const s = replay(rules({ start: 40, in: "double" }), 2, ["D20"]);
+    expect(s.winner).toBe(0);
+    expect(s.darts[0]?.atFinish).toBe(true);
+  });
+
   it("wins the leg and the match on a double", () => {
     const s = replay(rules(), 2, nineDarter);
     expect(s.winner).toBe(0);

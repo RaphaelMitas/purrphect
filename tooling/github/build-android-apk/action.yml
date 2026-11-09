@@ -11,15 +11,8 @@ runs:
   steps:
     - uses: ./tooling/github/android-toolchain
 
-    - shell: bash
-      working-directory: apps/dart
-      run: pnpm expo prebuild --platform android --no-install
-
-    # The Expo template signs release builds with the debug keystore, so the APK installs as-is.
     - id: build
       shell: bash
-      working-directory: apps/dart/android
       run: |
-        ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon \
-          -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
-        echo "apk-path=$PWD/app/build/outputs/apk/release/app-release.apk" >> "$GITHUB_OUTPUT"
+        APK=$(bash tooling/e2e/build-android-apk.sh)
+        echo "apk-path=$APK" >> "$GITHUB_OUTPUT"

@@ -1,4 +1,4 @@
-import { bestRoute } from "./checkout";
+import { bestRoute, finishRoute } from "./checkout";
 import type { Rules } from "./rules";
 import type { Segment } from "./segments";
 import { replay, threeDartAverage } from "./x01";
@@ -129,7 +129,7 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
       }
       const range = RANGES.findIndex(([, lo, hi]) => v.scoreBefore >= lo && v.scoreBefore <= hi);
       const bucket = st.byRange[range];
-      if (bucket && bestRoute(v.scoreBefore, 3, m.rules.out)) {
+      if (bucket && finishRoute(m.rules, v.scoreBefore, 3)) {
         bucket.chances++;
         if (v.checkout) bucket.hits++;
       }
