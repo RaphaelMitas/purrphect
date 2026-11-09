@@ -36,4 +36,8 @@ describe("visitCall", () => {
   it("calls game shot for a finisher while others play on", () => {
     expect(callAfter(["D20"], { start: 40, finish: "places" }, 3)).toBe("gameShot");
   });
+
+  it("calls game shot, not the match, when the runner-up's checkout ends the leg", () => {
+    expect(callAfter(["D20", "D20"], { start: 40, finish: "places" }, 3)).toBe("gameShot");
+  });
 });

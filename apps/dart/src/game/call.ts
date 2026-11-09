@@ -5,8 +5,7 @@ export type Call = number | "noScore" | "gameShot" | "matchShot";
 export function visitCall(before: MatchState, after: MatchState): Call | null {
   const visit = after.visits.at(-1);
   if (!visit || after.visits.length === before.visits.length) return null;
-  if (after.lastEvent?.kind === "match") return "matchShot";
-  if (visit.checkout) return "gameShot";
+  if (visit.checkout) return after.winner === visit.player ? "matchShot" : "gameShot";
   if (visit.bust || visit.scored === 0) return "noScore";
   return visit.scored;
 }

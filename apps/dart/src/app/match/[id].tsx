@@ -130,8 +130,8 @@ export default function MatchScreen() {
   };
   const undo = () => {
     if (!segments.length || busy) return;
-    sounds.cancelCall();
-    persist(segments.slice(0, -1));
+    const after = persist(segments.slice(0, -1));
+    if (after.visits.length < state.visits.length) sounds.cancelCall();
   };
   const changeMode = (m: InputMode) => {
     setMode(m);

@@ -1,26 +1,14 @@
-import { type AudioPlayer, setAudioModeAsync, useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import { useEffect, useRef } from "react";
 import type { Call } from "@/game/call";
 import { useSoundEnabled } from "@/hooks/useSoundSettings";
-import { GAME_SHOT_CLIP, MATCH_SHOT_CLIP, NO_SCORE_CLIP, SCORE_CLIPS } from "@/lib/callerClips";
+import { CALL_CLIPS } from "@/lib/callerClips";
 import knock1 from "../../assets/sounds/knock-1.mp3";
 import knock2 from "../../assets/sounds/knock-2.mp3";
 
 const KNOCK_VOLUME = 0.5;
 // lets the knock land before the caller starts talking
 const CALL_DELAY_MS = 250;
-
-function clipFor(call: Call): number | undefined {
-  if (call === "noScore") return NO_SCORE_CLIP;
-  if (call === "gameShot") return GAME_SHOT_CLIP;
-  if (call === "matchShot") return MATCH_SHOT_CLIP;
-  return SCORE_CLIPS[call];
-}
-
-function playFromStart(player: AudioPlayer) {
-  void player.seekTo(0);
-  player.play();
-}
 
 export function useMatchSounds() {
   const knockA = useAudioPlayer(knock1);
@@ -40,9 +28,10 @@ export function useMatchSounds() {
     if (knockOn) {
       const knock = knocks.current++ % 2 === 0 ? knockA : knockB;
       knock.volume = KNOCK_VOLUME;
-      playFromStart(knock);
+      void knock.seekTo(0);
+      knock.play();
     }
-    const clip = call !== null && callerOn ? clipFor(call) : undefined;
+    const clip = call !== null && callerOn ? CALL_CLIPS[call] : undefined;
     if (clip === undefined) return;
     clearTimeout(pendingCall.current);
     pendingCall.current = setTimeout(() => {
