@@ -15,6 +15,16 @@ runs:
       working-directory: apps/dart
       run: pnpm expo prebuild --platform android --no-install
 
+    # The wrapper's own download of the Gradle distribution never retries, and services.gradle.org has 504'd for minutes.
+    - shell: bash
+      working-directory: apps/dart/android
+      run: |
+        for wait in 15 30 60 120; do
+          ./gradlew --version --no-daemon > /dev/null && exit 0
+          sleep "$wait"
+        done
+        ./gradlew --version --no-daemon
+
     # The Expo template signs release builds with the debug keystore, so the APK installs as-is.
     - id: build
       shell: bash
