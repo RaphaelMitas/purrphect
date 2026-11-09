@@ -111,7 +111,7 @@ function computeRoutes(remaining: number, dartsLeft: number, out: RingRule): Sco
   return found.sort((x, y) => x.cost - y.cost);
 }
 
-export function bestRoutes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
+function bestRoutes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
   const charted = out === "double" ? (CHECKOUT_CHART[remaining] ?? []).filter((d) => d.length <= dartsLeft) : [];
   if (charted.length > 0) return charted.map((darts) => ({ darts }));
   const best = routes(remaining, dartsLeft, out)[0];
