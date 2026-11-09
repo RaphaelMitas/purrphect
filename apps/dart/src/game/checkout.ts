@@ -1,8 +1,12 @@
+import { CHECKOUT_CHART } from "./chart";
 import { isIn, meetsRule, type RingRule, type Rules } from "./rules";
 import { info, SCORING_SEGMENTS, type Segment, type SegmentInfo, segmentFor } from "./segments";
 
 export interface Route {
   darts: Segment[];
+}
+
+interface ScoredRoute extends Route {
   cost: number;
 }
 
@@ -56,9 +60,9 @@ function finishers(out: RingRule): SegmentInfo[] {
   return list;
 }
 
-const routeCache = new Map<string, Route[]>();
+const routeCache = new Map<string, ScoredRoute[]>();
 
-export function routes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
+function routes(remaining: number, dartsLeft: number, out: RingRule): ScoredRoute[] {
   const key = `${remaining}:${dartsLeft}:${out}`;
   const cached = routeCache.get(key);
   if (cached) return cached;
@@ -67,12 +71,12 @@ export function routes(remaining: number, dartsLeft: number, out: RingRule): Rou
   return result;
 }
 
-function computeRoutes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
+function computeRoutes(remaining: number, dartsLeft: number, out: RingRule): ScoredRoute[] {
   if (remaining < 1 || remaining > 180 || dartsLeft < 1) return [];
   const fin = finishers(out);
   const byValue = new Map<number, SegmentInfo[]>();
   for (const f of fin) byValue.set(f.value, [...(byValue.get(f.value) ?? []), f]);
-  const found: Route[] = [];
+  const found: ScoredRoute[] = [];
 
   for (const f of byValue.get(remaining) ?? []) found.push({ darts: [f.segment], cost: finishCost(f) });
 
@@ -107,21 +111,31 @@ function computeRoutes(remaining: number, dartsLeft: number, out: RingRule): Rou
   return found.sort((x, y) => x.cost - y.cost);
 }
 
-export function bestRoute(remaining: number, dartsLeft: number, out: RingRule): Route | undefined {
-  return routes(remaining, dartsLeft, out)[0];
+function bestRoutes(remaining: number, dartsLeft: number, out: RingRule): Route[] {
+  const charted = out === "double" ? (CHECKOUT_CHART[remaining] ?? []).filter((d) => d.length <= dartsLeft) : [];
+  if (charted.length > 0) return charted.map((darts) => ({ darts }));
+  const best = routes(remaining, dartsLeft, out)[0];
+  return best ? [best] : [];
 }
 
-export function finishRoute(rules: Rules, remaining: number, dartsLeft: number): Route | undefined {
-  const all = routes(remaining, dartsLeft, rules.out);
-  if (isIn(rules, remaining)) return all[0];
-  for (const route of all) {
+export function bestRoute(remaining: number, dartsLeft: number, out: RingRule): Route | undefined {
+  return bestRoutes(remaining, dartsLeft, out)[0];
+}
+
+export function finishRoutes(rules: Rules, remaining: number, dartsLeft: number): Route[] {
+  if (isIn(rules, remaining)) return bestRoutes(remaining, dartsLeft, rules.out);
+  for (const route of routes(remaining, dartsLeft, rules.out)) {
     const setups = route.darts.length === 1 ? route.darts : route.darts.slice(0, -1);
     const entry = setups.findIndex((d) => meetsRule(info(d), rules.in));
     const dart = setups[entry];
     if (!dart) continue;
-    return { ...route, darts: [dart, ...route.darts.filter((_, i) => i !== entry)] };
+    return [{ darts: [dart, ...route.darts.filter((_, i) => i !== entry)] }];
   }
-  return undefined;
+  return [];
+}
+
+export function finishRoute(rules: Rules, remaining: number, dartsLeft: number): Route | undefined {
+  return finishRoutes(rules, remaining, dartsLeft)[0];
 }
 
 export interface SetupShot {
@@ -137,7 +151,7 @@ export function setupShot(remaining: number, dartsLeft: number, out: RingRule): 
   for (const d of SCORING_SEGMENTS) {
     const leaves = remaining - d.value;
     if (leaves < 2) continue;
-    const next = bestRoute(leaves, 3, out);
+    const next = routes(leaves, 3, out)[0];
     if (!next) continue;
     const cost = setupCost(d) + next.cost - d.value / 10;
     if (!best || cost < best.cost) best = { aim: d.segment, leaves, cost };

@@ -1,4 +1,4 @@
-import { finishRoute, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
+import { finishRoutes, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
 import { type GetInRule, isIn } from "./rules";
 import { info, type Segment, tone } from "./segments";
 import type { MatchState } from "./x01";
@@ -25,6 +25,7 @@ export interface Suggestion {
   remaining: number;
   dartsLeft: number;
   route: Route | undefined;
+  alternative: Route | undefined;
   plan: Segment[];
   chance: number;
   fallback: MissFallback | undefined;
@@ -37,7 +38,7 @@ export function suggest(s: MatchState): Suggestion {
   const dartsLeft = 3 - s.visit.length;
   const playing = s.winner === null;
   const isInNow = isIn(s.rules, remaining);
-  const route = playing ? finishRoute(s.rules, remaining, dartsLeft) : undefined;
+  const [route, alternative] = playing ? finishRoutes(s.rules, remaining, dartsLeft) : [];
   const rule = s.rules.in;
   const getIn = playing && !route && !isInNow && rule !== "straight" ? rule : undefined;
   const setup = playing && !route && !getIn ? setupShot(remaining, dartsLeft, s.rules.out) : undefined;
@@ -45,6 +46,7 @@ export function suggest(s: MatchState): Suggestion {
     remaining,
     dartsLeft,
     route,
+    alternative,
     plan: route?.darts ?? (setup ? [setup.aim] : []),
     chance: route ? finishChance(route, dartsLeft) : 0,
     fallback: route && isInNow ? missFallback(route, remaining, dartsLeft, s.rules.out) : undefined,

@@ -106,6 +106,7 @@ export const de = {
     upNext: "Als Nächstes",
     left: (n: number) => `${n} übrig`,
     checkoutGo: (n: number) => `Noch ${n}. Wirf`,
+    or: "oder",
     scoreBig: (n: number) => `Noch ${n}. Scoren auf`,
     noOut: (n: number) => `Kein Finish auf ${n}. Wirf`,
     getIn: {

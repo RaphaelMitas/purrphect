@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { bestRoute, finishRoute, missFallback, setupShot } from "./checkout";
-import { DEFAULT_RULES, type Rules } from "./rules";
+import { CHECKOUT_CHART } from "./chart";
+import { bestRoute, finishRoute, finishRoutes, missFallback, setupShot } from "./checkout";
+import { DEFAULT_RULES, meetsRule, type Rules } from "./rules";
+import { info } from "./segments";
 
 const route = (remaining: number, darts = 3, out: "double" | "master" | "straight" = "double") =>
   bestRoute(remaining, darts, out)?.darts;
+
+const BOGEYS = [169, 168, 166, 165, 163, 162, 159];
 
 describe("checkout routes", () => {
   it("finds the standard double-out routes", () => {
@@ -31,7 +35,7 @@ describe("checkout routes", () => {
   });
 
   it("has no route for bogey numbers", () => {
-    for (const bogey of [169, 168, 166, 165, 163, 162, 159]) expect(route(bogey)).toBeUndefined();
+    for (const bogey of BOGEYS) expect(route(bogey)).toBeUndefined();
   });
 
   it("respects master and straight out", () => {
@@ -39,6 +43,38 @@ describe("checkout routes", () => {
     expect(route(3, 1, "double")).toBeUndefined();
     expect(route(1, 1, "straight")).toEqual(["S1"]);
     expect(route(180, 3, "straight")).toEqual(["T20", "T20", "T20"]);
+  });
+});
+
+describe("checkout chart", () => {
+  it("lists a valid double-out route for every finishable score", () => {
+    for (let score = 2; score <= 170; score++) {
+      const listed = CHECKOUT_CHART[score] ?? [];
+      expect(listed.length > 0, `${score}`).toBe(!BOGEYS.includes(score));
+      expect(listed.length, `${score}`).toBeLessThanOrEqual(2);
+      for (const darts of listed) {
+        const last = darts.at(-1);
+        expect(darts.length, `${score}`).toBeLessThanOrEqual(3);
+        expect(last && meetsRule(info(last), "double"), `${score} ${darts}`).toBe(true);
+        expect(
+          darts.reduce((sum, d) => sum + info(d).value, 0),
+          `${score} ${darts}`,
+        ).toBe(score);
+      }
+    }
+  });
+
+  it("offers the second route players throw", () => {
+    expect(finishRoutes(DEFAULT_RULES, 90, 3).map((r) => r.darts)).toEqual([
+      ["T20", "D15"],
+      ["T18", "D18"],
+    ]);
+    expect(finishRoutes(DEFAULT_RULES, 40, 3)).toHaveLength(1);
+  });
+
+  it("drops routes that need more darts than are left", () => {
+    expect(finishRoutes(DEFAULT_RULES, 101, 2).map((r) => r.darts)).toEqual([["T17", "Bull"]]);
+    expect(route(50, 1)).toEqual(["Bull"]);
   });
 });
 

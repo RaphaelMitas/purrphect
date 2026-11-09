@@ -36,7 +36,7 @@ export function CatBubble({
   compact?: boolean;
 }) {
   const t = useT();
-  const { route, setup, fallback, remaining, chance, getIn } = suggestion;
+  const { route, alternative, setup, fallback, remaining, chance, getIn } = suggestion;
   return (
     <View className="flex-row items-center gap-3">
       <Cat size={compact ? 36 : 56} />
@@ -62,6 +62,12 @@ export function CatBubble({
             <Text className="font-nunito-black text-sm">{setup.leaves}</Text>
           </View>
         ) : null}
+        {alternative && (
+          <View className="flex-row flex-wrap items-center gap-2">
+            <Text className="text-sm text-muted-foreground">{t.match.or}</Text>
+            <Route darts={alternative.darts} />
+          </View>
+        )}
         {fallback && !compact && (
           <View className="flex-row flex-wrap items-center gap-2 border-t border-dashed border-border pt-2">
             <Text className="text-xs text-muted-foreground">
