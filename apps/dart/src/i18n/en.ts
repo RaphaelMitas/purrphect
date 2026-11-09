@@ -112,6 +112,7 @@ export const en = {
     upNext: "Up next",
     left: (n: number) => `${n} left`,
     checkoutGo: (n: number) => `${n} left. Go`,
+    or: "or",
     scoreBig: (n: number) => `${n} to go. Score big`,
     noOut: (n: number) => `No out from ${n}. Aim`,
     getIn: {

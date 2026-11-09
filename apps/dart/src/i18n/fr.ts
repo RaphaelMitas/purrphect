@@ -108,6 +108,7 @@ export const fr = {
     upNext: "À suivre",
     left: (n: number) => plural(n, "restant", "restants"),
     checkoutGo: (n: number) => `Reste ${n}. Vise`,
+    or: "ou",
     scoreBig: (n: number) => `Reste ${n}. Marque des points sur`,
     noOut: (n: number) => `Pas de finish à ${n}. Vise`,
     getIn: {
