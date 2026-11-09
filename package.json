@@ -11,6 +11,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint:ws": "sherif",
+    "verify": "pnpm check && pnpm lint:ws && pnpm typecheck && pnpm test && turbo run build --filter @purrphect/dart-web",
+    "verify:e2e": "pnpm verify && bash tooling/e2e/run.sh",
     "op": "op run --no-masking --environment wqa7rtun5ra2rlna54gukuwguu --",
     "op-prod": "op run --no-masking --environment 5ewszd5julkpo5yqszdobp27i4 --",
     "release": "node scripts/release.mjs"

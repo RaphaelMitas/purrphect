@@ -9,22 +9,8 @@ outputs:
 runs:
   using: composite
   steps:
-    - shell: bash
-      working-directory: apps/dart
-      run: pnpm expo prebuild --platform ios --no-install
-
-    - shell: bash
-      working-directory: apps/dart/ios
-      run: pod install
-      env:
-        LANG: en_US.UTF-8
-
     - id: build
       shell: bash
-      working-directory: apps/dart/ios
       run: |
-        set -o pipefail
-        xcodebuild -workspace DartPurrphect.xcworkspace -scheme DartPurrphect \
-          -configuration Release -sdk iphonesimulator -derivedDataPath build \
-          CODE_SIGN_IDENTITY=- ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build | xcbeautify
-        echo "app-path=$PWD/build/Build/Products/Release-iphonesimulator/DartPurrphect.app" >> "$GITHUB_OUTPUT"
+        APP=$(bash tooling/e2e/build-ios-sim.sh)
+        echo "app-path=$APP" >> "$GITHUB_OUTPUT"
