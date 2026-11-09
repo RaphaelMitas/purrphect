@@ -1,4 +1,5 @@
 import { bestRoute, type MissFallback, missFallback, type Route, type SetupShot, setupShot } from "./checkout";
+import { isIn, type RingRule } from "./rules";
 import { info, type Segment, tone } from "./segments";
 import type { MatchState } from "./x01";
 
@@ -28,12 +29,15 @@ export interface Suggestion {
   chance: number;
   fallback: MissFallback | undefined;
   setup: SetupShot | undefined;
+  getIn: Exclude<RingRule, "straight"> | undefined;
 }
 
 export function suggest(s: MatchState): Suggestion {
   const remaining = s.remaining[s.current] ?? s.rules.start;
   const dartsLeft = 3 - s.visit.length;
-  const playing = s.winner === null;
+  const rule = s.rules.in;
+  const getIn = s.winner === null && rule !== "straight" && !isIn(s.rules, remaining) ? rule : undefined;
+  const playing = s.winner === null && !getIn;
   const route = playing ? bestRoute(remaining, dartsLeft, s.rules.out) : undefined;
   const setup = playing && !route ? setupShot(remaining, dartsLeft, s.rules.out) : undefined;
   return {
@@ -44,6 +48,7 @@ export function suggest(s: MatchState): Suggestion {
     chance: route ? finishChance(route, dartsLeft) : 0,
     fallback: route ? missFallback(route, remaining, dartsLeft, s.rules.out) : undefined,
     setup,
+    getIn,
   };
 }
 

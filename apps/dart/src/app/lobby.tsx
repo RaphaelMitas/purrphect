@@ -29,13 +29,13 @@ import {
   PLAYER_COLORS,
   type Player,
 } from "@/db/repo";
-import { DEFAULT_RULES, type FinishMode, type OutRule, type Rules } from "@/game/rules";
+import { DEFAULT_RULES, type FinishMode, type RingRule, type Rules } from "@/game/rules";
 import { useFocusData } from "@/hooks/useFocusData";
 import { useT } from "@/i18n/LanguageProvider";
 import { shuffled } from "@/lib/shuffle";
 
 const START_OPTIONS = ["301", "501", "701", "custom"] as const;
-const OUT_OPTIONS = [
+const RING_OPTIONS = [
   { value: "double", label: "Double" },
   { value: "master", label: "Master" },
   { value: "straight", label: "Straight" },
@@ -79,7 +79,8 @@ export default function Lobby() {
   const [selected, setSelected] = useState<string[]>([]);
   const [start, setStart] = useState<StartOption>("501");
   const [startCustom, setStartCustom] = useState("");
-  const [out, setOut] = useState<OutRule>(DEFAULT_RULES.out);
+  const [inRule, setInRule] = useState<RingRule>(DEFAULT_RULES.in);
+  const [out, setOut] = useState<RingRule>(DEFAULT_RULES.out);
   const [legs, setLegs] = useState<LegOption>("3");
   const [legsCustom, setLegsCustom] = useState("");
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
@@ -102,6 +103,7 @@ export default function Lobby() {
     setSelected(setup.playerIds.filter((id) => players.has(id)));
     setStart(s);
     setStartCustom(sc);
+    setInRule(setup.rules.in);
     setOut(setup.rules.out);
     setLegs(l);
     setLegsCustom(lc);
@@ -141,7 +143,7 @@ export default function Lobby() {
     if (!canStart || starting) return;
     setStarting(true);
     try {
-      const rules: Rules = { start: startValue, out, firstTo: legsValue, finish, randomOrder };
+      const rules: Rules = { start: startValue, in: inRule, out, firstTo: legsValue, finish, randomOrder };
       router.replace(`/match/${await createMatch(db, rules, selected)}`);
     } catch (error) {
       console.error(error);
@@ -283,8 +285,11 @@ export default function Lobby() {
           }}
         />
       </SettingRow>
+      <SettingRow label={t.lobby.in}>
+        <Segmented className="flex-1" options={RING_OPTIONS} value={inRule} onChange={setInRule} />
+      </SettingRow>
       <SettingRow label={t.lobby.out}>
-        <Segmented className="flex-1" options={OUT_OPTIONS} value={out} onChange={setOut} />
+        <Segmented className="flex-1" options={RING_OPTIONS} value={out} onChange={setOut} />
       </SettingRow>
       <SettingRow label={t.lobby.firstToLegs}>
         <Segmented

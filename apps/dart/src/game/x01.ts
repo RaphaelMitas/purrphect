@@ -1,5 +1,5 @@
 import { isOneDartFinish } from "./checkout";
-import { isBust, type Rules } from "./rules";
+import { isBust, isIn, meetsRule, type Rules } from "./rules";
 import { info, type Segment } from "./segments";
 
 export interface DartRecord {
@@ -122,9 +122,11 @@ function step(s: MatchState, segment: Segment) {
   const player = s.current;
   const before = s.remaining[player] ?? s.rules.start;
   s.visit = [...s.visit, segment];
-  s.darts.push({ player, leg: s.leg, segment, scoreBefore: before, atFinish: isOneDartFinish(before, s.rules.out) });
+  const wasIn = isIn(s.rules, before);
+  const atFinish = wasIn && isOneDartFinish(before, s.rules.out);
+  s.darts.push({ player, leg: s.leg, segment, scoreBefore: before, atFinish });
   s.lastEvent = null;
-  const after = before - dart.value;
+  const after = wasIn || meetsRule(dart, s.rules.in) ? before - dart.value : before;
 
   if (isBust(after, dart, s.rules.out)) {
     s.remaining[player] = s.visitStart;

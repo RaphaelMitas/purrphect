@@ -29,6 +29,7 @@ export const fr = {
   today: "Aujourd'hui",
   yesterday: "Hier",
   rules: {
+    in: { double: "double in", master: "master in", straight: "straight in" },
     out: { double: "double out", master: "master out", straight: "straight out" },
     firstTo: (n: number) => `first to ${n}`,
     places: "places",
@@ -74,6 +75,7 @@ export const fr = {
     rules: "Règles",
     start: "Départ",
     customStart: "Score de départ perso",
+    in: "In",
     out: "Out",
     firstToLegs: "First to (legs)",
     customLegs: "Legs perso",
@@ -108,6 +110,10 @@ export const fr = {
     checkoutGo: (n: number) => `Reste ${n}. Vise`,
     scoreBig: (n: number) => `Reste ${n}. Marque des points sur`,
     noOut: (n: number) => `Pas de finish à ${n}. Vise`,
+    getIn: {
+      double: "Touche un double pour entrer.",
+      master: "Touche un double ou un triple pour entrer.",
+    },
     toLeave: "pour te laisser",
     missInto: (single: string, leaves: number) => `Simple ${single} ? Alors ${leaves} :`,
     aim: "vise",

@@ -4,7 +4,9 @@ import type { Rules } from "@/game/rules";
 import type { Messages } from "@/i18n/en";
 
 export function rulesSummary(t: Messages, rules: Rules): string {
-  const parts = [String(rules.start), t.rules.out[rules.out], t.rules.firstTo(rules.firstTo)];
+  const parts = [String(rules.start)];
+  if (rules.in !== "straight") parts.push(t.rules.in[rules.in]);
+  parts.push(t.rules.out[rules.out], t.rules.firstTo(rules.firstTo));
   if (rules.finish === "places") parts.push(t.rules.places);
   if (rules.randomOrder) parts.push(t.rules.randomOrder);
   return parts.join(" · ");

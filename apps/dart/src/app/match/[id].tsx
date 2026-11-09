@@ -33,6 +33,7 @@ import {
 } from "@/db/repo";
 import { bestRoute } from "@/game/checkout";
 import { suggest } from "@/game/predict";
+import { isIn } from "@/game/rules";
 import type { Segment } from "@/game/segments";
 import { type MatchEvent, matchAverage, replay, standings, upNext } from "@/game/x01";
 import type { Messages } from "@/i18n/en";
@@ -149,9 +150,8 @@ export default function MatchScreen() {
   const queue: QueueEntry[] = upNext(state).flatMap((i) => {
     const player = players[i];
     const remaining = state.remaining[i] ?? 0;
-    return player
-      ? [{ player, remaining, average: matchAverage(state, i), out: bestRoute(remaining, 3, match.rules.out) }]
-      : [];
+    const out = isIn(match.rules, remaining) ? bestRoute(remaining, 3, match.rules.out) : undefined;
+    return player ? [{ player, remaining, average: matchAverage(state, i), out }] : [];
   });
   const onFinish = queue.filter((q) => q.out);
   const finalStandings = standings(state).flatMap((i) => {

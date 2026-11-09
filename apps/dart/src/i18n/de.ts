@@ -27,6 +27,7 @@ export const de = {
   today: "Heute",
   yesterday: "Gestern",
   rules: {
+    in: { double: "Double In", master: "Master In", straight: "Straight In" },
     out: { double: "Double Out", master: "Master Out", straight: "Straight Out" },
     firstTo: (n: number) => `First to ${n}`,
     places: "Plätze",
@@ -72,6 +73,7 @@ export const de = {
     rules: "Regeln",
     start: "Start",
     customStart: "Eigener Startwert",
+    in: "In",
     out: "Out",
     firstToLegs: "First to (Legs)",
     customLegs: "Eigene Legs",
@@ -106,6 +108,10 @@ export const de = {
     checkoutGo: (n: number) => `Noch ${n}. Wirf`,
     scoreBig: (n: number) => `Noch ${n}. Scoren auf`,
     noOut: (n: number) => `Kein Finish auf ${n}. Wirf`,
+    getIn: {
+      double: "Triff ein Double, um reinzukommen.",
+      master: "Triff ein Double oder Triple, um reinzukommen.",
+    },
     toLeave: "dann Rest",
     missInto: (single: string, leaves: number) => `Nur die ${single}? Dann ${leaves}:`,
     aim: "Wirf",
