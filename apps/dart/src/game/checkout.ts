@@ -117,10 +117,9 @@ export function finishRoute(rules: Rules, remaining: number, dartsLeft: number):
   for (const route of all) {
     const setups = route.darts.length === 1 ? route.darts : route.darts.slice(0, -1);
     const entry = setups.findIndex((d) => meetsRule(info(d), rules.in));
-    if (entry < 0) continue;
-    const darts = [...route.darts];
-    const [dart] = darts.splice(entry, 1);
-    return dart ? { ...route, darts: [dart, ...darts] } : undefined;
+    const dart = setups[entry];
+    if (!dart) continue;
+    return { ...route, darts: [dart, ...route.darts.filter((_, i) => i !== entry)] };
   }
   return undefined;
 }

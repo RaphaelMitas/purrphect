@@ -113,7 +113,7 @@ export default function Lobby() {
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
-  // Some in and out pairs can never finish from 3; 4 is the lowest start every pair can finish from.
+  // From 3, some in and out pairs can never finish; from 4 up, every pair can.
   const minStart = inRule === "straight" ? 2 : 4;
   const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
   const legsValid = Number.isInteger(legsValue) && legsValue >= 1 && legsValue <= 99;

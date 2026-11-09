@@ -143,7 +143,7 @@ export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   return rows.map(toSetup);
 }
 
-// Optional parts are appended only when set, so older saves keep their signature.
+// Non-default parts are appended only when present, so older setups keep their signature.
 const signature = (r: Rules, playerIds: string[]) =>
   JSON.stringify([
     r.start,
