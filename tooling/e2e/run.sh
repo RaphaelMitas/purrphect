@@ -10,12 +10,12 @@ export MAESTRO_DRIVER_STARTUP_TIMEOUT=240000
 run_ios() (
   udid=$(bash "$here/ios-simulator.sh" "^iPad Air 13-inch")
   cleanup() {
-    trap '' INT TERM
+    trap '' INT TERM HUP
     xcrun simctl shutdown "$udid" 2> /dev/null || true
     xcrun simctl delete "$udid" || true
   }
   trap cleanup EXIT
-  trap 'exit 130' INT TERM
+  trap 'exit 130' INT TERM HUP
 
   app=$(bash "$here/build-ios-sim.sh")
   xcrun simctl bootstatus "$udid"
@@ -42,7 +42,7 @@ run_android() (
 
   emulator_pid=
   cleanup() {
-    trap '' INT TERM
+    trap '' INT TERM HUP
     if [ -n "$emulator_pid" ]; then
       adb -s "$serial" emu kill > /dev/null 2>&1 || kill "$emulator_pid" 2> /dev/null || true
       for _ in $(seq 30); do
@@ -54,7 +54,7 @@ run_android() (
     avdmanager delete avd --name "$avd" > /dev/null 2>&1 || true
   }
   trap cleanup EXIT
-  trap 'exit 130' INT TERM
+  trap 'exit 130' INT TERM HUP
 
   [ -d "$ANDROID_HOME/system-images/android-35/google_apis/$abi" ] || sdkmanager --install "$image"
   echo no | avdmanager create avd --force --name "$avd" --package "$image" --device pixel_7 > /dev/null
@@ -102,6 +102,7 @@ if ! mkdir "$lock" 2> /dev/null; then
   exit 1
 fi
 trap 'rmdir "$lock" 2> /dev/null || true' EXIT
+trap 'exit 143' TERM HUP
 
 for platform in "${platforms[@]}"; do
   "run_$platform"
