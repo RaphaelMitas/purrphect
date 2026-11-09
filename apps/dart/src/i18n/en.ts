@@ -1,6 +1,6 @@
 import type { Mood } from "@purrphect/ui/theme";
 import type { BadgeKey, LevelKey, XpKey } from "@/game/levels";
-import type { RingRule } from "@/game/rules";
+import type { GetInRule, RingRule } from "@/game/rules";
 
 export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -85,7 +85,7 @@ export const en = {
     customLegs: "Custom legs",
     finish: "Finish",
     throwingOrder: "Throwing order",
-    startInvalid: "Start score between 2 and 9999.",
+    startInvalid: (min: number) => `Start score between ${min} and 9999.`,
     legsInvalid: "First to between 1 and 99 legs.",
     startWith: (n: number) => `Start · ${playerCount(n)}`,
     pickPlayers: "Pick players",
@@ -117,7 +117,7 @@ export const en = {
     getIn: {
       double: "Hit a double to get in.",
       master: "Hit a double or treble to get in.",
-    } satisfies Record<Exclude<RingRule, "straight">, string>,
+    } satisfies Record<GetInRule, string>,
     toLeave: "to leave",
     missInto: (single: string, leaves: number) => `Miss into the ${single}? Then ${leaves}:`,
     aim: "aim",

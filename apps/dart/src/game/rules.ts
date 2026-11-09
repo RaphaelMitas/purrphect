@@ -1,6 +1,7 @@
 import type { SegmentInfo } from "./segments";
 
 export type RingRule = "double" | "master" | "straight";
+export type GetInRule = Exclude<RingRule, "straight">;
 export type FinishMode = "leg" | "places";
 
 export interface Rules {
@@ -28,7 +29,7 @@ export function meetsRule(dart: SegmentInfo, rule: RingRule): boolean {
   return dart.multiplier === 2;
 }
 
-// A bust voids the visit, so a player who got in and then busted is back at the start and out again.
+// A bust in the visit that got the player in resets them to the start, which puts them back out.
 export function isIn(rules: Rules, remaining: number): boolean {
   return rules.in === "straight" || remaining !== rules.start;
 }

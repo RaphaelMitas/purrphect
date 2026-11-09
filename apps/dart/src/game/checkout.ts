@@ -1,4 +1,4 @@
-import { meetsRule, type RingRule } from "./rules";
+import { isIn, meetsRule, type RingRule, type Rules } from "./rules";
 import { info, SCORING_SEGMENTS, type Segment, type SegmentInfo, segmentFor } from "./segments";
 
 export interface Route {
@@ -111,6 +111,12 @@ export function bestRoute(remaining: number, dartsLeft: number, out: RingRule): 
   return routes(remaining, dartsLeft, out)[0];
 }
 
+export function finishRoute(rules: Rules, remaining: number, dartsLeft: number): Route | undefined {
+  const all = routes(remaining, dartsLeft, rules.out);
+  if (isIn(rules, remaining)) return all[0];
+  return all.find((r) => r.darts[0] && meetsRule(info(r.darts[0]), rules.in));
+}
+
 export interface SetupShot {
   aim: Segment;
   leaves: number;
@@ -157,8 +163,4 @@ export function missFallback(
     route: next,
     setup: next ? undefined : setupShot(leaves, dartsLeft - 1, out),
   };
-}
-
-export function isOneDartFinish(remaining: number, out: RingRule): boolean {
-  return routes(remaining, 1, out).length > 0;
 }

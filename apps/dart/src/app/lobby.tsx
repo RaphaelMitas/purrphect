@@ -113,7 +113,9 @@ export default function Lobby() {
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
-  const startValid = Number.isInteger(startValue) && startValue >= 2 && startValue <= 9999;
+  // From 3, getting in on a double leaves 1 or overshoots, so some in and out pairs can never finish.
+  const minStart = inRule === "straight" ? 2 : 4;
+  const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
   const legsValid = Number.isInteger(legsValue) && legsValue >= 1 && legsValue <= 99;
   const canStart = selected.length > 0 && startValid && legsValid;
 
@@ -328,7 +330,7 @@ export default function Lobby() {
           onChange={(v) => setRandomOrder(v === "random")}
         />
       </SettingRow>
-      {!startValid && <Text className="text-xs text-destructive-ink">{t.lobby.startInvalid}</Text>}
+      {!startValid && <Text className="text-xs text-destructive-ink">{t.lobby.startInvalid(minStart)}</Text>}
       {!legsValid && <Text className="text-xs text-destructive-ink">{t.lobby.legsInvalid}</Text>}
       <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
         <Text className="text-lg">{selected.length ? t.lobby.startWith(selected.length) : t.lobby.pickPlayers}</Text>

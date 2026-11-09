@@ -38,6 +38,12 @@ describe("x01 engine", () => {
     expect(s.remaining).toEqual([40, 40]);
   });
 
+  it("counts a dart that gets in and checks out as a finish attempt", () => {
+    const s = replay(rules({ start: 40, in: "double" }), 2, ["D20"]);
+    expect(s.winner).toBe(0);
+    expect(s.darts[0]?.atFinish).toBe(true);
+  });
+
   it("wins the leg and the match on a double", () => {
     const s = replay(rules(), 2, nineDarter);
     expect(s.winner).toBe(0);

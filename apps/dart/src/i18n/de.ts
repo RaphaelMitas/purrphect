@@ -79,7 +79,7 @@ export const de = {
     customLegs: "Eigene Legs",
     finish: "Ende",
     throwingOrder: "Wurfreihenfolge",
-    startInvalid: "Startwert zwischen 2 und 9999.",
+    startInvalid: (min: number) => `Startwert zwischen ${min} und 9999.`,
     legsInvalid: "First to zwischen 1 und 99 Legs.",
     startWith: (n: number) => `Start · ${playerCount(n)}`,
     pickPlayers: "Spieler wählen",

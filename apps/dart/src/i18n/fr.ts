@@ -81,7 +81,7 @@ export const fr = {
     customLegs: "Legs perso",
     finish: "Fin",
     throwingOrder: "Ordre de jeu",
-    startInvalid: "Score de départ entre 2 et 9999.",
+    startInvalid: (min: number) => `Score de départ entre ${min} et 9999.`,
     legsInvalid: "First to entre 1 et 99 legs.",
     startWith: (n: number) => `Jouer · ${playerCount(n)}`,
     pickPlayers: "Choisis des joueurs",

@@ -1,4 +1,4 @@
-import { isOneDartFinish } from "./checkout";
+import { finishRoute } from "./checkout";
 import { isBust, isIn, meetsRule, type Rules } from "./rules";
 import { info, type Segment } from "./segments";
 
@@ -122,11 +122,10 @@ function step(s: MatchState, segment: Segment) {
   const player = s.current;
   const before = s.remaining[player] ?? s.rules.start;
   s.visit = [...s.visit, segment];
-  const wasIn = isIn(s.rules, before);
-  const atFinish = wasIn && isOneDartFinish(before, s.rules.out);
+  const atFinish = finishRoute(s.rules, before, 1) !== undefined;
   s.darts.push({ player, leg: s.leg, segment, scoreBefore: before, atFinish });
   s.lastEvent = null;
-  const after = wasIn || meetsRule(dart, s.rules.in) ? before - dart.value : before;
+  const after = isIn(s.rules, before) || meetsRule(dart, s.rules.in) ? before - dart.value : before;
 
   if (isBust(after, dart, s.rules.out)) {
     s.remaining[player] = s.visitStart;
