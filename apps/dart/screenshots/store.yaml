@@ -17,11 +17,12 @@ name: Store screenshots
           visible: "Open"
           timeout: 20000
       - tapOn: "Open"
+# iOS reads a pressable card as one label, e.g. "Continue match, 501 · …, Discard, Resume".
 - extendedWaitUntil:
-    visible: "Continue match"
+    visible: "Continue match.*"
     timeout: 60000
 
-- tapOn: "Continue match"
+- tapOn: "Continue match.*"
 - extendedWaitUntil:
     visible: "Tiles"
     timeout: 20000
@@ -39,7 +40,7 @@ name: Store screenshots
 
 - runFlow:
     file: home.yaml
-- tapOn: "Thursday crew"
+- tapOn: "Thursday crew.*"
 - extendedWaitUntil:
     visible: "Who's playing\\?"
     timeout: 20000
