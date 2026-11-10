@@ -1,0 +1,13 @@
+Dart Purrphect keeps score for your darts nights, so you can keep your eyes on the board.
+
+Tap where the dart landed on a big dartboard, or use quick tiles. The cat does the maths: remaining scores, busts, averages and legs, for 1 to 12 players.
+
+On a finish, the cat shows the checkout route, your chance to hit it, and what to aim for if the first dart misses. Everyone waiting can see who is on a finish next.
+
+Play 301, 501, 701 or any custom start, with double, master or straight out, first to any number of legs. Keep playing for places once the winner is out, or end the leg on the first checkout.
+
+After the match, statistics show your 3-dart and first 9 average, checkout rate per range, double hit rates, 180s and a heatmap of where your darts land. Earn XP for legs, tons, big finishes and daily streaks, and level up from Kitten to Purrphect.
+
+Save your regular crews as favourites and start the next game in one tap.
+
+No account, no ads, no tracking. Everything stays on your device. Open source under MIT.

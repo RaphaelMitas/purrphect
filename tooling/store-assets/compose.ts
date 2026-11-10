@@ -1,12 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { CAT_ASPECT, catSvg } from "@purrphect/ui/cat-svg";
-import tokens from "@purrphect/ui/tokens";
 import { chromium } from "playwright";
 import { DEVICE_NAMES, type Device, type Entry, isRecord, parseManifest } from "./manifest.ts";
+import { decor, escapeHtml, FONT, fill, here, px, THEME } from "./rig.ts";
 
 const DEVICES = {
   iphone: { width: 1320, height: 2868, frame: "iphone", bezel: 0.035, radius: 0.13 },
@@ -21,8 +19,6 @@ interface Caption {
   caption: string;
   cat: string;
 }
-
-const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 const [capturesArg] = process.argv.slice(2);
 if (!capturesArg) {
@@ -42,63 +38,9 @@ function readJson(path: string): unknown {
 const captions = readJson(here("captions.json"));
 if (!Array.isArray(captions) || !captions.every(isCaption)) throw new Error("captions.json is malformed");
 const template = readFileSync(here("template.html"), "utf8");
-const font = readFileSync(
-  createRequire(import.meta.url).resolve("@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf"),
-).toString("base64");
-
-const DECOR = [
-  {
-    blobs: [
-      ["pink-soft", 0.85, 0.08, 0.7],
-      ["mint-soft", 0.05, 0.62, 0.55],
-      ["butter-soft", 0.95, 0.95, 0.5],
-    ],
-    dots: ["pink", "mint", "butter"],
-  },
-  {
-    blobs: [
-      ["mint-soft", 0.1, 0.1, 0.65],
-      ["butter-soft", 0.92, 0.5, 0.5],
-      ["pink-soft", 0.15, 0.98, 0.6],
-    ],
-    dots: ["butter", "pink", "mint"],
-  },
-  {
-    blobs: [
-      ["butter-soft", 0.9, 0.12, 0.6],
-      ["pink-soft", 0.02, 0.45, 0.6],
-      ["mint-soft", 0.8, 0.92, 0.55],
-    ],
-    dots: ["mint", "butter", "pink"],
-  },
-] as const;
-const DOTS = [
-  [0.05, 0.25],
-  [0.93, 0.2],
-  [0.04, 0.55],
-  [0.95, 0.68],
-  [0.1, 0.9],
-];
-
-const escapeHtml = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const px = (n: number) => `${Math.round(n * 100) / 100}px`;
 
 function pngSize(png: Buffer) {
   return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
-}
-
-function decor(index: number, u: number, spec: Spec) {
-  const set = DECOR[index % DECOR.length] ?? DECOR[0];
-  const span = Math.max(spec.width, spec.height);
-  const blobs = set.blobs.map(([color, x, y, size]) => {
-    const d = size * span;
-    return `<div class="blob" style="left:${px(x * spec.width - d / 2)};top:${px(y * spec.height - d / 2)};width:${px(d)};height:${px(d)};background:hsl(var(--${color}))"></div>`;
-  });
-  const dots = DOTS.map(
-    ([x = 0, y = 0], i) =>
-      `<div class="dot" style="left:${px(x * spec.width - u)};top:${px(y * spec.height - u)};background:hsl(var(--${set.dots[i % set.dots.length]}))"></div>`,
-  );
-  return [...blobs, ...dots].join("");
 }
 
 function layout(spec: Spec, capture: { width: number; height: number }) {
@@ -175,10 +117,8 @@ function render(spec: Spec, caption: Caption, index: number, png: Buffer) {
     .join(" ");
   const fills: Record<string, string> = {
     VARS: css,
-    THEME: Object.entries(tokens.cssVars(tokens.light))
-      .map(([k, v]) => `${k}: ${v};`)
-      .join(" "),
-    FONT: `data:font/ttf;base64,${font}`,
+    THEME,
+    FONT,
     DECOR: decor(index, u, spec),
     CAPTION: escapeHtml(caption.caption),
     CAT: catSvg(caption.cat),
@@ -186,11 +126,7 @@ function render(spec: Spec, caption: Caption, index: number, png: Buffer) {
     BUTTONS: buttons(spec.frame, u, deviceW, deviceH),
     SCREEN: `data:image/png;base64,${png.toString("base64")}`,
   };
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    const value = fills[key];
-    if (value === undefined) throw new Error(`Unknown template token ${key}`);
-    return value;
-  });
+  return fill(template, fills);
 }
 
 const manifestPath = join(outDir, "manifest.json");

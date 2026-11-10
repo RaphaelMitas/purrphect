@@ -59,6 +59,8 @@ jobs:
     if: needs.check.outputs.release == 'true' && !inputs.dry_run
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    outputs:
+      version-code: ${{ steps.ship.outputs.version-code }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -70,13 +72,18 @@ jobs:
       - name: Android toolchain
         uses: ./tooling/github/android-toolchain
 
+      # Local builds leave no record on EAS, so publish-android takes the versionCode from here.
       - name: Build and submit
+        id: ship
         working-directory: apps/dart
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           pnpm dlx "$EAS_CLI" build --platform android --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.aab"
           pnpm dlx "$EAS_CLI" submit --platform android --profile production --non-interactive --path "$RUNNER_TEMP/dart.aab"
+          CODE=$(pnpm dlx "$EAS_CLI" build:version:get --platform android --profile production --json | jq -r '.versionCode // empty')
+          [ -n "$CODE" ] || { echo "::error::Could not read the Android versionCode from EAS."; exit 1; }
+          echo "version-code=$CODE" >> "$GITHUB_OUTPUT"
 
   # One macOS job ships the build and then captures the screenshots, since macOS runners are scarce.
   ios:
@@ -114,23 +121,6 @@ jobs:
           pnpm dlx "$EAS_CLI" build --platform ios --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.ipa"
           pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
           echo "shipped=true" >> "$GITHUB_OUTPUT"
-
-      # EAS metadata can't upload screenshots, so store-ios-screenshots does those with fastlane deliver.
-      - name: Push listing text
-        if: "!inputs.dry_run"
-        working-directory: apps/dart
-        env:
-          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc.p8
-          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
-          EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          EXPO_APPLE_TEAM_TYPE: ${{ vars.APPLE_TEAM_TYPE }}
-        run: |
-          trap 'rm -f "$EXPO_ASC_API_KEY_PATH"' EXIT
-          printf '%s' "$ASC_API_KEY_P8" > "$EXPO_ASC_API_KEY_PATH"
-          pnpm dlx "$EAS_CLI" metadata:push --profile production --non-interactive
 
       - name: Build simulator app
         id: app
@@ -262,13 +252,22 @@ jobs:
           merge-multiple: true
 
       - name: Compose rigs
-        run: pnpm --filter @purrphect/store-assets compose "$GITHUB_WORKSPACE/captures"
+        run: |
+          pnpm --filter @purrphect/store-assets compose "$GITHUB_WORKSPACE/captures"
+          pnpm --filter @purrphect/store-assets feature "$RUNNER_TEMP/play"
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
         with:
           name: store-screenshots
           path: apps/dart-web/public/screenshots/
+          retention-days: 30
+
+      - name: Upload Play feature graphics
+        uses: actions/upload-artifact@v7
+        with:
+          name: play-graphics
+          path: ${{ runner.temp }}/play/
           retention-days: 30
 
   website:
@@ -318,13 +317,13 @@ jobs:
             --title "Update screenshots for $TAG" \
             --body "Store screenshots composed by the $TAG release run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-  store-ios-screenshots:
+  publish-ios:
     needs: [check, tag, ios, compose]
     if: >-
       !cancelled() && needs.tag.result == 'success' &&
       needs.ios.result == 'success' && needs.compose.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/tooling/fastlane/Gemfile
     steps:
@@ -343,27 +342,60 @@ jobs:
           ruby-version: "4.0.9"
           bundler-cache: true
 
-      # sync compares checksums, so a re-run does not upload duplicates.
-      - name: Upload screenshots
+      - name: Arrange deliver inputs
         env:
-          TAG: ${{ needs.check.outputs.tag }}
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
-          FASTLANE_ENABLE_BETA_DELIVER_SYNC_SCREENSHOTS: "true"
         run: |
-          mkdir -p store/en-US fastlane && touch fastlane/Deliverfile
+          mkdir -p screenshots/en-US fastlane && touch fastlane/Deliverfile
           for device in iphone ipad; do
-            for f in store-screenshots/$device/*.png; do cp "$f" "store/en-US/$device-$(basename "$f")"; done
+            for f in store-screenshots/$device/*.png; do cp "$f" "screenshots/en-US/$device-$(basename "$f")"; done
           done
           jq -n --arg kid "$ASC_API_KEY_ID" --arg iss "$ASC_API_ISSUER_ID" --arg key "$ASC_API_KEY_P8" \
             '{key_id: $kid, issuer_id: $iss, key: $key}' > "$RUNNER_TEMP/asc.json"
-          bundle exec fastlane deliver --app_identifier com.purrphect.dart --app_version "${TAG#v}" \
-            --api_key_path "$RUNNER_TEMP/asc.json" --screenshots_path store --sync_screenshots true \
-            --skip_metadata true --skip_binary_upload true --run_precheck_before_submit false --force true
 
-  store-android:
-    needs: [check, tag, screenshots-android, compose]
+      # Sync compares checksums, so a re-run uploads no duplicates; reject_if_possible pulls a pending
+      # submission so a re-run can still fix the listing. Only "build not ready" errors are worth retrying.
+      - name: Update listing and submit for review
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+          FASTLANE_ENABLE_BETA_DELIVER_SYNC_SCREENSHOTS: "true"
+        run: |
+          ARGS=(
+            --app_identifier com.purrphect.dart
+            --app_version "${TAG#v}"
+            --api_key_path "$RUNNER_TEMP/asc.json"
+            --metadata_path apps/dart/store
+            --screenshots_path screenshots
+            --sync_screenshots true
+            --skip_binary_upload true
+            --submit_for_review true
+            --automatic_release true
+            --reject_if_possible true
+            --run_precheck_before_submit false
+            --precheck_include_in_app_purchases false
+            --submission_information '{"add_id_info_uses_idfa": false}'
+            --force true
+          )
+          set -o pipefail
+          for attempt in $(seq 1 12); do
+            if bundle exec fastlane deliver "${ARGS[@]}" 2>&1 | tee deliver.log; then
+              exit 0
+            fi
+            if ! grep -qiE "couldn'?t find build|could not find build|no build|build.*not.*(found|ready)|timed? ?out.*(build|processing)" deliver.log; then
+              echo "::error::deliver failed with a non-processing error; see the log above."
+              exit 1
+            fi
+            echo "Attempt $attempt: the build is still processing; retrying in 5 minutes."
+            sleep 300
+          done
+          echo "::error::Could not submit ${TAG#v} for review after 12 attempts."
+          exit 1
+
+  # Promoting internal to production sends the release to Google review; it goes live at 100% once approved.
+  publish-android:
+    needs: [check, tag, android, screenshots-android, compose]
     if: >-
       !cancelled() && needs.tag.result == 'success' &&
       needs.screenshots-android.result == 'success' && needs.compose.result == 'success'
@@ -382,22 +414,39 @@ jobs:
           name: store-screenshots
           path: store-screenshots
 
+      - name: Download feature graphics
+        uses: actions/download-artifact@v8
+        with:
+          name: play-graphics
+          path: play-graphics
+
       - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
         with:
           ruby-version: "4.0.9"
           bundler-cache: true
 
-      # One tablet set fills both of Play's tablet slots.
-      - name: Upload screenshots
+      # supply sends files verbatim, so $(cat) drops the trailing newline. One tablet set fills both tablet slots.
+      - name: Update listing and promote to production
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          VERSION_CODE: ${{ needs.android.outputs.version-code }}
         run: |
-          images=store/en-US/images
+          for dir in apps/dart/store/*/; do
+            locale=$(basename "$dir")
+            out="play/$locale"
+            mkdir -p "$out/changelogs" "$out/images"
+            printf '%s' "$(cat "${dir}play/title.txt")" > "$out/title.txt"
+            printf '%s' "$(cat "${dir}play/short_description.txt")" > "$out/short_description.txt"
+            printf '%s' "$(cat "${dir}description.txt")" > "$out/full_description.txt"
+            printf '%s' "$(cat "${dir}release_notes.txt")" > "$out/changelogs/default.txt"
+            cp "play-graphics/$locale/featureGraphic.png" "$out/images/featureGraphic.png"
+          done
+          images=play/en-US/images
           mkdir -p "$images/phoneScreenshots" "$images/sevenInchScreenshots" "$images/tenInchScreenshots"
           cp store-screenshots/android-phone/*.png "$images/phoneScreenshots/"
           cp store-screenshots/android-tablet/*.png "$images/sevenInchScreenshots/"
           cp store-screenshots/android-tablet/*.png "$images/tenInchScreenshots/"
           printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play.json"
           bundle exec fastlane supply --package_name com.purrphect.dart --json_key "$RUNNER_TEMP/play.json" \
-            --metadata_path store --skip_upload_apk true --skip_upload_aab true --skip_upload_metadata true \
-            --skip_upload_changelogs true --skip_upload_images true --skip_upload_screenshots false
+            --metadata_path play --track internal --track_promote_to production --version_code "$VERSION_CODE" \
+            --rescue_changes_not_sent_for_review false --skip_upload_apk true --skip_upload_aab true
