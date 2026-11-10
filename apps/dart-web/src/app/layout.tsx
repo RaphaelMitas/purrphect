@@ -4,7 +4,7 @@ import { Nunito } from "next/font/google";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Cat } from "@/components/cat";
-import { REPO_URL } from "@/links";
+import { REPO_URL, SUPPORT_EMAIL } from "@/links";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
@@ -59,6 +59,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Link href="/imprint" className={NAV_LINK}>
               Imprint
             </Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className={NAV_LINK}>
+              Support
+            </a>
             <a href={REPO_URL} className={NAV_LINK}>
               GitHub
             </a>

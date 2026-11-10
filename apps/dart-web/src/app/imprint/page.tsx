@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { Prose } from "@/components/prose";
+import { SUPPORT_EMAIL } from "@/links";
 
 export const metadata: Metadata = {
   title: "Imprint",
 };
 
 const OWNER = {
-  name: "[Full name]",
-  street: "[Street and number]",
-  city: "[Postcode and city]",
-  email: "[Email address]",
+  name: "Raphael Mitas",
+  street: "Weiterstädter Str. 65",
+  city: "64291 Darmstadt",
+  phone: "+49 15679 769941",
 };
 
 export default function Imprint() {
@@ -27,7 +28,11 @@ export default function Imprint() {
       </p>
 
       <h2>Contact</h2>
-      <p>Email: {OWNER.email}</p>
+      <p>
+        Phone: {OWNER.phone}
+        <br />
+        Email: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+      </p>
 
       <h2>Responsible for content (§ 18 Abs. 2 MStV)</h2>
       <p>{OWNER.name}, address as above.</p>
