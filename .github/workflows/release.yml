@@ -205,10 +205,11 @@ jobs:
       - name: Install Maestro
         uses: ./tooling/github/maestro
 
+      # The runner's avdmanager (cmdline-tools 12.0) knows no Pixel phone newer than the 7 Pro.
       - name: Capture Android phone
         uses: ./tooling/github/android-emulator
         with:
-          profile: pixel_9_pro
+          profile: pixel_7_pro
           script: bash apps/dart/screenshots/capture.sh android-phone "$RUNNER_TEMP/captures" emulator-5554 "${{ steps.apk.outputs.apk-path }}"
 
       - name: Capture Android tablet
