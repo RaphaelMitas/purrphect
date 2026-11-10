@@ -4,6 +4,14 @@ name: Store screenshots
 - launchApp:
     clearState: true
 - openLink: dartpurrphect://demo
+# iOS asks before a custom scheme opens the app.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: "Open"
+          optional: true
 - extendedWaitUntil:
     visible: "Continue match"
     timeout: 60000
