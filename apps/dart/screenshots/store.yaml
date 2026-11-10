@@ -3,6 +3,10 @@ name: Store screenshots
 ---
 - launchApp:
     clearState: true
+# A link that arrives before the root layout has mounted its navigator is dropped.
+- extendedWaitUntil:
+    visible: "New game"
+    timeout: 60000
 - openLink: dartpurrphect://demo
 # iOS asks before a custom scheme opens the app.
 - runFlow:
