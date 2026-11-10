@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Prose } from "@/components/prose";
-import { REPO_URL } from "@/links";
+import { REPO_URL, SUPPORT_EMAIL } from "@/links";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -53,8 +53,8 @@ export default function Privacy() {
 
       <h2>Contact</h2>
       <p>
-        Questions? Find our contact details in the <Link href="/imprint">imprint</Link>, or open an issue on{" "}
-        <a href={REPO_URL}>GitHub</a>.
+        Questions? Write to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>, find our full contact details in
+        the <Link href="/imprint">imprint</Link>, or open an issue on <a href={REPO_URL}>GitHub</a>.
       </p>
     </Prose>
   );
