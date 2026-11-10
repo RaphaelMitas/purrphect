@@ -3,6 +3,12 @@ name: Store screenshots
 ---
 - launchApp:
     clearState: true
+# Tablets are shown in landscape, like the Android tablet, which boots that way.
+- runFlow:
+    when:
+      true: ${DEVICE == 'ipad'}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
 # A link that arrives before the root layout has mounted its navigator is dropped.
 - extendedWaitUntil:
     visible: "New game"

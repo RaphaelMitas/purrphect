@@ -32,7 +32,7 @@ esac
 
 run() {
   rm -rf "$results"
-  maestro --device "$target" test --test-output-dir "$results" --debug-output "$results/debug" "$flow"
+  maestro --device "$target" test -e DEVICE="$device" --test-output-dir "$results" --debug-output "$results/debug" "$flow"
 }
 
 # One retry: a fresh simulator's first XCTest driver start occasionally times out.
