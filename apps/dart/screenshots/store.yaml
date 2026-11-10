@@ -8,14 +8,15 @@ name: Store screenshots
     visible: "New game"
     timeout: 60000
 - openLink: dartpurrphect://demo
-# iOS asks before a custom scheme opens the app.
+# iOS asks before a custom scheme opens the app, sometimes several seconds later.
 - runFlow:
     when:
       platform: iOS
     commands:
-      - tapOn:
-          text: "Open"
-          optional: true
+      - extendedWaitUntil:
+          visible: "Open"
+          timeout: 20000
+      - tapOn: "Open"
 - extendedWaitUntil:
     visible: "Continue match"
     timeout: 60000
