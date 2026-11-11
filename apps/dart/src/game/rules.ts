@@ -11,6 +11,7 @@ export interface Rules {
   firstTo: number;
   finish: FinishMode;
   randomOrder: boolean;
+  maxRounds: number | null;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -20,6 +21,7 @@ export const DEFAULT_RULES: Rules = {
   firstTo: 3,
   finish: "leg",
   randomOrder: false,
+  maxRounds: null,
 };
 
 export function meetsRule(dart: SegmentInfo, rule: RingRule): boolean {

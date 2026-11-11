@@ -41,9 +41,11 @@ const RING_OPTIONS = [
   { value: "straight", label: "Straight" },
 ] as const;
 const LEG_OPTIONS = ["1", "3", "5", "custom"] as const;
+const ROUND_OPTIONS = ["off", "10", "15", "20", "custom"] as const;
 
 type StartOption = (typeof START_OPTIONS)[number];
 type LegOption = (typeof LEG_OPTIONS)[number];
+type RoundOption = (typeof ROUND_OPTIONS)[number];
 
 const MAX_PLAYERS = 12;
 
@@ -53,7 +55,7 @@ function pick<T extends string>(options: readonly T[], value: number, fallback: 
 }
 
 function withCustom<T extends string>(options: readonly T[], custom: string) {
-  return options.map((value) => ({ value, label: value === "custom" ? custom : value }));
+  return options.map((value) => ({ value, label: value === "custom" ? custom : value === "off" ? "∞" : value }));
 }
 
 async function loadLobby(db: SQLiteDatabase) {
@@ -85,6 +87,8 @@ export default function Lobby() {
   const [legsCustom, setLegsCustom] = useState("");
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
   const [randomOrder, setRandomOrder] = useState(DEFAULT_RULES.randomOrder);
+  const [rounds, setRounds] = useState<RoundOption>("off");
+  const [roundsCustom, setRoundsCustom] = useState("");
   const [adding, setAdding] = useState(false);
   const [newColor, setNewColor] = useState("");
   const [preloaded, setPreloaded] = useState(false);
@@ -100,6 +104,8 @@ export default function Lobby() {
     if (!setup) return;
     const [s, sc] = pick(START_OPTIONS, setup.rules.start, "custom");
     const [l, lc] = pick(LEG_OPTIONS, setup.rules.firstTo, "custom");
+    const cap = setup.rules.maxRounds;
+    const [r, rc]: [RoundOption, string] = cap === null ? ["off", ""] : pick(ROUND_OPTIONS, cap, "custom");
     setSelected(setup.playerIds.filter((id) => players.has(id)));
     setStart(s);
     setStartCustom(sc);
@@ -109,15 +115,19 @@ export default function Lobby() {
     setLegsCustom(lc);
     setFinish(setup.rules.finish);
     setRandomOrder(setup.rules.randomOrder);
+    setRounds(r);
+    setRoundsCustom(rc);
   }, [data, preloaded, setupId, players]);
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
+  const maxRounds = rounds === "off" ? null : Number(rounds === "custom" ? roundsCustom : rounds);
   // With a double or master in, some outs can never finish from 3.
   const minStart = inRule === "straight" ? 2 : 4;
   const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
   const legsValid = Number.isInteger(legsValue) && legsValue >= 1 && legsValue <= 99;
-  const canStart = selected.length > 0 && startValid && legsValid;
+  const roundsValid = maxRounds === null || (Number.isInteger(maxRounds) && maxRounds >= 1 && maxRounds <= 99);
+  const canStart = selected.length > 0 && startValid && legsValid && roundsValid;
 
   const toggle = (id: string) =>
     setSelected((cur) =>
@@ -145,7 +155,15 @@ export default function Lobby() {
     if (!canStart || starting) return;
     setStarting(true);
     try {
-      const rules: Rules = { start: startValue, in: inRule, out, firstTo: legsValue, finish, randomOrder };
+      const rules: Rules = {
+        start: startValue,
+        in: inRule,
+        out,
+        firstTo: legsValue,
+        finish,
+        randomOrder,
+        maxRounds,
+      };
       router.replace(`/match/${await createMatch(db, rules, selected)}`);
     } catch (error) {
       console.error(error);
@@ -270,6 +288,17 @@ export default function Lobby() {
     </Panel>
   );
 
+  const startButton = (
+    <Button
+      size="lg"
+      className={cn("h-14 rounded-3xl", !wide && "mt-1")}
+      disabled={!canStart || starting}
+      onPress={begin}
+    >
+      <Text className="text-lg">{selected.length ? t.lobby.startWith(selected.length) : t.lobby.pickPlayers}</Text>
+    </Button>
+  );
+
   const settings = (
     <Panel title={t.lobby.rules}>
       <SettingRow label={t.lobby.start}>
@@ -330,11 +359,25 @@ export default function Lobby() {
           onChange={(v) => setRandomOrder(v === "random")}
         />
       </SettingRow>
+      <SettingRow label={t.lobby.maxRounds}>
+        <Segmented
+          className="flex-1"
+          options={withCustom(ROUND_OPTIONS, t.custom)}
+          value={rounds}
+          onChange={setRounds}
+          custom={{
+            value: "custom",
+            label: t.lobby.customRounds,
+            text: roundsCustom,
+            placeholder: "25",
+            onChangeText: setRoundsCustom,
+          }}
+        />
+      </SettingRow>
       {!startValid && <Text className="text-xs text-destructive-ink">{t.lobby.startInvalid(minStart)}</Text>}
       {!legsValid && <Text className="text-xs text-destructive-ink">{t.lobby.legsInvalid}</Text>}
-      <Button size="lg" className="mt-1 h-14 rounded-3xl" disabled={!canStart || starting} onPress={begin}>
-        <Text className="text-lg">{selected.length ? t.lobby.startWith(selected.length) : t.lobby.pickPlayers}</Text>
-      </Button>
+      {!roundsValid && <Text className="text-xs text-destructive-ink">{t.lobby.roundsInvalid}</Text>}
+      {!wide && startButton}
     </Panel>
   );
 
@@ -344,9 +387,12 @@ export default function Lobby() {
       <ScrollView contentContainerClassName="gap-4 p-4 pb-12" keyboardShouldPersistTaps="handled">
         {wide ? (
           <View className="flex-row gap-4">
-            <View className="flex-[3] gap-4">{who}</View>
-            <View className="flex-[2] gap-4">
+            <View className="flex-[3] gap-4">
+              {who}
               {order}
+            </View>
+            <View className="flex-[2] gap-4">
+              {startButton}
               {settings}
             </View>
           </View>

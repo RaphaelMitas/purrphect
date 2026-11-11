@@ -1,0 +1,35 @@
+appId: com.purrphect.dart
+---
+- runFlow: ../subflows/open-lobby.yaml
+- runFlow:
+    file: ../subflows/add-player.yaml
+    env:
+      NAME: Mira
+- scrollUntilVisible:
+    element: "Max rounds"
+- tapOn: "10"
+- scrollUntilVisible:
+    element: "Start · 1 player"
+- tapOn: "Start · 1 player"
+- extendedWaitUntil:
+    visible: "Leg 1 · Round 1/10"
+    timeout: 10000
+- tapOn: "Tiles"
+- tapOn: "20"
+
+- tapOn: "End game"
+- tapOn:
+    text: "End game"
+    below: "End game\\?"
+- extendedWaitUntil:
+    visible: "Game ended"
+    timeout: 10000
+
+- tapOn: "Home"
+- extendedWaitUntil:
+    visible: "New game"
+    timeout: 10000
+- tapOn: "Statistics"
+- extendedWaitUntil:
+    visible: "3-dart avg"
+    timeout: 10000

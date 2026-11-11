@@ -153,6 +153,7 @@ const signature = (r: Rules, playerIds: string[]) =>
     playerIds,
     ...(r.randomOrder ? ["random"] : []),
     ...(r.in === "straight" ? [] : [`${r.in} in`]),
+    ...(r.maxRounds === null ? [] : [`${r.maxRounds} rounds`]),
   ]);
 
 export async function recordSetupUse(db: SQLiteDatabase, rules: Rules, players: string[]): Promise<string> {

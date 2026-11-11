@@ -13,10 +13,20 @@ export function parseRules(json: string): Rules {
   const out = RING_RULES.find((o) => o === v.out);
   const inRule = v.in === undefined ? "straight" : RING_RULES.find((r) => r === v.in);
   const finish = FINISH_MODES.find((f) => f === v.finish);
+  const maxRounds = v.maxRounds ?? null;
+  if (maxRounds !== null && !isPositiveInt(maxRounds)) throw new Error("Invalid rules");
   if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !inRule || !out || !finish) {
     throw new Error("Invalid rules");
   }
-  return { start: v.start, firstTo: v.firstTo, in: inRule, out, finish, randomOrder: v.randomOrder === true };
+  return {
+    start: v.start,
+    firstTo: v.firstTo,
+    in: inRule,
+    out,
+    finish,
+    randomOrder: v.randomOrder === true,
+    maxRounds,
+  };
 }
 
 export function parseIds(json: string): string[] {

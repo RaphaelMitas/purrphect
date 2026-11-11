@@ -24,7 +24,7 @@ appId: com.purrphect.dart
     element: "Start · 1 player"
 - tapOn: "Start · 1 player"
 - extendedWaitUntil:
-    visible: "40 · double out · first to 1"
+    visible: "Leg 1"
     timeout: 10000
 - tapOn: "Tiles"
 
