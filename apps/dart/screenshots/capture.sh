@@ -41,4 +41,13 @@ run || run
 mkdir -p "$captures/$device"
 # Maestro names its own step and failure screenshots "screenshot-*"; everything else is a takeScreenshot.
 find "$results" -name '*.png' ! -name 'screenshot-*' ! -path '*/debug/*' -exec cp {} "$captures/$device/" \;
+
+# A rotated iPad still hands back its portrait framebuffer, with the landscape UI on its side.
+if [ "$device" = ipad ]; then
+  for f in "$captures/$device"/*.png; do
+    w=$(sips -g pixelWidth "$f" | awk '/pixelWidth/ {print $2}')
+    h=$(sips -g pixelHeight "$f" | awk '/pixelHeight/ {print $2}')
+    if [ "$w" -lt "$h" ]; then sips --rotate 270 "$f" > /dev/null; fi
+  done
+fi
 ls "$captures/$device"
