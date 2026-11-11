@@ -5,5 +5,16 @@ appId: com.purrphect.dart
 - extendedWaitUntil:
     visible: "New game"
     timeout: 60000
+
+# The iOS simulator plays through the Mac's speakers.
+- tapOn: "Settings"
+- tapOn:
+    text: "Off"
+    index: 0
+- tapOn:
+    text: "Off"
+    index: 1
+- tapOn: "Back"
+
 - tapOn: "New game"
 - assertVisible: "Who's playing\\?"
