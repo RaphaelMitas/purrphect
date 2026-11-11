@@ -1,6 +1,7 @@
 name: Release
 
 # Releases when apps/dart/app.json's version has no tag yet and the RELEASES_ENABLED repo variable is "true".
+# A manual run on main for a version that is already tagged re-publishes its listings without rebuilding.
 on:
   push:
     branches: [main]
@@ -10,6 +11,11 @@ on:
         description: "Only capture and compose screenshots; tag, build, upload and open nothing"
         type: boolean
         default: true
+      publish:
+        description: "Stores whose listing to update and submit; re-publishing one leaves the other's review alone"
+        type: choice
+        options: [both, android, ios]
+        default: both
 
 permissions:
   contents: read
@@ -47,7 +53,13 @@ jobs:
           else
             git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null && found=0 || found=$?
             case $found in
-              0) echo "$TAG already exists; not a release." && echo "release=false" >> "$GITHUB_OUTPUT" ;;
+              0)
+                if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+                  echo "$TAG already exists; re-publishing it." && echo "release=true" >> "$GITHUB_OUTPUT"
+                else
+                  echo "$TAG already exists; not a release." && echo "release=false" >> "$GITHUB_OUTPUT"
+                fi
+                ;;
               2) echo "release=true" >> "$GITHUB_OUTPUT" ;;
               *) echo "::error::Could not check for $TAG" && exit 1 ;;
             esac
@@ -60,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
-      version-code: ${{ steps.ship.outputs.version-code }}
+      version-code: ${{ steps.version.outputs.version-code }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -69,18 +81,35 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
+      # A re-run after the release is tagged must not build and submit this version again.
+      - name: Check for an earlier ship
+        id: earlier
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          tags=$(git ls-remote --tags origin "refs/tags/$TAG")
+          [ -z "$tags" ] || echo "shipped=true" >> "$GITHUB_OUTPUT"
+
       - name: Android toolchain
+        if: "!steps.earlier.outputs.shipped"
         uses: ./tooling/github/android-toolchain
 
-      # Local builds leave no record on EAS, so publish-android takes the versionCode from here.
       - name: Build and submit
-        id: ship
+        if: "!steps.earlier.outputs.shipped"
         working-directory: apps/dart
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           pnpm dlx "$EAS_CLI" build --platform android --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.aab"
           pnpm dlx "$EAS_CLI" submit --platform android --profile production --non-interactive --path "$RUNNER_TEMP/dart.aab"
+
+      # Local builds leave no record on EAS, so publish-android takes the versionCode from here.
+      - name: Read the versionCode
+        id: version
+        working-directory: apps/dart
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
           CODE=$(pnpm dlx "$EAS_CLI" build:version:get --platform android --profile production --json | jq -r '.versionCode // empty')
           [ -n "$CODE" ] || { echo "::error::Could not read the Android versionCode from EAS."; exit 1; }
           echo "version-code=$CODE" >> "$GITHUB_OUTPUT"
@@ -321,7 +350,7 @@ jobs:
   publish-ios:
     needs: [check, tag, ios, compose]
     if: >-
-      !cancelled() && needs.tag.result == 'success' &&
+      !cancelled() && needs.tag.result == 'success' && inputs.publish != 'android' &&
       needs.ios.result == 'success' && needs.compose.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -394,11 +423,12 @@ jobs:
           echo "::error::Could not submit ${TAG#v} for review after 12 attempts."
           exit 1
 
-  # Promoting internal to production sends the release to Google review; it goes live at 100% once approved.
+  # Promoting from internal sends the release to Google review. Play keeps production locked until the app has run a
+  # closed test (12 testers, 14 days), so releases go to closed testing (alpha) until then; switch to production after.
   publish-android:
     needs: [check, tag, android, screenshots-android, compose]
     if: >-
-      !cancelled() && needs.tag.result == 'success' &&
+      !cancelled() && needs.tag.result == 'success' && inputs.publish != 'ios' &&
       needs.screenshots-android.result == 'success' && needs.compose.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -427,7 +457,7 @@ jobs:
           bundler-cache: true
 
       # supply sends files verbatim, so $(cat) drops the trailing newline. One tablet set fills both tablet slots.
-      - name: Update listing and promote to production
+      - name: Update listing and promote to closed testing
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           VERSION_CODE: ${{ needs.android.outputs.version-code }}
@@ -449,5 +479,5 @@ jobs:
           cp store-screenshots/android-tablet/*.png "$images/tenInchScreenshots/"
           printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play.json"
           bundle exec fastlane supply --package_name com.purrphect.dart --json_key "$RUNNER_TEMP/play.json" \
-            --metadata_path play --track internal --track_promote_to production --version_code "$VERSION_CODE" \
+            --metadata_path play --track internal --track_promote_to alpha --version_code "$VERSION_CODE" \
             --rescue_changes_not_sent_for_review false --skip_upload_apk true --skip_upload_aab true
