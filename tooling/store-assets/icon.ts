@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { CAT_ASPECT, catSvg } from "@purrphect/ui/cat-svg";
+import { CAT_ASPECT, catDataUri } from "@purrphect/ui/cat-svg";
 import { type TokenSet, tripletToHex } from "@purrphect/ui/theme";
 import tokens from "@purrphect/ui/tokens";
 import { chromium } from "playwright";
@@ -12,7 +12,7 @@ const DOUBLE_IN = 393;
 const DISC = 305;
 const CAT_WIDTH = 380;
 const CORNER = SIZE * 0.22;
-// Android masks an adaptive layer down to its middle 61%
+// the rim must fit Android's 66 dp safe zone of the 108 dp adaptive layer
 const ADAPTIVE_SCALE = 0.64;
 
 interface Colors {
@@ -51,7 +51,7 @@ function art(c: Colors, { blush = true } = {}) {
     (_, i) =>
       `<line y1="${-DOUBLE_OUT}" y2="${DOUBLE_OUT}" stroke="${c.face}" stroke-width="6" transform="rotate(${9 + 18 * i})"/>`,
   );
-  const cat = `data:image/svg+xml;utf8,${encodeURIComponent(catSvg(c.pink, { blush }))}`;
+  const cat = catDataUri(c.pink, { blush });
   const catHeight = CAT_WIDTH * CAT_ASPECT;
   return [
     `<circle r="${RIM}" fill="${c.face}"/>`,

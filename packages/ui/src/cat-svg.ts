@@ -53,3 +53,6 @@ export function catSvg(color: string, { blush = true }: { blush?: boolean } = {}
     "</svg>",
   ].join("");
 }
+
+export const catDataUri = (...args: Parameters<typeof catSvg>) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(catSvg(...args))}`;
