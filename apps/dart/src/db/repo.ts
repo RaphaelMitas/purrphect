@@ -244,7 +244,7 @@ async function markFinished(db: SQLiteDatabase, matchId: string, finished: boole
   await db.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
 }
 
-// Saves run one after another and rewrite the whole list, so a failed save is repaired by the next one.
+// Rewrites the whole list, so the next dart or undo repairs a failed save.
 export function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
   return queueSave(() =>
     db.withTransactionAsync(async () => {
