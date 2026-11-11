@@ -8,7 +8,7 @@ import { useKeepAwake } from "expo-keep-awake";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DartBoard } from "@/components/DartBoard";
 import { CatBubble } from "@/components/match/CatBubble";
@@ -30,6 +30,7 @@ import {
   saveDarts,
   savesSettled,
   setInputMode,
+  setMatchFinished,
 } from "@/db/repo";
 import { visitCall } from "@/game/call";
 import { finishRoute } from "@/game/checkout";
@@ -47,7 +48,7 @@ function eventMessage(t: Messages, e: MatchEvent | null, players: Player[]): str
   if (e.kind === "bust") return t.match.bust(name);
   if (e.kind === "180") return t.match.oneEighty;
   if (e.kind === "checkout") return t.match.finishes(name, e.place);
-  if (e.kind === "leg") return t.match.gameShot(name);
+  if (e.kind === "leg") return e.left > 0 ? t.match.roundLimit(name, e.left) : t.match.gameShot(name);
   return null;
 }
 
@@ -75,6 +76,7 @@ export default function MatchScreen() {
   const [mode, setMode] = useState<InputMode>("board");
   const [toast, setToast] = useState<{ message: string | null; stamp: number }>({ message: null, stamp: 0 });
   const [busy, setBusy] = useState(false);
+  const [ended, setEnded] = useState(false);
   const sounds = useMatchSounds();
 
   useEffect(() => {
@@ -90,6 +92,7 @@ export default function MatchScreen() {
         setKnown(byId(all));
         setMatch(m);
         setSegments(m.segments);
+        setEnded(m.finishedAt !== null);
         setMode(inputMode);
       })
       .catch((error: unknown) => {
@@ -117,14 +120,18 @@ export default function MatchScreen() {
 
   if (!match || !state || !suggestion) return <SafeAreaView className="flex-1 bg-background" />;
 
+  const won = state.winner !== null;
+  const over = won || ended;
+
   const persist = (next: Segment[]) => {
     setSegments(next);
+    setEnded(false);
     const after = replay(match.rules, match.playerIds.length, next);
     void saveDarts(db, match.id, next, after.winner !== null);
     return after;
   };
   const throwDart = (segment: Segment) => {
-    if (state.winner !== null || busy) return;
+    if (over || busy) return;
     const after = persist([...segments, segment]);
     sounds.dart(visitCall(state, after));
     setToast((cur) => ({ message: eventMessage(t, after.lastEvent, players), stamp: cur.stamp + 1 }));
@@ -138,6 +145,15 @@ export default function MatchScreen() {
     setMode(m);
     void setInputMode(db, m);
   };
+  const setFinished = (finished: boolean) => {
+    setEnded(finished);
+    void setMatchFinished(db, match.id, finished);
+  };
+  const endGame = () =>
+    Alert.alert(t.match.endTitle, t.match.endBody, [
+      { text: t.match.keepPlaying, style: "cancel" },
+      { text: t.match.endGame, onPress: () => setFinished(true) },
+    ]);
   const leave = () => {
     if (!busy) router.dismissTo("/");
   };
@@ -201,6 +217,11 @@ export default function MatchScreen() {
       <TilesPad plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
+  const leg = t.match.leg(state.leg + 1);
+  const maxRounds = match.rules.maxRounds;
+  const thrown = state.visitsThisLeg[state.current] ?? 0;
+  const round = maxRounds === null ? null : t.match.round(Math.min(thrown + 1, maxRounds), maxRounds);
+
   const modes = [
     { value: "board", label: t.match.board },
     { value: "tiles", label: t.match.tiles },
@@ -209,11 +230,26 @@ export default function MatchScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right", "bottom"]}>
       <AppHeader
-        title={t.match.leg(state.leg + 1)}
+        title={round ? `${leg} · ${round}` : leg}
         back
         backLabel={t.back}
         onBack={() => leave()}
-        right={<Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
+        right={
+          <>
+            {tablet && <Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
+            {segments.length > 0 && !over && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="rounded-full"
+                accessibilityLabel={t.match.endGame}
+                onPress={endGame}
+              >
+                <Text>{tablet ? t.match.endGame : t.match.end}</Text>
+              </Button>
+            )}
+          </>
+        }
       />
       {wide ? (
         <View className="flex-1 flex-row">
@@ -239,8 +275,15 @@ export default function MatchScreen() {
         </View>
       )}
       <EventToast message={toast.message} stamp={toast.stamp} />
-      {state.winner !== null && (
-        <MatchOver standings={finalStandings} busy={busy} onUndo={undo} onRematch={rematch} onHome={() => leave()} />
+      {over && (
+        <MatchOver
+          standings={finalStandings}
+          ended={!won}
+          busy={busy}
+          onUndo={won ? undo : () => setFinished(false)}
+          onRematch={rematch}
+          onHome={() => leave()}
+        />
       )}
     </SafeAreaView>
   );

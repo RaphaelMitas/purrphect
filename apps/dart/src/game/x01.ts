@@ -29,7 +29,7 @@ export type MatchEvent =
   | { kind: "bust"; player: number }
   | { kind: "180"; player: number }
   | { kind: "checkout"; player: number; place: number }
-  | { kind: "leg"; player: number }
+  | { kind: "leg"; player: number; left: number }
   | { kind: "match"; player: number };
 
 export interface MatchState {
@@ -43,6 +43,7 @@ export interface MatchState {
   remaining: number[];
   legsWon: number[];
   finishedThisLeg: number[];
+  visitsThisLeg: number[];
   legs: LegResult[];
   winner: number | null;
   darts: DartRecord[];
@@ -62,6 +63,7 @@ export function initialState(rules: Rules, playerCount: number): MatchState {
     remaining: Array.from({ length: playerCount }, () => rules.start),
     legsWon: Array.from({ length: playerCount }, () => 0),
     finishedThisLeg: [],
+    visitsThisLeg: Array.from({ length: playerCount }, () => 0),
     legs: [],
     winner: null,
     darts: [],
@@ -94,12 +96,16 @@ function closeVisit(s: MatchState, scored: number, bust: boolean, checkout: bool
     bust,
     checkout,
   });
+  s.visitsThisLeg[s.current] = (s.visitsThisLeg[s.current] ?? 0) + 1;
 }
 
 function endLeg(s: MatchState) {
-  const unplaced = Array.from({ length: s.playerCount }, (_, p) => p).filter((p) => !s.finishedThisLeg.includes(p));
+  const unplaced = Array.from({ length: s.playerCount }, (_, p) => p)
+    .filter((p) => !s.finishedThisLeg.includes(p))
+    .sort((a, b) => (s.remaining[a] ?? 0) - (s.remaining[b] ?? 0) || matchAverage(s, b) - matchAverage(s, a));
   const order = [...s.finishedThisLeg, ...unplaced];
   const winner = order[0] ?? 0;
+  const left = s.remaining[winner] ?? 0;
   s.legs.push({ order, starter: s.legStarter });
   s.legsWon[winner] = (s.legsWon[winner] ?? 0) + 1;
   if ((s.legsWon[winner] ?? 0) >= s.rules.firstTo) {
@@ -108,12 +114,23 @@ function endLeg(s: MatchState) {
     s.visit = [];
     return;
   }
-  s.lastEvent = { kind: "leg", player: winner };
+  s.lastEvent = { kind: "leg", player: winner, left };
   s.leg += 1;
   s.legStarter = (s.legStarter + 1) % s.playerCount;
   s.remaining = s.remaining.map(() => s.rules.start);
   s.finishedThisLeg = [];
+  s.visitsThisLeg = s.visitsThisLeg.map(() => 0);
   startVisit(s, s.legStarter);
+}
+
+function roundsUp(s: MatchState): boolean {
+  const max = s.rules.maxRounds;
+  return max !== null && s.visitsThisLeg.every((thrown, p) => thrown >= max || s.finishedThisLeg.includes(p));
+}
+
+function passTurn(s: MatchState, from: number) {
+  if (roundsUp(s)) endLeg(s);
+  else startVisit(s, nextActive(s, from));
 }
 
 function step(s: MatchState, segment: Segment) {
@@ -131,7 +148,7 @@ function step(s: MatchState, segment: Segment) {
     s.remaining[player] = s.visitStart;
     closeVisit(s, 0, true, false);
     s.lastEvent = { kind: "bust", player };
-    startVisit(s, nextActive(s, player));
+    passTurn(s, player);
     return;
   }
 
@@ -146,7 +163,7 @@ function step(s: MatchState, segment: Segment) {
       endLeg(s);
       return;
     }
-    startVisit(s, nextActive(s, player));
+    passTurn(s, player);
     return;
   }
 
@@ -154,7 +171,7 @@ function step(s: MatchState, segment: Segment) {
     const scored = s.visitStart - after;
     closeVisit(s, scored, false, false);
     if (scored === 180) s.lastEvent = { kind: "180", player };
-    startVisit(s, nextActive(s, player));
+    passTurn(s, player);
   }
 }
 

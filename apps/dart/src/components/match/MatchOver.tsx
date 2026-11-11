@@ -15,12 +15,14 @@ interface Standing {
 
 export function MatchOver({
   standings,
+  ended,
   onUndo,
   onRematch,
   onHome,
   busy,
 }: {
   standings: Standing[];
+  ended: boolean;
   onUndo: () => void;
   onRematch: () => void;
   onHome: () => void;
@@ -33,7 +35,9 @@ export function MatchOver({
       <View className="w-full max-w-md gap-4 rounded-3xl bg-card p-6">
         <View className="items-center gap-2">
           <Cat size={72} color={winner?.player.color} />
-          <Text className="font-nunito-black text-2xl">{t.match.wins(winner?.player.name ?? "")}</Text>
+          <Text className="font-nunito-black text-2xl">
+            {ended ? t.match.gameEnded : t.match.wins(winner?.player.name ?? "")}
+          </Text>
         </View>
         <View>
           {standings.map((s, i) => (
@@ -48,7 +52,7 @@ export function MatchOver({
         <View className="flex-row gap-2">
           <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onUndo}>
             <Text numberOfLines={1} adjustsFontSizeToFit>
-              {t.undo}
+              {ended ? t.match.keepPlaying : t.undo}
             </Text>
           </Button>
           <Button variant="secondary" className="flex-1 rounded-2xl" disabled={busy} onPress={onHome}>

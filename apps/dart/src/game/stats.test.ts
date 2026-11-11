@@ -39,6 +39,16 @@ describe("player stats", () => {
     expect(s.byRange.find((r) => r.label === "121-170")).toEqual({ label: "121-170", chances: 1, hits: 1 });
   });
 
+  it("counts a game ended early without its open leg", () => {
+    const s = playerStats([{ ...match, segments: segments.slice(0, 6) }], "ruffy");
+    expect(s).toMatchObject({ matches: 1, darts: 3, legsPlayed: 0, legsWon: 0 });
+  });
+
+  it("keeps a leg won on the round limit out of the best leg", () => {
+    const capped = { ...match, rules: { ...match.rules, maxRounds: 1 }, segments: segments.slice(0, 6) };
+    expect(playerStats([capped], "ruffy")).toMatchObject({ legsWon: 1, bestLegDarts: null });
+  });
+
   it("ignores players who did not play", () => {
     expect(playerStats([match], "mia").matches).toBe(0);
   });

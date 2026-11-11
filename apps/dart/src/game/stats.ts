@@ -46,7 +46,7 @@ export interface PlayerStats {
   bigFinishes: number;
   bullFinishes: number;
   highestVisit: number;
-  /** Fewest darts in a won leg of 501 or more. */
+  /** Fewest darts in a leg of 501 or more won by checking out. */
   bestLegDarts: number | null;
   legsPlayed: number;
   legsWon: number;
@@ -103,6 +103,7 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
     const match = { points: 0, darts: 0, first9Points: 0, first9Darts: 0 };
     const visitsPerLeg = new Map<number, number>();
     const dartsPerLeg = new Map<number, number>();
+    const checkedOut = new Set<number>();
 
     for (const v of state.visits) {
       if (v.player !== p) continue;
@@ -122,6 +123,7 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
       else if (v.scored >= 60) st.bands["60+"]++;
       st.highestVisit = Math.max(st.highestVisit, v.scored);
       if (v.checkout) {
+        checkedOut.add(v.leg);
         st.checkouts++;
         st.highestFinish = Math.max(st.highestFinish, v.scored);
         if (v.scored >= 100) st.bigFinishes++;
@@ -166,7 +168,7 @@ export function playerStats(matches: readonly PlayedMatch[], playerId: string): 
       if (leg.order[0] !== p) continue;
       st.legsWon++;
       const darts = dartsPerLeg.get(i) ?? 0;
-      if (m.rules.start < 501 || darts === 0) continue;
+      if (m.rules.start < 501 || !checkedOut.has(i)) continue;
       if (st.bestLegDarts === null || darts < st.bestLegDarts) st.bestLegDarts = darts;
     }
   }

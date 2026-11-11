@@ -6,7 +6,7 @@ appId: com.purrphect.dart
     env:
       NAME: Mira
 
-# Start and legs both offer Custom; once Start's turns into its field, only the legs one is left.
+# Start, legs and max rounds all offer Custom; once Start's turns into its field, the legs one comes first.
 # The number pad has no return key and can cover the legs row; a tap on the panel title dismisses it.
 - scrollUntilVisible:
     element: "Custom"
@@ -17,14 +17,16 @@ appId: com.purrphect.dart
 - tapOn: "Rules"
 - scrollUntilVisible:
     element: "Custom"
-- tapOn: "Custom"
+- tapOn:
+    text: "Custom"
+    index: 0
 - inputText: "1"
 - tapOn: "Rules"
 - scrollUntilVisible:
     element: "Start · 1 player"
 - tapOn: "Start · 1 player"
 - extendedWaitUntil:
-    visible: "40 · double out · first to 1"
+    visible: "Leg 1"
     timeout: 10000
 - tapOn: "Tiles"
 

@@ -9,6 +9,7 @@ export function rulesSummary(t: Messages, rules: Rules): string {
   parts.push(t.rules.out[rules.out], t.rules.firstTo(rules.firstTo));
   if (rules.finish === "places") parts.push(t.rules.places);
   if (rules.randomOrder) parts.push(t.rules.randomOrder);
+  if (rules.maxRounds !== null) parts.push(t.rules.maxRounds(rules.maxRounds));
   return parts.join(" · ");
 }
 
