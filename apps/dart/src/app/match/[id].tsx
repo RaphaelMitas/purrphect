@@ -68,6 +68,7 @@ export default function MatchScreen() {
   const wide = useWide();
   const tablet = useTablet();
   const short = useShort();
+  const compact = !(tablet && wide);
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
@@ -191,10 +192,10 @@ export default function MatchScreen() {
       legsWon={state.legsWon[state.current] ?? 0}
       thrown={state.visit}
       plan={suggestion.plan}
-      compact={!tablet}
+      compact={compact}
     />
   );
-  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} compact={!tablet} />;
+  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} compact={compact} />;
   const boardButtons = (
     <View className="flex-row gap-2">
       {[
