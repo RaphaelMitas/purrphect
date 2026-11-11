@@ -115,7 +115,7 @@ export const en = {
     wins: (name: string) => `${name} wins!`,
     endGame: "End game",
     endTitle: "End game?",
-    endBody: "It's saved to your statistics as played so far. The open leg doesn't count.",
+    endBody: "Every dart so far counts in your statistics. The open leg isn't counted as played.",
     gameEnded: "Game ended",
     keepPlaying: "Keep playing",
     home: "Home",

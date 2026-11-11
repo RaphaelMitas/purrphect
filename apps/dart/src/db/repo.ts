@@ -235,22 +235,32 @@ export function savesSettled(): Promise<void> {
   return pendingSaves;
 }
 
+function queueSave(save: () => Promise<void>): Promise<void> {
+  pendingSaves = pendingSaves.then(save).catch(console.error);
+  return pendingSaves;
+}
+
+async function markFinished(db: SQLiteDatabase, matchId: string, finished: boolean) {
+  await db.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
+}
+
 // Saves run one after another and rewrite the whole list, so a failed save is repaired by the next one.
 export function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
-  pendingSaves = pendingSaves
-    .then(() =>
-      db.withTransactionAsync(async () => {
-        await db.runAsync("DELETE FROM darts WHERE match_id = ?", matchId);
-        await db.runAsync(
-          "INSERT INTO darts (match_id, seq, segment) SELECT ?, key, value FROM json_each(?)",
-          matchId,
-          JSON.stringify(segments),
-        );
-        await db.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
-      }),
-    )
-    .catch(console.error);
-  return pendingSaves;
+  return queueSave(() =>
+    db.withTransactionAsync(async () => {
+      await db.runAsync("DELETE FROM darts WHERE match_id = ?", matchId);
+      await db.runAsync(
+        "INSERT INTO darts (match_id, seq, segment) SELECT ?, key, value FROM json_each(?)",
+        matchId,
+        JSON.stringify(segments),
+      );
+      await markFinished(db, matchId, finished);
+    }),
+  );
+}
+
+export function setMatchFinished(db: SQLiteDatabase, matchId: string, finished: boolean) {
+  return queueSave(() => markFinished(db, matchId, finished));
 }
 
 export async function deleteMatch(db: SQLiteDatabase, matchId: string) {

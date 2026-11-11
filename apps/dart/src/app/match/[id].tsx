@@ -30,6 +30,7 @@ import {
   saveDarts,
   savesSettled,
   setInputMode,
+  setMatchFinished,
 } from "@/db/repo";
 import { visitCall } from "@/game/call";
 import { finishRoute } from "@/game/checkout";
@@ -145,7 +146,7 @@ export default function MatchScreen() {
   };
   const setFinished = (finished: boolean) => {
     setEnded(finished);
-    void saveDarts(db, match.id, segments, finished);
+    void setMatchFinished(db, match.id, finished);
   };
   const endGame = () =>
     Alert.alert(t.match.endTitle, t.match.endBody, [
@@ -215,6 +216,7 @@ export default function MatchScreen() {
       <TilesPad plan={suggestion.plan} onDart={throwDart} onUndo={undo} />
     );
 
+  const leg = t.match.leg(state.leg + 1);
   const maxRounds = match.rules.maxRounds;
   const thrown = state.visitsThisLeg[state.current] ?? 0;
   const round = maxRounds === null ? null : t.match.round(Math.min(thrown + 1, maxRounds), maxRounds);
@@ -227,13 +229,13 @@ export default function MatchScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right", "bottom"]}>
       <AppHeader
-        title={[t.match.leg(state.leg + 1), ...(round ? [round] : [])].join(" · ")}
+        title={round ? `${leg} · ${round}` : leg}
         back
         backLabel={t.back}
         onBack={() => leave()}
         right={
           <>
-            {wide && <Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
+            {tablet && <Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
             {segments.length > 0 && !over && (
               <Button variant="secondary" size="sm" className="rounded-full" onPress={endGame}>
                 <Text>{t.match.endGame}</Text>

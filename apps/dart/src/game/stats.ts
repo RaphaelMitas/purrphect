@@ -46,7 +46,7 @@ export interface PlayerStats {
   bigFinishes: number;
   bullFinishes: number;
   highestVisit: number;
-  /** Fewest darts in a won leg of 501 or more. */
+  /** Fewest darts in a leg of 501 or more won by checking out. */
   bestLegDarts: number | null;
   legsPlayed: number;
   legsWon: number;

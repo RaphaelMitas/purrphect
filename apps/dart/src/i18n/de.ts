@@ -109,7 +109,7 @@ export const de = {
     wins: (name: string) => `${name} gewinnt!`,
     endGame: "Spiel beenden",
     endTitle: "Spiel beenden?",
-    endBody: "Es zählt mit dem bisherigen Stand für die Statistik. Das offene Leg zählt nicht.",
+    endBody: "Alle bisherigen Würfe zählen für die Statistik. Das offene Leg zählt nicht als gespielt.",
     gameEnded: "Spiel beendet",
     keepPlaying: "Weiterspielen",
     home: "Menü",

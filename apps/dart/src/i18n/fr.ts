@@ -111,7 +111,7 @@ export const fr = {
     wins: (name: string) => `${name} gagne !`,
     endGame: "Terminer la partie",
     endTitle: "Terminer la partie ?",
-    endBody: "Elle compte dans les statistiques telle que jouée. Le leg en cours ne compte pas.",
+    endBody: "Toutes les fléchettes lancées comptent dans les statistiques. Le leg en cours ne compte pas comme joué.",
     gameEnded: "Partie terminée",
     keepPlaying: "Continuer",
     home: "Accueil",

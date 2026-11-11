@@ -14,8 +14,8 @@ export function parseRules(json: string): Rules {
   const inRule = v.in === undefined ? "straight" : RING_RULES.find((r) => r === v.in);
   const finish = FINISH_MODES.find((f) => f === v.finish);
   const maxRounds = v.maxRounds ?? null;
-  if (maxRounds !== null && !isPositiveInt(maxRounds)) throw new Error("Invalid rules");
-  if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !inRule || !out || !finish) {
+  const roundsOk = maxRounds === null || isPositiveInt(maxRounds);
+  if (!isPositiveInt(v.start) || !isPositiveInt(v.firstTo) || !inRule || !out || !finish || !roundsOk) {
     throw new Error("Invalid rules");
   }
   return {

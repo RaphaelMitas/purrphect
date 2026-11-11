@@ -41,7 +41,8 @@ const RING_OPTIONS = [
   { value: "straight", label: "Straight" },
 ] as const;
 const LEG_OPTIONS = ["1", "3", "5", "custom"] as const;
-const ROUND_OPTIONS = ["off", "10", "15", "20", "custom"] as const;
+const NO_LIMIT = "∞";
+const ROUND_OPTIONS = [NO_LIMIT, "10", "15", "20", "custom"] as const;
 
 type StartOption = (typeof START_OPTIONS)[number];
 type LegOption = (typeof LEG_OPTIONS)[number];
@@ -49,13 +50,15 @@ type RoundOption = (typeof ROUND_OPTIONS)[number];
 
 const MAX_PLAYERS = 12;
 
-function pick<T extends string>(options: readonly T[], value: number, fallback: T): [T, string] {
+function pick<T extends string>(options: readonly T[], value: number | string, fallback: T): [T, string] {
   const found = options.find((o) => o === String(value));
   return found ? [found, ""] : [fallback, String(value)];
 }
 
+const isCount = (n: number) => Number.isInteger(n) && n >= 1 && n <= 99;
+
 function withCustom<T extends string>(options: readonly T[], custom: string) {
-  return options.map((value) => ({ value, label: value === "custom" ? custom : value === "off" ? "∞" : value }));
+  return options.map((value) => ({ value, label: value === "custom" ? custom : value }));
 }
 
 async function loadLobby(db: SQLiteDatabase) {
@@ -87,7 +90,7 @@ export default function Lobby() {
   const [legsCustom, setLegsCustom] = useState("");
   const [finish, setFinish] = useState<FinishMode>(DEFAULT_RULES.finish);
   const [randomOrder, setRandomOrder] = useState(DEFAULT_RULES.randomOrder);
-  const [rounds, setRounds] = useState<RoundOption>("off");
+  const [rounds, setRounds] = useState<RoundOption>(NO_LIMIT);
   const [roundsCustom, setRoundsCustom] = useState("");
   const [adding, setAdding] = useState(false);
   const [newColor, setNewColor] = useState("");
@@ -104,8 +107,7 @@ export default function Lobby() {
     if (!setup) return;
     const [s, sc] = pick(START_OPTIONS, setup.rules.start, "custom");
     const [l, lc] = pick(LEG_OPTIONS, setup.rules.firstTo, "custom");
-    const cap = setup.rules.maxRounds;
-    const [r, rc]: [RoundOption, string] = cap === null ? ["off", ""] : pick(ROUND_OPTIONS, cap, "custom");
+    const [r, rc] = pick(ROUND_OPTIONS, setup.rules.maxRounds ?? NO_LIMIT, "custom");
     setSelected(setup.playerIds.filter((id) => players.has(id)));
     setStart(s);
     setStartCustom(sc);
@@ -121,12 +123,12 @@ export default function Lobby() {
 
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
-  const maxRounds = rounds === "off" ? null : Number(rounds === "custom" ? roundsCustom : rounds);
+  const maxRounds = rounds === NO_LIMIT ? null : Number(rounds === "custom" ? roundsCustom : rounds);
   // With a double or master in, some outs can never finish from 3.
   const minStart = inRule === "straight" ? 2 : 4;
   const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
-  const legsValid = Number.isInteger(legsValue) && legsValue >= 1 && legsValue <= 99;
-  const roundsValid = maxRounds === null || (Number.isInteger(maxRounds) && maxRounds >= 1 && maxRounds <= 99);
+  const legsValid = isCount(legsValue);
+  const roundsValid = maxRounds === null || isCount(maxRounds);
   const canStart = selected.length > 0 && startValid && legsValid && roundsValid;
 
   const toggle = (id: string) =>

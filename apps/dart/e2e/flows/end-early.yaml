@@ -16,6 +16,9 @@ appId: com.purrphect.dart
     timeout: 10000
 - tapOn: "Tiles"
 - tapOn: "20"
+- tapOn: "19"
+- tapOn: "18"
+- assertVisible: "444"
 
 - tapOn: "End game"
 - tapOn:
@@ -33,3 +36,4 @@ appId: com.purrphect.dart
 - extendedWaitUntil:
     visible: "3-dart avg"
     timeout: 10000
+- assertVisible: "57.0"
