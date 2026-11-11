@@ -237,8 +237,14 @@ export default function MatchScreen() {
           <>
             {tablet && <Text className="text-xs text-muted-foreground">{rulesSummary(t, match.rules)}</Text>}
             {segments.length > 0 && !over && (
-              <Button variant="secondary" size="sm" className="rounded-full" onPress={endGame}>
-                <Text>{t.match.endGame}</Text>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="rounded-full"
+                accessibilityLabel={t.match.endGame}
+                onPress={endGame}
+              >
+                <Text>{tablet ? t.match.endGame : t.match.end}</Text>
               </Button>
             )}
           </>

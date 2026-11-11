@@ -114,6 +114,7 @@ export const en = {
     legsWon: (n: number) => plural(n, "leg", "legs"),
     wins: (name: string) => `${name} wins!`,
     endGame: "End game",
+    end: "End",
     endTitle: "End game?",
     endBody: "Every dart so far counts in your statistics. The open leg isn't counted as played.",
     gameEnded: "Game ended",

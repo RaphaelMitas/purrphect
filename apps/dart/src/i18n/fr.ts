@@ -110,6 +110,7 @@ export const fr = {
     legsWon: (n: number) => plural(n, "leg", "legs"),
     wins: (name: string) => `${name} gagne !`,
     endGame: "Terminer la partie",
+    end: "Terminer",
     endTitle: "Terminer la partie ?",
     endBody: "Toutes les fléchettes lancées comptent dans les statistiques. Le leg en cours ne compte pas comme joué.",
     gameEnded: "Partie terminée",

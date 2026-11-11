@@ -108,6 +108,7 @@ export const de = {
     legsWon: (n: number) => plural(n, "Leg", "Legs"),
     wins: (name: string) => `${name} gewinnt!`,
     endGame: "Spiel beenden",
+    end: "Beenden",
     endTitle: "Spiel beenden?",
     endBody: "Alle bisherigen Würfe zählen für die Statistik. Das offene Leg zählt nicht als gespielt.",
     gameEnded: "Spiel beendet",
