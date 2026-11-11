@@ -8,6 +8,7 @@ import { decor, escapeHtml, FONT, fill, here, px, THEME } from "./rig.ts";
 
 const DEVICES = {
   iphone: { width: 1320, height: 2868, frame: "iphone", bezel: 0.035, radius: 0.13 },
+  "iphone-duo": { width: 2853, height: 2007, frame: "tablet", bezel: 0.035, radius: 0.06 },
   ipad: { width: 2752, height: 2064, frame: "tablet", bezel: 0.035, radius: 0.035 },
   "android-phone": { width: 1440, height: 2560, frame: "android", bezel: 0.03, radius: 0.09 },
   "android-tablet": { width: 2560, height: 1440, frame: "tablet", bezel: 0.035, radius: 0.035 },
