@@ -37,6 +37,120 @@
         "width": 1440,
         "height": 2560
       }
+    ],
+    "iphone": [
+      {
+        "file": "iphone/01-board.png",
+        "caption": "Tap where it landed, the cat does the maths",
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "iphone/02-checkout.png",
+        "caption": "Missed? The cat finds a new way out",
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "iphone/03-tiles.png",
+        "caption": "Big tiles for quick scoring",
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "iphone/04-lobby.png",
+        "caption": "Bring the whole crew, up to 12 players",
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "iphone/05-stats.png",
+        "caption": "Watch your average climb",
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "iphone/06-player.png",
+        "caption": "Level up from Kitten to Purrphect",
+        "width": 1320,
+        "height": 2868
+      }
+    ],
+    "ipad": [
+      {
+        "file": "ipad/01-board.png",
+        "caption": "Tap where it landed, the cat does the maths",
+        "width": 2752,
+        "height": 2064
+      },
+      {
+        "file": "ipad/02-checkout.png",
+        "caption": "Missed? The cat finds a new way out",
+        "width": 2752,
+        "height": 2064
+      },
+      {
+        "file": "ipad/03-tiles.png",
+        "caption": "Big tiles for quick scoring",
+        "width": 2752,
+        "height": 2064
+      },
+      {
+        "file": "ipad/04-lobby.png",
+        "caption": "Bring the whole crew, up to 12 players",
+        "width": 2752,
+        "height": 2064
+      },
+      {
+        "file": "ipad/05-stats.png",
+        "caption": "Watch your average climb",
+        "width": 2752,
+        "height": 2064
+      },
+      {
+        "file": "ipad/06-player.png",
+        "caption": "Level up from Kitten to Purrphect",
+        "width": 2752,
+        "height": 2064
+      }
+    ],
+    "android-tablet": [
+      {
+        "file": "android-tablet/01-board.png",
+        "caption": "Tap where it landed, the cat does the maths",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "file": "android-tablet/02-checkout.png",
+        "caption": "Missed? The cat finds a new way out",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "file": "android-tablet/03-tiles.png",
+        "caption": "Big tiles for quick scoring",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "file": "android-tablet/04-lobby.png",
+        "caption": "Bring the whole crew, up to 12 players",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "file": "android-tablet/05-stats.png",
+        "caption": "Watch your average climb",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "file": "android-tablet/06-player.png",
+        "caption": "Level up from Kitten to Purrphect",
+        "width": 2560,
+        "height": 1440
+      }
     ]
   }
 }
