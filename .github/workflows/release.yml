@@ -379,6 +379,7 @@ jobs:
           ruby-version: "4.0.9"
           bundler-cache: true
 
+      # iphone-duo is the committed hand capture; without it here the screenshot sync deletes it from the listing.
       - name: Arrange deliver inputs
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -386,7 +387,7 @@ jobs:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
         run: |
           mkdir -p screenshots/en-US fastlane && touch fastlane/Deliverfile
-          for device in iphone ipad; do
+          for device in iphone iphone-duo ipad; do
             for f in store-screenshots/$device/*.png; do cp "$f" "screenshots/en-US/$device-$(basename "$f")"; done
           done
           jq -n --arg kid "$ASC_API_KEY_ID" --arg iss "$ASC_API_ISSUER_ID" --arg key "$ASC_API_KEY_P8" \
