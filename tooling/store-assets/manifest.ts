@@ -1,4 +1,4 @@
-export const DEVICE_NAMES = ["iphone", "ipad", "android-phone", "android-tablet"] as const;
+export const DEVICE_NAMES = ["iphone", "iphone-duo", "ipad", "android-phone", "android-tablet"] as const;
 export type Device = (typeof DEVICE_NAMES)[number];
 
 export interface Entry {

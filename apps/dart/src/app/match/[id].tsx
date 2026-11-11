@@ -1,7 +1,7 @@
 import { AppHeader } from "@purrphect/ui/app-header";
 import { Button } from "@purrphect/ui/button";
 import { useLayoutSize } from "@purrphect/ui/hooks/use-layout-size";
-import { useTablet, useWide } from "@purrphect/ui/hooks/use-wide";
+import { useShort, useTablet, useWide } from "@purrphect/ui/hooks/use-wide";
 import { Segmented } from "@purrphect/ui/segmented";
 import { Text } from "@purrphect/ui/text";
 import { useKeepAwake } from "expo-keep-awake";
@@ -67,6 +67,8 @@ export default function MatchScreen() {
   const db = useSQLiteContext();
   const wide = useWide();
   const tablet = useTablet();
+  const short = useShort();
+  const compact = !(tablet && wide);
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
@@ -190,10 +192,10 @@ export default function MatchScreen() {
       legsWon={state.legsWon[state.current] ?? 0}
       thrown={state.visit}
       plan={suggestion.plan}
-      compact={!tablet}
+      compact={compact}
     />
   );
-  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} compact={!tablet} />;
+  const bubble = <CatBubble suggestion={suggestion} onFinish={onFinish} compact={compact} />;
   const boardButtons = (
     <View className="flex-row gap-2">
       {[
@@ -266,7 +268,7 @@ export default function MatchScreen() {
         <View className="flex-1 gap-2 px-3 pb-2 pt-2">
           {throwerCard}
           <PlayerStrip entries={queue} />
-          {bubble}
+          {!short && bubble}
           <View className="h-10 flex-row">
             <Segmented className="flex-1" options={modes} value={mode} onChange={changeMode} />
           </View>

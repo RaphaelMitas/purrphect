@@ -7,5 +7,9 @@ export function useTablet(): boolean {
 
 export function useWide(): boolean {
   const { width, height } = useWindowDimensions();
-  return width > height || Math.min(width, height) >= 600;
+  return width > height || width >= 700;
+}
+
+export function useShort(): boolean {
+  return useWindowDimensions().height < 700;
 }

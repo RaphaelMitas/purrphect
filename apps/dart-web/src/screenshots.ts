@@ -6,6 +6,7 @@ import { type Device, parseManifest } from "@purrphect/store-assets/manifest";
 const GALLERY: [Device, string][] = [
   ["ipad", "iPad"],
   ["iphone", "iPhone"],
+  ["iphone-duo", "iPhone Duo"],
   ["android-tablet", "Android tablet"],
   ["android-phone", "Android phone"],
 ];
