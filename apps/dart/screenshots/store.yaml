@@ -8,15 +8,18 @@ name: Store screenshots
     visible: "New game"
     timeout: 60000
 - openLink: dartpurrphect://demo
-# iOS asks before a custom scheme opens the app, sometimes several seconds later.
+# iOS asks before a custom scheme opens the app, sometimes several seconds later, and only
+# the first time, so a retry finds the demo already open.
 - runFlow:
     when:
       platform: iOS
     commands:
       - extendedWaitUntil:
-          visible: "Open"
+          visible: "Open|Continue match.*"
           timeout: 20000
-      - tapOn: "Open"
+      - tapOn:
+          text: "Open"
+          optional: true
 # iOS reads a pressable card as one label, e.g. "Continue match, 501 · …, Discard, Resume".
 - extendedWaitUntil:
     visible: "Continue match.*"
