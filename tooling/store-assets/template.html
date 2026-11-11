@@ -78,6 +78,8 @@
       }
       .screen {
         display: block;
+        /* Maestro tags rotated iPad captures with an EXIF orientation; capture.sh already turned the pixels. */
+        image-orientation: none;
         width: var(--screen-w);
         height: var(--screen-h);
         border-radius: var(--screen-radius);
