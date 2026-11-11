@@ -10,6 +10,7 @@
   "scripts": {
     "compose": "node compose.ts",
     "feature": "node feature.ts",
+    "icon": "node icon.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
