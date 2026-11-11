@@ -151,23 +151,28 @@ jobs:
           pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
           echo "shipped=true" >> "$GITHUB_OUTPUT"
 
+      # Re-publishing Android alone needs no iOS captures; compose keeps the previous ones.
       - name: Build simulator app
+        if: inputs.publish != 'android'
         id: app
         uses: ./tooling/github/build-ios-sim
         env:
           EXPO_PUBLIC_DEMO: "1"
 
       - name: Install Maestro
+        if: inputs.publish != 'android'
         uses: ./tooling/github/maestro
 
       # One simulator at a time: Maestro's XCTest driver listens on a fixed port.
       - name: Create iPhone
+        if: inputs.publish != 'android'
         id: iphone
         uses: ./tooling/github/ios-simulator
         with:
           device: "^iPhone [0-9]+ Pro Max$"
 
       - name: Capture iPhone
+        if: inputs.publish != 'android'
         env:
           UDID: ${{ steps.iphone.outputs.udid }}
           APP: ${{ steps.app.outputs.app-path }}
@@ -176,19 +181,21 @@ jobs:
           xcrun simctl shutdown "$UDID"
 
       - name: Create iPad
+        if: inputs.publish != 'android'
         id: ipad
         uses: ./tooling/github/ios-simulator
         with:
           device: "^iPad Pro 13-inch"
 
       - name: Capture iPad
+        if: inputs.publish != 'android'
         env:
           UDID: ${{ steps.ipad.outputs.udid }}
           APP: ${{ steps.app.outputs.app-path }}
         run: bash apps/dart/screenshots/capture.sh ipad "$RUNNER_TEMP/captures" "$UDID" "$APP"
 
       - name: Upload captures
-        if: always()
+        if: always() && inputs.publish != 'android'
         uses: actions/upload-artifact@v7
         with:
           name: captures-ios
@@ -214,7 +221,7 @@ jobs:
 
   screenshots-android:
     needs: check
-    if: needs.check.outputs.release == 'true'
+    if: needs.check.outputs.release == 'true' && inputs.publish != 'ios'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
