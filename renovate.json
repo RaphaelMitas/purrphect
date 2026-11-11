@@ -1,0 +1,99 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Each push runs the Android E2E emulator job, so regular updates wait for a nightly window; it is four hours wide because automerge only runs inside it too",
+  "extends": ["config:recommended", ":separateMajorReleases", ":combinePatchMinorReleases", "group:expoMonorepo"],
+  "baseBranchPatterns": ["main"],
+  "prConcurrentLimit": 2,
+  "timezone": "Europe/Berlin",
+  "schedule": ["* 1-4 * * *"],
+  "updateNotScheduled": false,
+  "minimumReleaseAge": "2 days",
+  "rangeStrategy": "bump",
+  "labels": ["dependencies"],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "description": "One bundled PR for all security fixes. Renovate exempts vulnerability alerts from prConcurrentLimit, so this ships even when the 2-PR budget is full; minimumReleaseAge is cleared so Renovate does not hold fixes back",
+    "enabled": true,
+    "groupName": "security-fixes",
+    "groupSlug": "security-fixes",
+    "labels": ["dependencies", "security"],
+    "prCreation": "immediate",
+    "minimumReleaseAge": null,
+    "dependencyDashboardApproval": false,
+    "schedule": []
+  },
+  "lockFileMaintenance": {
+    "description": "Its window is one night a month, so updateNotScheduled lets it rebase on a conflict instead of waiting a month",
+    "enabled": true,
+    "updateNotScheduled": true,
+    "schedule": ["before 5am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Automerge non-major updates",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Expo-managed deps live in the app, packages/ui and the pnpm catalog; update them with `pnpm expo install --fix` when upgrading the SDK, not Renovate",
+      "matchPackageNames": [
+        "/^expo/",
+        "/^@expo//",
+        "react-native",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-svg",
+        "react-native-worklets",
+        "jest-expo",
+        "jest",
+        "@jest/globals"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "React pinned to Expo SDK-compatible version – update when upgrading Expo SDK",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "enabled": false
+    },
+    {
+      "description": "NativeWind 4 needs Tailwind 3, so the catalog entry stays on 3 while dart-web moves freely on 4",
+      "matchFileNames": ["pnpm-workspace.yaml"],
+      "matchPackageNames": ["tailwindcss"],
+      "allowedVersions": "<4"
+    },
+    {
+      "description": "Group Next.js",
+      "groupName": "nextjs",
+      "matchPackageNames": ["next", "@next/env"]
+    },
+    {
+      "description": "Group Tailwind CSS",
+      "groupName": "tailwindcss",
+      "matchPackageNames": ["/^@tailwindcss//", "/^tailwindcss$/"]
+    },
+    {
+      "description": "Group React Native Reusables primitives",
+      "groupName": "rn-primitives",
+      "matchPackageNames": ["/^@rn-primitives//"]
+    },
+    {
+      "description": "Group Biome",
+      "groupName": "biome",
+      "matchPackageNames": ["/^@biomejs//"]
+    },
+    {
+      "description": "Group type definitions",
+      "groupName": "types",
+      "automerge": true,
+      "matchPackageNames": ["/^@types//"]
+    },
+    {
+      "description": "Bundle every minor/patch/digest bump into a single PR. Must come after the per-library groups above so they only apply to majors",
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["minor", "patch", "digest"]
+    }
+  ]
+}
