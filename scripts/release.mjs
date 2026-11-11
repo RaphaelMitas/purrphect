@@ -55,7 +55,7 @@ try {
       "--title",
       `Release v${next}`,
       "--body",
-      `Bumps Dart Purrphect to v${next}. On merge, the Release workflow builds and submits through EAS, tags it, and refreshes the store screenshots.`,
+      `Bumps Dart Purrphect to v${next}. On merge, the Release workflow builds and submits through EAS, tags it, and publishes both store listings, with the release notes in apps/dart/store/<locale>/release_notes.txt, for review.`,
     ]),
   );
   run("gh", ["pr", "merge", "--auto", "--squash"]);

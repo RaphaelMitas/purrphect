@@ -1,0 +1,13 @@
+Dart Purrphect compte les points de tes soirées fléchettes, pour que tu gardes les yeux sur la cible.
+
+Touche l'endroit où la fléchette a atterri sur une grande cible, ou utilise les touches rapides. Le chat fait les calculs : points restants, busts, moyennes et legs, de 1 à 12 joueurs.
+
+Sur un finish, le chat montre le checkout, tes chances de le réussir et où viser si la première fléchette rate. Ceux qui attendent voient qui sera le prochain sur un finish.
+
+Joue au 301, 501, 701 ou à n'importe quel score de départ, en double out, master out ou straight out, en first to autant de legs que tu veux. Continue à jouer pour les places une fois le vainqueur sorti, ou termine le leg au premier checkout.
+
+Après le match, les statistiques montrent ta moyenne 3 fléchettes et first 9, ton taux de checkout par tranche, ta réussite aux doubles, tes 180 et une carte de chaleur de l'endroit où tombent tes fléchettes. Gagne de l'XP avec les legs, les volées de 100+, les gros finishes et les séries quotidiennes, et passe de Chaton à Purrphect.
+
+Enregistre tes groupes habituels en favoris et lance la partie suivante en une touche.
+
+Pas de compte, pas de pub, pas de pistage. Tout reste sur ton appareil. Open source sous licence MIT.

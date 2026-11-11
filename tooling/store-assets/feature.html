@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" style="{{THEME}}">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "Nunito";
+        font-weight: 800;
+        src: url("{{FONT}}") format("truetype");
+      }
+      :root {
+        --u: 5px;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1024px;
+        height: 500px;
+        overflow: hidden;
+      }
+      body {
+        position: relative;
+        background: hsl(var(--background));
+        font-family: "Nunito", sans-serif;
+        font-weight: 800;
+        color: hsl(var(--foreground));
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+      }
+      .dot {
+        position: absolute;
+        width: calc(var(--u) * 2.4);
+        height: calc(var(--u) * 2.4);
+        border-radius: 50%;
+      }
+      main {
+        position: absolute;
+        left: 72px;
+        top: 0;
+        bottom: 0;
+        width: 560px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 16px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 84px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0;
+        font-size: 38px;
+        line-height: 1.15;
+        color: hsl(var(--pink-ink));
+        text-wrap: balance;
+      }
+      .cat {
+        position: absolute;
+        right: 72px;
+        top: 50%;
+        width: 260px;
+        transform: translateY(-50%) rotate(6deg);
+        filter: drop-shadow(0 6px 14px hsl(var(--foreground) / 0.18));
+      }
+      .cat svg {
+        display: block;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    {{DECOR}}
+    <main>
+      <h1>{{NAME}}</h1>
+      <p>{{SUBTITLE}}</p>
+    </main>
+    <div class="cat">{{CAT}}</div>
+  </body>
+</html>

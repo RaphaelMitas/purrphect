@@ -1,0 +1,1 @@
+fléchettes,darts,compteur,501,checkout,x01,score,tableau,moyenne,bar

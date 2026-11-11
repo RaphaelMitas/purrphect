@@ -1,0 +1,1 @@
+darts,dartzähler,501,checkout,x01,punktezähler,scoreboard,kneipe,average,dartboard

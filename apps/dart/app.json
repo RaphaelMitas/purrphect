@@ -2,6 +2,7 @@
   "expo": {
     "name": "Dart Purrphect",
     "slug": "dart-purrphect",
+    "owner": "purrphect",
     "scheme": "dartpurrphect",
     "version": "1.0.0",
     "orientation": "default",
@@ -10,6 +11,9 @@
     "ios": {
       "bundleIdentifier": "com.purrphect.dart",
       "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
         "UISupportedInterfaceOrientations~ipad": [
@@ -53,6 +57,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a5a130e2-4b11-4da8-9484-c9de1425ad02"
+      }
     }
   }
 }

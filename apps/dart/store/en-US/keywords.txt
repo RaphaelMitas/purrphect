@@ -1,0 +1,1 @@
+darts,dart scorer,501,checkout,x01,scoreboard,dart counter,pub,average

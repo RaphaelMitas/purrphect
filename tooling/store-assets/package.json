@@ -9,6 +9,7 @@
   },
   "scripts": {
     "compose": "node compose.ts",
+    "feature": "node feature.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -1,0 +1,13 @@
+Dart Purrphect zählt für deine Dartabende mit, damit du die Augen auf dem Board behalten kannst.
+
+Tippe auf dem großen Dartboard an, wo der Dart gelandet ist, oder nimm die Kacheln. Die Katze rechnet: Restpunkte, Busts, Averages und Legs, für 1 bis 12 Spieler.
+
+Bei einem Finish zeigt die Katze den Checkout-Weg, deine Chance, ihn zu treffen, und worauf du zielst, wenn der erste Dart danebengeht. Alle, die warten, sehen, wer als Nächstes auf einem Finish steht.
+
+Spiele 301, 501, 701 oder jeden eigenen Startwert, mit Double, Master oder Straight Out, First to beliebig vielen Legs. Spielt nach dem Sieg weiter um die Plätze oder beendet das Leg beim ersten Checkout.
+
+Nach dem Match zeigt die Statistik deinen 3-Dart- und First-9-Average, deine Checkout-Quote nach Rest, deine Trefferquote auf Doubles, 180er und eine Heatmap, wo deine Darts landen. Sammle XP für Legs, Tons, große Finishes und Tagesserien und steig vom Kätzchen bis zu Purrphect auf.
+
+Speichere deine Stammrunden als Favoriten und starte das nächste Spiel mit einem Tipp.
+
+Kein Konto, keine Werbung, kein Tracking. Alles bleibt auf deinem Gerät. Open Source unter MIT-Lizenz.
