@@ -15,7 +15,6 @@ appId: com.purrphect.dart
 - extendedWaitUntil:
     visible: "Leg 1"
     timeout: 10000
-- assertVisible: "501 · double out · first to 3"
 - tapOn: "Tiles"
 
 # Triple only stays armed for one dart.

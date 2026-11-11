@@ -71,6 +71,27 @@ describe("x01 engine", () => {
     expect(s2.legs[0]?.order).toEqual([0, 2, 1]);
   });
 
+  it("gives a leg at the round limit to the lowest remaining", () => {
+    const r = rules({ firstTo: 2, maxRounds: 1 });
+    expect(replay(r, 2, ["S20", "Miss", "Miss"]).legs).toHaveLength(0);
+    const s = replay(r, 2, ["S20", "Miss", "Miss", "S20", "S20", "S20"]);
+    expect(s.lastEvent).toEqual({ kind: "leg", player: 1, left: 441 });
+    expect(s.remaining).toEqual([501, 501]);
+    expect(s.current).toBe(1);
+  });
+
+  it("breaks a tie at the round limit by match average", () => {
+    const r = rules({ firstTo: 2, maxRounds: 1 });
+    const s = replay(r, 2, ["S20", "Miss", "Miss", "S20", "S20", "S20", ...miss3, ...miss3]);
+    expect(s.winner).toBe(1);
+  });
+
+  it("ranks players still in after the ones who checked out at the round limit", () => {
+    const r = rules({ start: 40, finish: "places", maxRounds: 1 });
+    const s = replay(r, 3, ["D20", ...miss3, "S20", "Miss", "Miss"]);
+    expect(s.legs[0]?.order).toEqual([0, 2, 1]);
+  });
+
   it("ignores darts after the match is won", () => {
     const s = replay(rules({ start: 40 }), 2, ["D20", "T20"]);
     expect(s.darts).toHaveLength(1);
