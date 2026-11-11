@@ -15,16 +15,7 @@ const CORNER = SIZE * 0.22;
 // the rim must fit Android's 66 dp safe zone of the 108 dp adaptive layer
 const ADAPTIVE_SCALE = 0.64;
 
-interface Colors {
-  page: string;
-  face: string;
-  single: string;
-  singleAlt: string;
-  pink: string;
-  mint: string;
-}
-
-const colors = (set: TokenSet): Colors => ({
+const colors = (set: TokenSet) => ({
   page: tripletToHex(set.background),
   face: tripletToHex(set["board-face"]),
   single: tripletToHex(set["board-single"]),
@@ -32,6 +23,7 @@ const colors = (set: TokenSet): Colors => ({
   pink: tripletToHex(set.pink),
   mint: tripletToHex(set.mint),
 });
+type Colors = ReturnType<typeof colors>;
 
 const LIGHT = colors(tokens.light);
 const DARK = colors(tokens.dark);
