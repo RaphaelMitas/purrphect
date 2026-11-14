@@ -6,8 +6,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 const TRACK = 16;
 const THUMB = 28;
 
-// The native slider takes track and thumb as component types, so the gradient reaches them through context
-// instead of a closure that would remount the track on every render.
+// The slider renders track as <Track />, so an inline closure would remount it every render.
 const Gradient = createContext<{ id: string; colors: readonly string[] }>({ id: "", colors: [] });
 
 function GradientTrack() {
@@ -59,8 +58,15 @@ export function Slider({
   return (
     <Gradient.Provider value={{ id, colors }}>
       <NativeSlider
+        accessible
+        accessibilityRole="adjustable"
         accessibilityLabel={label}
-        accessibilityValue={valueText ? { text: valueText } : undefined}
+        accessibilityValue={valueText ? { text: valueText } : { min, max, now: value }}
+        accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+        onAccessibilityAction={(e) => {
+          const next = value + (e.nativeEvent.actionName === "increment" ? 1 : -1);
+          if (next >= min && next <= max) onChange(next);
+        }}
         value={value}
         minimumValue={min}
         maximumValue={max}
