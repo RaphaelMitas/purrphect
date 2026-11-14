@@ -1,9 +1,41 @@
-import { useId, useState } from "react";
-import { type GestureResponderEvent, View } from "react-native";
+import NativeSlider from "@callstack/slider";
+import { createContext, useContext, useId } from "react";
+import { View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 const TRACK = 16;
 const THUMB = 28;
+
+// The native slider takes track and thumb as component types, so the gradient reaches them through context
+// instead of a closure that would remount the track on every render.
+const Gradient = createContext<{ id: string; colors: readonly string[] }>({ id: "", colors: [] });
+
+function GradientTrack() {
+  const { id, colors } = useContext(Gradient);
+  return (
+    <View className="overflow-hidden rounded-full" style={{ height: TRACK }}>
+      <Svg width="100%" height={TRACK}>
+        <Defs>
+          <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+            {colors.map((color, i) => (
+              <Stop key={color + String(i)} offset={i / Math.max(1, colors.length - 1)} stopColor={color} />
+            ))}
+          </LinearGradient>
+        </Defs>
+        <Rect width="100%" height={TRACK} fill={`url(#${id})`} />
+      </Svg>
+    </View>
+  );
+}
+
+function Thumb() {
+  return (
+    <View
+      className="rounded-full border-[3px] border-foreground bg-card shadow-sm shadow-black/20"
+      style={{ width: THUMB, height: THUMB }}
+    />
+  );
+}
 
 export function Slider({
   value,
@@ -22,52 +54,21 @@ export function Slider({
   valueText?: string;
   onChange: (value: number) => void;
 }) {
-  const gradient = `slider${useId().replace(/\W/g, "")}`;
-  const [width, setWidth] = useState(0);
-  const span = max - min;
-  const clampValue = (v: number) => Math.min(max, Math.max(min, Math.round(v)));
-  const track = (e: GestureResponderEvent) => {
-    if (width <= THUMB) return;
-    const ratio = (e.nativeEvent.locationX - THUMB / 2) / (width - THUMB);
-    const next = clampValue(min + ratio * span);
-    if (next !== value) onChange(next);
-  };
-  const left = width > THUMB ? ((clampValue(value) - min) / span) * (width - THUMB) : 0;
+  const id = `slider${useId().replace(/\W/g, "")}`;
 
   return (
-    <View
-      accessible
-      accessibilityRole="adjustable"
-      accessibilityLabel={label}
-      accessibilityValue={valueText ? { text: valueText } : { min, max, now: value }}
-      accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
-      onAccessibilityAction={(e) => onChange(clampValue(value + (e.nativeEvent.actionName === "increment" ? 1 : -1)))}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
-      onResponderTerminationRequest={() => false}
-      onResponderGrant={track}
-      onResponderMove={track}
-      className="justify-center"
-      style={{ height: THUMB }}
-    >
-      <View pointerEvents="none" className="overflow-hidden rounded-full" style={{ height: TRACK }}>
-        <Svg width="100%" height={TRACK}>
-          <Defs>
-            <LinearGradient id={gradient} x1="0" y1="0" x2="1" y2="0">
-              {colors.map((color, i) => (
-                <Stop key={color + String(i)} offset={i / Math.max(1, colors.length - 1)} stopColor={color} />
-              ))}
-            </LinearGradient>
-          </Defs>
-          <Rect width="100%" height={TRACK} fill={`url(#${gradient})`} />
-        </Svg>
-      </View>
-      <View
-        pointerEvents="none"
-        className="absolute rounded-full border-[3px] border-foreground bg-card shadow-sm shadow-black/20"
-        style={{ left, width: THUMB, height: THUMB }}
+    <Gradient.Provider value={{ id, colors }}>
+      <NativeSlider
+        accessibilityLabel={label}
+        accessibilityValue={valueText ? { text: valueText } : undefined}
+        value={value}
+        minimumValue={min}
+        maximumValue={max}
+        step={1}
+        onValueChange={onChange}
+        track={GradientTrack}
+        thumb={Thumb}
       />
-    </View>
+    </Gradient.Provider>
   );
 }
