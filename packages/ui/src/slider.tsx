@@ -57,6 +57,7 @@ export function Slider({
 
   return (
     <Gradient.Provider value={{ id, colors }}>
+      {/* The native thumb only announces an unlabeled percentage, so the host view is the element. */}
       <NativeSlider
         accessible
         accessibilityRole="adjustable"
@@ -64,8 +65,9 @@ export function Slider({
         accessibilityValue={valueText ? { text: valueText } : { min, max, now: value }}
         accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
         onAccessibilityAction={(e) => {
-          const next = value + (e.nativeEvent.actionName === "increment" ? 1 : -1);
-          if (next >= min && next <= max) onChange(next);
+          const step = e.nativeEvent.actionName === "increment" ? 1 : -1;
+          const next = Math.min(max, Math.max(min, value + step));
+          if (next !== value) onChange(next);
         }}
         value={value}
         minimumValue={min}
