@@ -11,17 +11,17 @@
   },
   "dependencies": {
     "@purrphect/ui": "workspace:*",
-    "next": "^16.4.5",
+    "next": "^16.4.6",
     "react": "catalog:",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@purrphect/store-assets": "workspace:*",
-    "@tailwindcss/postcss": "^4.3.4",
+    "@tailwindcss/postcss": "^4.3.5",
     "@types/node": "^26.6.6",
     "@types/react": "catalog:",
     "@types/react-dom": "^19.3.0",
-    "tailwindcss": "^4.3.4",
+    "tailwindcss": "^4.3.5",
     "typescript": "catalog:"
   }
 }
