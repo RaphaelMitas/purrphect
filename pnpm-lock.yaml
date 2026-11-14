@@ -9,6 +9,9 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.6.6
       version: 2.6.6
+    '@callstack/slider':
+      specifier: 6.0.0
+      version: 6.0.0
     '@rn-primitives/dialog':
       specifier: ^1.5.2
       version: 1.5.2
@@ -89,6 +92,9 @@ importers:
 
   apps/dart:
     dependencies:
+      '@callstack/slider':
+        specifier: 'catalog:'
+        version: 6.0.0
       '@expo-google-fonts/nunito':
         specifier: ^0.4.2
         version: 0.4.2
@@ -257,6 +263,9 @@ importers:
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.6.6
+      '@callstack/slider':
+        specifier: 'catalog:'
+        version: 6.0.0
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0
@@ -856,6 +865,9 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@callstack/slider@6.0.0':
+    resolution: {integrity: sha512-DJ4edG29br4LzUlUm0Jds4oV2blAD7oiDyLLmIUrikU9Wn6ckM/ujp4p3TcatFvlBsTTRW09l3POD+w/DFwDfg==}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -6132,6 +6144,8 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.6.6':
     optional: true
+
+  '@callstack/slider@6.0.0': {}
 
   '@csstools/color-helpers@5.1.0': {}
 
