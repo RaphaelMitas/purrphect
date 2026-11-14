@@ -31,6 +31,7 @@
     "tailwindcss-animate": "catalog:"
   },
   "peerDependencies": {
+    "@callstack/slider": "catalog:",
     "expo-router": "catalog:",
     "lucide-react-native": "catalog:",
     "nativewind": "catalog:",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@callstack/slider": "catalog:",
     "@types/react": "catalog:",
     "expo": "catalog:",
     "expo-router": "catalog:",

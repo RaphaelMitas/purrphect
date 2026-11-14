@@ -1,5 +1,6 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import { useEffect, useRef } from "react";
+import { Platform } from "react-native";
 import type { Call } from "@/game/call";
 import { useSoundEnabled } from "@/hooks/useSoundSettings";
 import { CALL_CLIPS } from "@/lib/callerClips";
@@ -20,7 +21,11 @@ export function useMatchSounds() {
   const pendingCall = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: false, interruptionMode: "mixWithOthers" }).catch(console.error);
+    setAudioModeAsync({
+      // false honours the iOS mute switch, but on Android it also mutes on vibrate
+      playsInSilentMode: Platform.OS === "android",
+      interruptionMode: "mixWithOthers",
+    }).catch(console.error);
     return () => clearTimeout(pendingCall.current);
   }, []);
 
