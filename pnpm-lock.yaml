@@ -77,9 +77,6 @@ importers:
 
   .:
     devDependencies:
-      '@babel/parser':
-        specifier: ^7.29.13
-        version: 7.29.13
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.6.7
