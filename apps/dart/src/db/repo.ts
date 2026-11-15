@@ -143,7 +143,6 @@ export async function listSetups(db: SQLiteDatabase): Promise<Setup[]> {
   return rows.map(toSetup);
 }
 
-// Appended only when non-default, so setups saved before them keep their signature.
 const signature = (r: Rules, playerIds: string[]) =>
   JSON.stringify([
     r.start,
@@ -244,7 +243,6 @@ async function markFinished(db: SQLiteDatabase, matchId: string, finished: boole
   await db.runAsync("UPDATE matches SET finished_at = ? WHERE id = ?", finished ? Date.now() : null, matchId);
 }
 
-// Rewrites the whole list, so the next dart or undo repairs a failed save.
 export function saveDarts(db: SQLiteDatabase, matchId: string, segments: readonly Segment[], finished: boolean) {
   return queueSave(() =>
     db.withTransactionAsync(async () => {

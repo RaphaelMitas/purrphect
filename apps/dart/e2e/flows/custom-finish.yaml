@@ -6,8 +6,6 @@ appId: com.purrphect.dart
     env:
       NAME: Mira
 
-# Start, legs and max rounds all offer Custom; once Start's turns into its field, the legs one comes first.
-# The number pad has no return key and can cover the legs row; a tap on the panel title dismisses it.
 - scrollUntilVisible:
     element: "Custom"
 - tapOn:

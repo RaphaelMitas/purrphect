@@ -15,7 +15,6 @@ if [ -z "${type:-}" ]; then
   exit 1
 fi
 
-# A fresh device, not a preinstalled one, which can come paired with a Watch and fail to boot.
 udid=$(xcrun simctl create e2e "$type" "$runtime")
 if ! xcrun simctl boot "$udid"; then
   xcrun simctl delete "$udid"

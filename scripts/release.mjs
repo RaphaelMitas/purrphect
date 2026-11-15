@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Usage: pnpm release [patch|minor|major|x.y.z] [--dry-run]
-// Opens an auto-merging version bump PR; .github/workflows/release.yml takes over on main.
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -44,7 +42,6 @@ if (run("git", ["branch", "--list", branch]) !== "" || run("git", ["ls-remote", 
 }
 run("git", ["switch", "-c", branch]);
 try {
-  // A text edit keeps app.json formatted the way Biome wants it.
   writeFileSync(appJson, source.replace(`"version": "${current}"`, `"version": "${next}"`));
   run("git", ["commit", "-am", `Release v${next}`]);
   run("git", ["push", "-u", "origin", branch]);

@@ -124,7 +124,6 @@ export default function Lobby() {
   const startValue = start === "custom" ? Number(startCustom) : Number(start);
   const legsValue = legs === "custom" ? Number(legsCustom) : Number(legs);
   const maxRounds = rounds === NO_LIMIT ? null : Number(rounds === "custom" ? roundsCustom : rounds);
-  // With a double or master in, some outs can never finish from 3.
   const minStart = inRule === "straight" ? 2 : 4;
   const startValid = Number.isInteger(startValue) && startValue >= minStart && startValue <= 9999;
   const legsValid = isCount(legsValue);

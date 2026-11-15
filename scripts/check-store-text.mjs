@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 const storeDir = fileURLToPath(new URL("../apps/dart/store/", import.meta.url));
 
 const limits = {
-  // Play's cap; the App Store allows 4000.
   "release_notes.txt": 500,
   "description.txt": 4000,
   "name.txt": 30,

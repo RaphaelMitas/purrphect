@@ -8,7 +8,6 @@ app="${4:?app or apk path required}"
 flow="$(cd "$(dirname "$0")" && pwd)/store.yaml"
 results="$captures/maestro-$device"
 
-# Light mode and a clean 9:41 status bar, the way the stores show apps.
 case "$device" in
   iphone | ipad)
     xcrun simctl bootstatus "$target"
@@ -35,14 +34,11 @@ run() {
   maestro --device "$target" test -e DEVICE="$device" --test-output-dir "$results" --debug-output "$results/debug" "$flow"
 }
 
-# One retry: a fresh simulator's first XCTest driver start occasionally times out.
 run || run
 
 mkdir -p "$captures/$device"
-# Maestro names its own step and failure screenshots "screenshot-*"; everything else is a takeScreenshot.
 find "$results" -name '*.png' ! -name 'screenshot-*' ! -path '*/debug/*' -exec cp {} "$captures/$device/" \;
 
-# A rotated iPad still hands back its portrait framebuffer, with the landscape UI on its side.
 if [ "$device" = ipad ]; then
   for f in "$captures/$device"/*.png; do
     w=$(sips -g pixelWidth "$f" | awk '/pixelWidth/ {print $2}')

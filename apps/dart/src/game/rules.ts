@@ -31,7 +31,6 @@ export function meetsRule(dart: SegmentInfo, rule: RingRule): boolean {
   return dart.multiplier === 2;
 }
 
-// A bust in the visit that got the player in resets them to the start, which puts them back out.
 export function isIn(rules: Rules, remaining: number): boolean {
   return rules.in === "straight" || remaining !== rules.start;
 }

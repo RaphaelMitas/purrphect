@@ -50,7 +50,6 @@ export function useLanguage(): LanguageState {
   return state;
 }
 
-// Components rendered outside the app shell, like in component tests, read English.
 export function useT(): Messages {
   return use(LanguageContext)?.t ?? en;
 }

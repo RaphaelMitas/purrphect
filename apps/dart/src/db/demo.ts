@@ -103,7 +103,6 @@ function play(rules: Rules, skills: Skill[], rng: Rng, stop: (s: MatchState) => 
   return darts;
 }
 
-// The screenshot flow taps "25" on the tiles, so the moment must leave a two-dart out and no other "25" on screen.
 function showcase(s: MatchState): boolean {
   if (s.leg < 1 || s.current !== 0 || s.visit.length > 0) return false;
   const remaining = s.remaining[0] ?? 0;
