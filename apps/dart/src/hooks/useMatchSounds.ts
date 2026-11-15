@@ -8,7 +8,6 @@ import knock1 from "../../assets/sounds/knock-1.mp3";
 import knock2 from "../../assets/sounds/knock-2.mp3";
 
 const KNOCK_VOLUME = 0.5;
-// lets the knock land before the caller starts talking
 const CALL_DELAY_MS = 250;
 
 export function useMatchSounds() {
@@ -22,7 +21,6 @@ export function useMatchSounds() {
 
   useEffect(() => {
     setAudioModeAsync({
-      // false honours the iOS mute switch, but on Android it also mutes on vibrate
       playsInSilentMode: Platform.OS === "android",
       interruptionMode: "mixWithOthers",
     }).catch(console.error);

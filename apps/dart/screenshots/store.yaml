@@ -3,12 +3,10 @@ name: Store screenshots
 ---
 - launchApp:
     clearState: true
-# A link that arrives before the root layout has mounted its navigator is dropped.
 - extendedWaitUntil:
     visible: "New game"
     timeout: 60000
 - openLink: dartpurrphect://demo
-# iOS asks before a custom scheme opens the app, sometimes several seconds later.
 - runFlow:
     when:
       platform: iOS
@@ -17,12 +15,9 @@ name: Store screenshots
           visible: "Open"
           timeout: 20000
       - tapOn: "Open"
-# iOS reads a pressable card as one label, e.g. "Continue match, 501 · …, Discard, Resume".
 - extendedWaitUntil:
     visible: "Continue match.*"
     timeout: 60000
-# Tablets are shown in landscape, like the Android tablet, which boots that way. Rotating
-# only now keeps the iOS prompt above in portrait, where Maestro's tap reaches it.
 - runFlow:
     when:
       true: ${DEVICE == 'ipad'}

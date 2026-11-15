@@ -1,6 +1,5 @@
 import type { Segment } from "./segments";
 
-// Double-out routes players actually throw with three darts in hand, most common first.
 export const CHECKOUT_CHART: Partial<Record<number, Segment[][]>> = {
   170: [["T20", "T20", "Bull"]],
   167: [["T20", "T19", "Bull"]],

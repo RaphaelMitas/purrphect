@@ -12,7 +12,6 @@ const DOUBLE_IN = 393;
 const DISC = 305;
 const CAT_WIDTH = 380;
 const CORNER = SIZE * 0.22;
-// the rim must fit Android's 66 dp safe zone of the 108 dp adaptive layer
 const ADAPTIVE_SCALE = 0.64;
 
 const colors = (set: TokenSet) => ({
@@ -61,7 +60,6 @@ const full = (c: Colors, corner = 0) =>
 
 const adaptive = (body: string) => `<g transform="scale(${ADAPTIVE_SCALE})">${body}</g>`;
 
-// Android reads only the alpha of a monochrome layer: ink turns opaque, the cat's white details turn into holes
 const monochrome = (body: string) =>
   `<filter id="ink" color-interpolation-filters="sRGB"><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -.33 -.34 -.33 1 0"/></filter><g filter="url(#ink)">${body}</g>`;
 

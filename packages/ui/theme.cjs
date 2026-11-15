@@ -140,7 +140,6 @@ const isLightOn = (text, page) => luminance(text) > luminance(page);
 
 const snap = (rgb) => hslToRgb(...rgbToHsl(rgb).map(Math.round)).map(Math.round);
 
-// Contrast is measured on the rounded values the tokens actually carry.
 function readable(rgb, surfaces, lighten, min) {
   const [h, s, l] = rgbToHsl(rgb);
   const step = lighten ? 1 : -1;

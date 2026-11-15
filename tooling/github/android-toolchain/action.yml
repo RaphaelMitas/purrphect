@@ -9,13 +9,10 @@ runs:
         distribution: temurin
         java-version: 17
 
-    # Nothing builds Android on main, so PR runs write their own cache; it keeps re-runs and later pushes off the network.
     - uses: gradle/actions/setup-gradle@v6
       with:
         cache-read-only: false
 
-    # The template's 512m Metaspace cap OOMs the Gradle daemon; user-home properties override the project's.
-    # Gradle retries 5xx downloads only for ~7s by default; Maven Central and GitHub releases have 504'd for minutes.
     - shell: bash
       run: |
         mkdir -p ~/.gradle

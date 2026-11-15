@@ -15,7 +15,6 @@ env:
   FORCE_COLOR: 3
 
 jobs:
-  # macOS runners are scarce: pull requests test on Android, iOS runs on request and in every release's ios job.
   ios:
     if: github.event_name == 'workflow_dispatch'
     runs-on: macos-26
@@ -34,7 +33,6 @@ jobs:
       - name: Build app and run Maestro flows
         run: bash tooling/e2e/run.sh ios
 
-      # Maestro's failure bundle sits in hidden dirs, which upload-artifact drops by default.
       - name: Upload Maestro results
         if: failure()
         uses: actions/upload-artifact@v7

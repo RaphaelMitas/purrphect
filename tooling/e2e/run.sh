@@ -75,7 +75,6 @@ run_android() (
   for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
     adb -s "$serial" shell settings put global "$scale" 0
   done
-  # The launcher's ANR dialog covers the app, and hide_error_dialogs doesn't suppress it.
   adb -s "$serial" shell pm disable-user --user 0 com.google.android.apps.nexuslauncher
 
   adb -s "$serial" install "$apk"
@@ -94,7 +93,6 @@ for platform in "${platforms[@]}"; do
   esac
 done
 
-# Maestro's drivers listen on fixed ports and the AVD name is shared, so one run per machine.
 lock="$HOME/.cache/purrphect-e2e.lock"
 mkdir -p "$HOME/.cache"
 if ! mkdir "$lock" 2> /dev/null; then

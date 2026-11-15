@@ -17,7 +17,6 @@ appId: com.purrphect.dart
     timeout: 10000
 - tapOn: "Tiles"
 
-# Triple only stays armed for one dart.
 - tapOn: "Triple"
 - runFlow:
     file: ../subflows/tap-key.yaml

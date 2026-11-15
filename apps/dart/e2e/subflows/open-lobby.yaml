@@ -6,7 +6,6 @@ appId: com.purrphect.dart
     visible: "New game"
     timeout: 60000
 
-# Sounds off: the iOS simulator plays through the Mac's speakers.
 - tapOn: "Settings"
 - tapOn:
     text: "Off"

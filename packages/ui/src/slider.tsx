@@ -6,7 +6,6 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 const TRACK = 16;
 const THUMB = 28;
 
-// The slider renders track as <Track />, so an inline closure would remount it every render.
 const Gradient = createContext<{ id: string; colors: readonly string[] }>({ id: "", colors: [] });
 
 function GradientTrack() {
@@ -57,7 +56,6 @@ export function Slider({
 
   return (
     <Gradient.Provider value={{ id, colors }}>
-      {/* The native thumb only announces an unlabeled percentage, so the host view is the element. */}
       <NativeSlider
         accessible
         accessibilityRole="adjustable"

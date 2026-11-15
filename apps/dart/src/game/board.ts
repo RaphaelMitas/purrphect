@@ -1,6 +1,5 @@
 import { BOARD_ORDER, info, type Segment, segmentFor } from "./segments";
 
-// Rings are widened against a real board so treble and double are big enough for a finger.
 export const RINGS = {
   bull: 14,
   outerBull: 30,

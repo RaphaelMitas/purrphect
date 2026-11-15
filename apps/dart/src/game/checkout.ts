@@ -143,7 +143,6 @@ export interface SetupShot {
   leaves: number;
 }
 
-// Only called when there is no finish in hand.
 export function setupShot(remaining: number, dartsLeft: number, out: RingRule): SetupShot {
   const scoreBig: SetupShot = { aim: "T20", leaves: remaining - 60 };
   if (dartsLeft > 1 && scoreBig.leaves >= 2) return scoreBig;

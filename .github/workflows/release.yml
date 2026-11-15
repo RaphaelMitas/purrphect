@@ -1,7 +1,5 @@
 name: Release
 
-# Releases when apps/dart/app.json's version has no tag yet and the RELEASES_ENABLED repo variable is "true".
-# A manual run on main for a version that is already tagged re-publishes its listings without rebuilding.
 on:
   push:
     branches: [main]
@@ -65,7 +63,6 @@ jobs:
             esac
           fi
 
-  # --local keeps both release builds off the Expo plan's build quota.
   android:
     needs: check
     if: needs.check.outputs.release == 'true' && !inputs.dry_run
@@ -81,7 +78,6 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # A re-run after the release is tagged must not build and submit this version again.
       - name: Check for an earlier ship
         id: earlier
         env:
@@ -103,7 +99,6 @@ jobs:
           pnpm dlx "$EAS_CLI" build --platform android --profile production --local --non-interactive --output "$RUNNER_TEMP/dart.aab"
           pnpm dlx "$EAS_CLI" submit --platform android --profile production --non-interactive --path "$RUNNER_TEMP/dart.aab"
 
-      # Local builds leave no record on EAS, so publish-android takes the versionCode from here.
       - name: Read the versionCode
         id: version
         working-directory: apps/dart
@@ -114,7 +109,6 @@ jobs:
           [ -n "$CODE" ] || { echo "::error::Could not read the Android versionCode from EAS."; exit 1; }
           echo "version-code=$CODE" >> "$GITHUB_OUTPUT"
 
-  # One macOS job ships the build and then captures the screenshots, since macOS runners are scarce.
   ios:
     needs: check
     if: needs.check.outputs.release == 'true'
@@ -130,7 +124,6 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      # A re-run after the release is tagged must not build and submit this version again.
       - name: Check for an earlier ship
         id: earlier
         if: "!inputs.dry_run"
@@ -151,7 +144,6 @@ jobs:
           pnpm dlx "$EAS_CLI" submit --platform ios --profile production --non-interactive --path "$RUNNER_TEMP/dart.ipa"
           echo "shipped=true" >> "$GITHUB_OUTPUT"
 
-      # Re-publishing Android alone needs no iOS captures; compose keeps the previous ones.
       - name: Build simulator app
         if: inputs.publish != 'android'
         id: app
@@ -163,7 +155,6 @@ jobs:
         if: inputs.publish != 'android'
         uses: ./tooling/github/maestro
 
-      # One simulator at a time: Maestro's XCTest driver listens on a fixed port.
       - name: Create iPhone
         if: inputs.publish != 'android'
         id: iphone
@@ -202,7 +193,6 @@ jobs:
           path: ${{ runner.temp }}/captures/
           retention-days: 30
 
-  # Tagged only after both stores have the build, so a failed run can simply be re-run.
   tag:
     needs: [check, android, ios]
     if: "!cancelled() && needs.android.result == 'success' && needs.ios.outputs.shipped == 'true'"
@@ -241,7 +231,6 @@ jobs:
       - name: Install Maestro
         uses: ./tooling/github/maestro
 
-      # The runner's avdmanager (cmdline-tools 12.0) knows no Pixel phone newer than the 7 Pro.
       - name: Capture Android phone
         uses: ./tooling/github/android-emulator
         with:
@@ -262,7 +251,6 @@ jobs:
           path: ${{ runner.temp }}/captures/
           retention-days: 30
 
-  # The manifest keeps a failed platform's previous screenshots.
   compose:
     needs: [check, ios, screenshots-android]
     if: >-
@@ -332,7 +320,6 @@ jobs:
           (cd store-screenshots && zip -qr "$RUNNER_TEMP/dart-purrphect-$TAG-screenshots.zip" .)
           gh release upload "$TAG" "$RUNNER_TEMP/dart-purrphect-$TAG-screenshots.zip" --clobber
 
-      # PRs opened with GITHUB_TOKEN don't trigger CI; this one only changes images.
       - name: Open a PR with the website screenshots
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -379,7 +366,6 @@ jobs:
           ruby-version: "4.0.9"
           bundler-cache: true
 
-      # iphone-duo is the committed hand capture; without it here the screenshot sync deletes it from the listing.
       - name: Arrange deliver inputs
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -393,8 +379,6 @@ jobs:
           jq -n --arg kid "$ASC_API_KEY_ID" --arg iss "$ASC_API_ISSUER_ID" --arg key "$ASC_API_KEY_P8" \
             '{key_id: $kid, issuer_id: $iss, key: $key}' > "$RUNNER_TEMP/asc.json"
 
-      # Sync compares checksums, so a re-run uploads no duplicates; reject_if_possible pulls a pending
-      # submission so a re-run can still fix the listing. Only "build not ready" errors are worth retrying.
       - name: Update listing and submit for review
         env:
           TAG: ${{ needs.check.outputs.tag }}
@@ -431,8 +415,6 @@ jobs:
           echo "::error::Could not submit ${TAG#v} for review after 12 attempts."
           exit 1
 
-  # Promoting from internal sends the release to Google review. Play keeps production locked until the app has run a
-  # closed test (12 testers, 14 days), so releases go to closed testing (alpha) until then; switch to production after.
   publish-android:
     needs: [check, tag, android, screenshots-android, compose]
     if: >-
@@ -464,7 +446,6 @@ jobs:
           ruby-version: "4.0.9"
           bundler-cache: true
 
-      # supply sends files verbatim, so $(cat) drops the trailing newline. One tablet set fills both tablet slots.
       - name: Update listing and promote to closed testing
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

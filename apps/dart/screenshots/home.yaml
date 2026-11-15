@@ -1,6 +1,5 @@
 appId: com.purrphect.dart
 ---
-# The header's back button sometimes swallows the first tap right after a screen settles.
 - retry:
     maxRetries: 2
     commands:

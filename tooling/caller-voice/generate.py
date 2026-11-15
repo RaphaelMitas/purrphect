@@ -44,7 +44,6 @@ def script(n: int) -> str:
         return words(n).capitalize() + "."
     if n == 100:
         return "One HUNDRED!"
-    # the caller runs "one-hundred-and" together and leans on the final word
     head, _, last = words(n - 100).rpartition("-")
     return f"One-hundred-and-{head + '-' if head else ''}{last.upper()}!"
 
