@@ -8,6 +8,7 @@
   "files": {
     "includes": ["**", "!**/*.css", "!**/assets", "!**/.expo", "!**/ios", "!**/android", "!**/.turbo"]
   },
+  "plugins": ["./tooling/biome/no-comments.js"],
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
