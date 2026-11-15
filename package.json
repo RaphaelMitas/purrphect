@@ -12,13 +12,15 @@
     "test": "turbo run test",
     "lint:ws": "sherif",
     "lint:store": "node scripts/check-store-text.mjs",
-    "verify": "pnpm check && pnpm lint:ws && pnpm lint:store && pnpm typecheck && pnpm test && turbo run build --filter @purrphect/dart-web",
+    "lint:comments": "node scripts/check-comments.mjs",
+    "verify": "pnpm check && pnpm lint:ws && pnpm lint:store && pnpm lint:comments && pnpm typecheck && pnpm test && turbo run build --filter @purrphect/dart-web",
     "verify:e2e": "pnpm verify && bash tooling/e2e/run.sh",
     "op": "op run --no-masking --environment wqa7rtun5ra2rlna54gukuwguu --",
     "op-prod": "op run --no-masking --environment 5ewszd5julkpo5yqszdobp27i4 --",
     "release": "node scripts/release.mjs"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.13",
     "@biomejs/biome": "catalog:",
     "sherif": "^1.13.0",
     "turbo": "^2.11.11",
