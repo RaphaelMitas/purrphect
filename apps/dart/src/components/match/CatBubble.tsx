@@ -2,23 +2,12 @@ import { Cat } from "@purrphect/ui/cat";
 import { Text } from "@purrphect/ui/text";
 import { View } from "react-native";
 import type { QueueEntry } from "@/components/match/UpNext";
-import { SegmentChip } from "@/components/SegmentChip";
+import { SegmentChips } from "@/components/SegmentChip";
 import type { Suggestion } from "@/game/predict";
-import { label, type Segment } from "@/game/segments";
+import { label } from "@/game/segments";
 import type { Messages } from "@/i18n/en";
 import { useT } from "@/i18n/LanguageProvider";
 import { percent } from "@/lib/format";
-
-function Route({ darts }: { darts: readonly Segment[] }) {
-  return (
-    <View className="flex-row gap-1.5">
-      {darts.map((d, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: routes repeat segments (T20 T20 Bull), position is the identity
-        <SegmentChip key={i} segment={d} size="sm" />
-      ))}
-    </View>
-  );
-}
 
 function names(t: Messages, entries: QueueEntry[]): string {
   const shown = entries.slice(0, 2).map((e) => `${e.player.name} (${e.remaining})`);
@@ -46,18 +35,18 @@ export function CatBubble({
         ) : route ? (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{t.match.checkoutGo(remaining)}</Text>
-            <Route darts={route.darts} />
+            <SegmentChips darts={route.darts} />
             <Text className="font-nunito-black text-sm text-pink-ink">{percent(t, chance)}</Text>
           </View>
         ) : setup && setup.leaves > 170 ? (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{t.match.scoreBig(remaining)}</Text>
-            <Route darts={[setup.aim]} />
+            <SegmentChips darts={[setup.aim]} />
           </View>
         ) : setup ? (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm">{t.match.noOut(remaining)}</Text>
-            <Route darts={[setup.aim]} />
+            <SegmentChips darts={[setup.aim]} />
             <Text className="text-sm">{t.match.toLeave}</Text>
             <Text className="font-nunito-black text-sm">{setup.leaves}</Text>
           </View>
@@ -65,7 +54,7 @@ export function CatBubble({
         {alternative && (
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-sm text-muted-foreground">{t.match.or}</Text>
-            <Route darts={alternative.darts} />
+            <SegmentChips darts={alternative.darts} />
           </View>
         )}
         {fallback && !compact && (
@@ -74,11 +63,11 @@ export function CatBubble({
               {t.match.missInto(label(fallback.single), fallback.leaves)}
             </Text>
             {fallback.route ? (
-              <Route darts={fallback.route.darts} />
+              <SegmentChips darts={fallback.route.darts} />
             ) : fallback.setup ? (
               <>
                 <Text className="text-xs text-muted-foreground">{t.match.aim}</Text>
-                <Route darts={[fallback.setup.aim]} />
+                <SegmentChips darts={[fallback.setup.aim]} />
               </>
             ) : (
               <Text className="text-xs">{t.match.justScore}</Text>

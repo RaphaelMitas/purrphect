@@ -122,7 +122,6 @@ export const en = {
     home: "Home",
     rematch: "Rematch",
     upNext: "Up next",
-    left: (n: number) => `${n} left`,
     checkoutGo: (n: number) => `${n} left. Go`,
     or: "or",
     scoreBig: (n: number) => `${n} to go. Score big`,
