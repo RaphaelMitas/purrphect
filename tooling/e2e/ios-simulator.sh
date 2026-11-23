@@ -2,15 +2,17 @@
 set -euo pipefail
 
 device="${1:?device type regex required, e.g. ^iPad Air 13-inch}"
+maestro_max_runtime="27.0"
 
-read -r type runtime < <(xcrun simctl list runtimes available --json | jq -r --arg re "$device" '
+read -r type runtime < <(xcrun simctl list runtimes available --json | jq -r --arg re "$device" --arg max "$maestro_max_runtime" '
+  def version: split(".") | map(tonumber);
   [.runtimes[] | select(.platform == "iOS") | . as $runtime
+    | ($runtime.version | version) as $v | select($v[:2] <= ($max | version))
     | .supportedDeviceTypes[] | select(.name | test($re))
-    | {runtime: $runtime.identifier, type: .identifier, name,
-       v: ($runtime.version | split(".") | map(tonumber))}]
+    | {runtime: $runtime.identifier, type: .identifier, name, v: $v}]
   | sort_by(.v, .name) | last // empty | "\(.type) \(.runtime)"') || true
 if [ -z "${type:-}" ]; then
-  echo "No simulator matching $device" >&2
+  echo "No simulator on iOS $maestro_max_runtime or older matching $device" >&2
   xcrun simctl list runtimes available >&2
   exit 1
 fi

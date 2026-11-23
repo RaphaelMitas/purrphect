@@ -1,5 +1,5 @@
 name: "iOS simulator"
-description: "Create and start booting a fresh simulator: the newest matching device on the newest runtime that has one"
+description: "Create and start booting a fresh simulator: the newest matching device on the newest runtime, up to the one Maestro handles, that has one"
 
 inputs:
   device:
