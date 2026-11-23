@@ -26,14 +26,14 @@ function VisitRow({ entry: { player, visit }, faded }: { entry: HistoryEntry; fa
   return (
     <View className={cn("h-9 flex-row items-center gap-2 px-1", faded && "opacity-50")}>
       <Cat size={16} color={player.color} blush={false} />
-      <Text className="w-14 text-xs text-muted-foreground" numberOfLines={1}>
+      <Text className="flex-1 text-xs text-muted-foreground" numberOfLines={1}>
         {player.name}
       </Text>
       <SegmentChips darts={visit.darts} />
-      <Text className={cn("ml-auto font-nunito-black text-sm", visit.bust && "text-destructive-ink")}>
+      <Text className={cn("w-8 text-right font-nunito-black text-sm", visit.bust && "text-destructive-ink")}>
         {visit.scored}
       </Text>
-      <Text className="w-12 text-right text-xs text-muted-foreground">→ {visit.scoreBefore - visit.scored}</Text>
+      <Text className="w-11 text-right text-xs text-muted-foreground">→ {visit.scoreBefore - visit.scored}</Text>
     </View>
   );
 }
@@ -62,25 +62,24 @@ export function LegTimeline({
 }) {
   const t = useT();
   const past = useRef<ScrollViewInstance>(null);
+  const showLatest = () => past.current?.scrollToEnd({ animated: false });
   return (
     <View className="flex-1 gap-1 rounded-3xl bg-card px-3 py-2">
       <ScrollView
         ref={past}
+        className="flex-1"
         contentContainerClassName="grow justify-end"
-        onContentSizeChange={() => past.current?.scrollToEnd({ animated: false })}
+        onLayout={showLatest}
+        onContentSizeChange={showLatest}
       >
         {history.map((entry) => (
           <VisitRow key={entry.id} entry={entry} faded />
         ))}
-        <View className="h-10 flex-row items-center gap-2 rounded-xl border-2 border-pink bg-pink-soft px-2">
-          <Cat size={20} color={thrower.color} blush={false} />
-          <Text className="font-nunito-black text-sm" numberOfLines={1}>
-            {thrower.name}
-          </Text>
-          <Text className="font-nunito-black text-[10px] text-pink-ink">{t.match.throwing}</Text>
-          <Text className="ml-auto font-nunito-black text-lg">{remaining}</Text>
-        </View>
       </ScrollView>
+      <RankRow rank="" color={thrower.color} name={thrower.name} highlight>
+        <Text className="font-nunito-black text-[10px] text-butter-ink">{t.match.throwing}</Text>
+        <Text className="w-12 text-right font-nunito-black text-lg">{remaining}</Text>
+      </RankRow>
       <Text className="mt-1 px-1 font-nunito-black text-xs text-muted-foreground">{t.match.upNext}</Text>
       <ScrollView className="max-h-[40%] grow-0">
         {entries.map((e, i) => (
