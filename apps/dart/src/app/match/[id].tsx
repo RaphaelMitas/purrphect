@@ -15,7 +15,7 @@ import { CatBubble } from "@/components/match/CatBubble";
 import { EventToast } from "@/components/match/EventToast";
 import { MatchOver } from "@/components/match/MatchOver";
 import { ThrowerCard } from "@/components/match/ThrowerCard";
-import { PlayerStrip, type QueueEntry, UpNextList } from "@/components/match/UpNext";
+import { type HistoryEntry, LegTimeline, PlayerStrip, type QueueEntry, RecentVisits } from "@/components/match/UpNext";
 import { TilesPad } from "@/components/TilesPad";
 import {
   byId,
@@ -173,9 +173,11 @@ export default function MatchScreen() {
   const queue: QueueEntry[] = upNext(state).flatMap((i) => {
     const player = players[i];
     const remaining = state.remaining[i] ?? 0;
-    return player
-      ? [{ player, remaining, average: matchAverage(state, i), out: finishRoute(match.rules, remaining, 3) }]
-      : [];
+    return player ? [{ player, remaining, out: finishRoute(match.rules, remaining, 3) }] : [];
+  });
+  const history: HistoryEntry[] = state.visits.flatMap((visit, id) => {
+    const player = players[visit.player];
+    return player && visit.leg === state.leg ? [{ id, player, visit }] : [];
   });
   const onFinish = queue.filter((q) => q.out);
   const finalStandings = standings(state).flatMap((i) => {
@@ -261,11 +263,14 @@ export default function MatchScreen() {
           <View className="flex-1 gap-3 p-4">
             {throwerCard}
             {bubble}
-            <UpNextList entries={queue} />
+            {thrower && (
+              <LegTimeline history={history} thrower={thrower} remaining={suggestion.remaining} entries={queue} />
+            )}
           </View>
         </View>
       ) : (
         <View className="flex-1 gap-2 px-3 pb-2 pt-2">
+          <RecentVisits history={history.slice(short ? -1 : -2)} />
           {throwerCard}
           <PlayerStrip entries={queue} />
           {!short && bubble}

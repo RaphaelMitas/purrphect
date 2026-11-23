@@ -44,3 +44,14 @@ export function SegmentChip({
     </View>
   );
 }
+
+export function SegmentChips({ darts }: { darts: readonly Segment[] }) {
+  return (
+    <View className="flex-row gap-1.5">
+      {darts.map((d, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: routes repeat segments (T20 T20 Bull), position is the identity
+        <SegmentChip key={i} segment={d} size="sm" />
+      ))}
+    </View>
+  );
+}
