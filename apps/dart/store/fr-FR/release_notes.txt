@@ -1,1 +1,5 @@
-La première version de Dart Purrphect.
+Vois ce que les joueurs avant toi viennent de toucher : sur téléphone, les deux dernières volées s'affichent au-dessus de ta carte, et sur tablette, toutes les volées du leg à côté de la cible.
+
+Les sons de partie se jouent désormais sur Android même quand le téléphone est en mode vibreur.
+
+Les curseurs de couleur des thèmes restent sous ton doigt pendant le glissement et fonctionnent mieux avec les lecteurs d'écran.

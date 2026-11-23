@@ -1,1 +1,5 @@
-Die erste Version von Dart Purrphect.
+Sieh, was die Spieler vor dir gerade getroffen haben: Auf dem Handy stehen die letzten zwei Aufnahmen über deiner Karte, auf dem Tablet alle Aufnahmen des Legs neben dem Board.
+
+Match-Sounds spielen auf Android jetzt auch, wenn das Handy auf Vibration steht.
+
+Die Farbregler im Theme-Editor bleiben beim Ziehen unter dem Finger und funktionieren besser mit Screenreadern.

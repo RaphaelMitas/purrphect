@@ -1,1 +1,5 @@
-The first release of Dart Purrphect.
+See what the players before you just hit: phones show the last two visits above your card, and tablets list every visit of the leg next to the board.
+
+Match sounds now play on Android when the phone is on vibrate.
+
+Theme colour sliders stay under your finger while dragging and work better with screen readers.
