@@ -8,8 +8,9 @@ export const metadata: Metadata = {
 
 const OWNER = {
   name: "Raphael Mitas",
-  street: "Weiterstädter Str. 65",
-  city: "64291 Darmstadt",
+  careOf: "c/o IP-Management #13136",
+  street: "Ludwig-Erhard-Straße 18",
+  city: "20459 Hamburg",
   phone: "+49 15679 769941",
 };
 
@@ -19,6 +20,8 @@ export default function Imprint() {
       <h2>Angaben gemäß § 5 DDG</h2>
       <p>
         {OWNER.name}
+        <br />
+        {OWNER.careOf}
         <br />
         {OWNER.street}
         <br />
