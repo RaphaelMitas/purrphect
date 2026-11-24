@@ -11,6 +11,7 @@ const OWNER = {
   careOf: "c/o IP-Management #13136",
   street: "Ludwig-Erhard-Straße 18",
   city: "20459 Hamburg",
+  phone: "+49 15679 769941",
 };
 
 export default function Imprint() {
@@ -31,6 +32,8 @@ export default function Imprint() {
 
       <h2>Contact</h2>
       <p>
+        Phone: {OWNER.phone}
+        <br />
         Email: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
       </p>
 
