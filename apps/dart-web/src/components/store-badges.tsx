@@ -1,32 +1,32 @@
-import { APP_STORE, PLAY_STORE, type Store } from "@/links";
+import Image from "next/image";
+import { APP_STORE_URL } from "@/links";
 
-const BADGE = "flex h-14 flex-col justify-center rounded-2xl px-4 leading-tight sm:min-w-44 sm:px-5";
+const BADGE_WIDTH = 168;
+const BADGE_HEIGHT = 56;
 
-function Badge({ store }: { store: Store }) {
-  if (!store.href) {
-    return (
-      <div className={`${BADGE} border-2 border-foreground/20 border-dashed text-foreground/70`}>
-        <span className="text-xs">Coming soon to</span>
-        <span className="font-extrabold text-lg">{store.name}</span>
-      </div>
-    );
-  }
+function AppStoreBadge({ color, className }: { color: "black" | "white"; className: string }) {
   return (
-    <a
-      href={store.href}
-      className={`${BADGE} bg-foreground text-background transition-transform hover:-translate-y-0.5`}
-    >
-      <span className="text-xs">{store.kicker}</span>
-      <span className="font-extrabold text-lg">{store.name}</span>
-    </a>
+    <Image
+      src={`/badges/app-store-${color}.svg`}
+      alt="Download on the App Store"
+      width={BADGE_WIDTH}
+      height={BADGE_HEIGHT}
+      className={`h-14 w-auto ${className}`}
+    />
   );
 }
 
 export function StoreBadges() {
   return (
-    <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
-      <Badge store={APP_STORE} />
-      <Badge store={PLAY_STORE} />
+    <div className="flex flex-wrap items-center gap-3">
+      <a href={APP_STORE_URL} className="transition-transform hover:-translate-y-0.5">
+        <AppStoreBadge color="black" className="dark:hidden" />
+        <AppStoreBadge color="white" className="hidden dark:block" />
+      </a>
+      <div className="flex h-14 flex-col justify-center rounded-2xl border-2 border-foreground/20 border-dashed px-4 text-foreground/70 leading-tight sm:min-w-44 sm:px-5">
+        <span className="text-xs">Coming soon to</span>
+        <span className="font-extrabold text-lg">Google Play</span>
+      </div>
     </div>
   );
 }
