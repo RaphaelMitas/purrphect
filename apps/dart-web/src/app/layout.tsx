@@ -67,6 +67,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </a>
           </nav>
         </footer>
+        <script defer src="/p.js" />
       </body>
     </html>
   );

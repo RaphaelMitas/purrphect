@@ -1,0 +1,78 @@
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths: &website-sources
+      - apps/dart-web/**
+      - packages/ui/**
+      - tooling/store-assets/**
+      - tooling/github/setup/**
+      - pnpm-lock.yaml
+      - .nvmrc
+      - .github/workflows/website.yml
+  pull_request:
+    paths: *website-sources
+  workflow_dispatch:
+
+concurrency:
+  group: website-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Export dart.purrphect.com
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./tooling/github/setup
+      - run: pnpm turbo run build --filter @purrphect/dart-web
+      - uses: actions/upload-artifact@v7
+        with:
+          name: website
+          path: apps/dart-web/out
+
+  publish:
+    name: Publish the dart.purrphect.com image
+    needs: build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/raphaelmitas/purrphect-dart-web
+    defaults:
+      run:
+        working-directory: apps/dart-web
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            apps/dart-web/Dockerfile
+            apps/dart-web/Caddyfile
+      - uses: actions/download-artifact@v8
+        with:
+          name: website
+          path: apps/dart-web/out
+      - run: |
+          docker build \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+      - name: Serve the pages the way purr runs the image, before anyone can pull it
+        run: |
+          docker run -d --rm --name smoke -p 8080:80 \
+            --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges \
+            --tmpfs /data:size=1m,uid=1000 "$IMAGE:latest"
+          for page in / /privacy /imprint /screenshots/ipad/01-board-960.webp; do
+            curl -fsS --retry 10 --retry-all-errors --retry-delay 1 -o /dev/null "http://127.0.0.1:8080$page"
+          done
+          docker stop smoke
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - run: docker push --all-tags "$IMAGE"

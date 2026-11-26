@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Cat } from "@/components/cat";
 import type { DeviceShots } from "@/screenshots";
 
+const SHOT_MAX_HEIGHT_PX = 512;
+
 function Placeholder() {
   return (
     <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-border border-dashed px-6 py-16 text-center">
@@ -46,7 +48,8 @@ export function Gallery({ devices }: { devices: DeviceShots[] }) {
                 alt=""
                 width={shot.width}
                 height={shot.height}
-                className="h-auto max-h-[32rem] w-auto max-w-[80vw]"
+                sizes={`min(80vw, ${Math.ceil((SHOT_MAX_HEIGHT_PX * shot.width) / shot.height)}px)`}
+                className="h-auto max-h-[512px] w-auto max-w-[80vw]"
               />
               <figcaption className="max-w-64 text-center text-foreground/70 text-sm">{shot.caption}</figcaption>
             </figure>

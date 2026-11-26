@@ -11,6 +11,7 @@ function AppStoreBadge({ color, className }: { color: "black" | "white"; classNa
       alt="Download on the App Store"
       width={BADGE_WIDTH}
       height={BADGE_HEIGHT}
+      unoptimized
       className={`h-14 w-auto ${className}`}
     />
   );
@@ -19,7 +20,12 @@ function AppStoreBadge({ color, className }: { color: "black" | "white"; classNa
 export function StoreBadges() {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <a href={APP_STORE_URL} className="transition-transform hover:-translate-y-0.5">
+      <a
+        href={APP_STORE_URL}
+        data-event="Download"
+        data-event-via="app-store"
+        className="transition-transform hover:-translate-y-0.5"
+      >
         <AppStoreBadge color="black" className="dark:hidden" />
         <AppStoreBadge color="white" className="hidden dark:block" />
       </a>
