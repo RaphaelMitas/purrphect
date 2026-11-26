@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Prose } from "@/components/prose";
-import { REPO_URL, SUPPORT_EMAIL } from "@/links";
+import { OWNER, REPO_URL, SUPPORT_EMAIL } from "@/links";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -45,6 +45,10 @@ export default function Privacy() {
       </p>
 
       <h2>This website</h2>
+      <p>
+        {OWNER.name} runs this website and is responsible for the processing described here. You find the full address
+        in the <Link href="/imprint">imprint</Link>.
+      </p>
       <p>
         dart.purrphect.com sets no cookies and stores nothing in your browser. The fonts and scripts ship with the site,
         so loading a page sends no request to anyone else.

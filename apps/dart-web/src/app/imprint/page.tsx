@@ -1,17 +1,9 @@
 import type { Metadata } from "next";
 import { Prose } from "@/components/prose";
-import { SUPPORT_EMAIL } from "@/links";
+import { OWNER, SUPPORT_EMAIL } from "@/links";
 
 export const metadata: Metadata = {
   title: "Imprint",
-};
-
-const OWNER = {
-  name: "Raphael Mitas",
-  careOf: "c/o IP-Management #13136",
-  street: "Ludwig-Erhard-Straße 18",
-  city: "20459 Hamburg",
-  phone: "+49 15679 769941",
 };
 
 export default function Imprint() {

@@ -10,7 +10,7 @@ await Promise.all(
   screenshots.flatMap((file) =>
     SCREENSHOT_WIDTHS.map((width) =>
       sharp(join(folder, file))
-        .resize({ width, withoutEnlargement: true })
+        .resize({ width })
         .webp({ quality: 80 })
         .toFile(screenshotLoader({ src: join(folder, file), width })),
     ),

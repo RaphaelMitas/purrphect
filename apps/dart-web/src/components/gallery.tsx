@@ -49,7 +49,8 @@ export function Gallery({ devices }: { devices: DeviceShots[] }) {
                 width={shot.width}
                 height={shot.height}
                 sizes={`min(80vw, ${Math.ceil((SHOT_MAX_HEIGHT_PX * shot.width) / shot.height)}px)`}
-                className="h-auto max-h-[512px] w-auto max-w-[80vw]"
+                style={{ maxHeight: SHOT_MAX_HEIGHT_PX }}
+                className="h-auto w-auto max-w-[80vw]"
               />
               <figcaption className="max-w-64 text-center text-foreground/70 text-sm">{shot.caption}</figcaption>
             </figure>
