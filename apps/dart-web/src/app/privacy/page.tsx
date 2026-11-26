@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Prose } from "@/components/prose";
-import { REPO_URL, SUPPORT_EMAIL } from "@/links";
+import { OWNER, REPO_URL, SUPPORT_EMAIL } from "@/links";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 export default function Privacy() {
   return (
-    <Prose title="Privacy" updated="7 November 2026">
+    <Prose title="Privacy" updated="26 November 2026">
       <p>
-        Short version: Dart Purrphect keeps everything on your device. There are no accounts, no analytics, no ads and
-        no servers we send your data to.
+        Short version: the Dart Purrphect app keeps everything on your device. It has no accounts, no analytics, no ads
+        and no servers it sends your data to. This website counts visits without cookies, as described below.
       </p>
 
       <h2>What the app stores</h2>
@@ -46,9 +46,42 @@ export default function Privacy() {
 
       <h2>This website</h2>
       <p>
-        dart.purrphect.com is a static site without cookies or analytics. Fonts are served from this site, not from
-        Google. Our host, Vercel, processes technical data such as your IP address to deliver the pages, and keeps short
-        lived server logs.
+        {OWNER.name} runs this website and is responsible for the processing described here. You find the full address
+        in the <Link href="/imprint">imprint</Link>.
+      </p>
+      <p>
+        dart.purrphect.com sets no cookies and stores nothing in your browser. The fonts and scripts ship with the site,
+        so loading a page sends no request to anyone else.
+      </p>
+      <p>
+        The site runs on a server of Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Germany, in a data
+        centre in Helsinki, Finland. Hetzner processes data on our behalf under Art. 28 GDPR. To deliver a page, the
+        server processes what your browser sends with every request, in particular your IP address, the time, the
+        address you asked for and your browser and operating system. It keeps no access log. Technical error logs can
+        occasionally contain an IP address; they are limited in size and overwritten continuously. The legal basis is
+        Art. 6(1)(f) GDPR, our legitimate interest in delivering the site securely and reliably.
+      </p>
+      <p>
+        The App Store badge leads to Apple's App Store, where Apple's privacy policy applies. The GitHub links lead to
+        GitHub, where GitHub's privacy statement applies.
+      </p>
+
+      <h2>Visitor counts</h2>
+      <p>
+        We count visits to this website with Plausible, running on that same server, without cookies and without any
+        third party. It records the page you open, the website you came from (only its domain), campaign tags in the
+        link, your browser, operating system, device type and country, and whether you clicked the App Store badge. Your
+        IP address and browser details are used to work out a visitor hash from a salt that changes daily, and that hash
+        is stored with each visit. The IP address itself is not stored.
+      </p>
+      <p>
+        The data is deleted after 25 months. The legal basis is Art. 6(1)(f) GDPR, our legitimate interest in knowing
+        how people find the site and whether they get the app. This is about the website only: the app itself still
+        counts nothing.
+      </p>
+      <p>
+        You can object to this at any time, without giving a reason: turn on Global Privacy Control or Do Not Track in
+        your browser, and nothing is recorded from then on.
       </p>
 
       <h2>Contact</h2>
