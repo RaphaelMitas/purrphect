@@ -12,8 +12,8 @@ export default function Privacy() {
   return (
     <Prose title="Privacy" updated="26 November 2026">
       <p>
-        Short version: Dart Purrphect keeps everything on your device. There are no accounts, no analytics, no ads and
-        no servers we send your data to.
+        Short version: the Dart Purrphect app keeps everything on your device. It has no accounts, no analytics, no ads
+        and no servers it sends your data to. This website counts visits without cookies, as described below.
       </p>
 
       <h2>What the app stores</h2>
