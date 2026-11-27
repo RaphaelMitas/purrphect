@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Privacy() {
   return (
-    <Prose title="Privacy" updated="26 November 2026">
+    <Prose title="Privacy" updated="27 November 2026">
       <p>
         Short version: the Dart Purrphect app keeps everything on your device. It has no accounts, no analytics, no ads
         and no servers it sends your data to. This website counts visits without cookies, as described below.
@@ -57,9 +57,11 @@ export default function Privacy() {
         The site runs on a server of Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Germany, in a data
         centre in Helsinki, Finland. Hetzner processes data on our behalf under Art. 28 GDPR. To deliver a page, the
         server processes what your browser sends with every request, in particular your IP address, the time, the
-        address you asked for and your browser and operating system. It keeps no access log. Technical error logs can
-        occasionally contain an IP address; they are limited in size and overwritten continuously. The legal basis is
-        Art. 6(1)(f) GDPR, our legitimate interest in delivering the site securely and reliably.
+        address you asked for and your browser and operating system. It logs each request without your IP address: the
+        time, the address you asked for without any search terms, the status, how long it took, the size of the answer
+        and your browser's user agent. These entries are deleted after 30 days. Technical error logs can occasionally
+        contain an IP address; they are limited in size and overwritten continuously. The legal basis is Art. 6(1)(f)
+        GDPR, our legitimate interest in delivering the site securely and reliably.
       </p>
       <p>
         The App Store badge leads to Apple's App Store, where Apple's privacy policy applies. The GitHub links lead to
