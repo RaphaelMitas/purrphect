@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",
-    "@types/node": "^26.6.6",
+    "@types/node": "^26.6.11",
     "playwright": "~1.65.1",
     "typescript": "catalog:"
   }
