@@ -2,7 +2,7 @@
   "name": "purrphect",
   "private": true,
   "license": "MIT",
-  "packageManager": "pnpm@12.21.0",
+  "packageManager": "pnpm@12.23.0",
   "scripts": {
     "dev": "turbo run dev",
     "ios": "pnpm --filter @purrphect/dart ios",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "sherif": "^1.13.0",
-    "turbo": "^2.11.11",
+    "turbo": "^2.11.13",
     "typescript": "catalog:"
   }
 }

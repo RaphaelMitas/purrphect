@@ -361,9 +361,9 @@ jobs:
           name: store-screenshots
           path: store-screenshots
 
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+      - uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
         with:
-          ruby-version: "4.0.9"
+          ruby-version: "4.0.10"
           bundler-cache: true
 
       - name: Arrange deliver inputs
@@ -441,9 +441,9 @@ jobs:
           name: play-graphics
           path: play-graphics
 
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+      - uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
         with:
-          ruby-version: "4.0.9"
+          ruby-version: "4.0.10"
           bundler-cache: true
 
       - name: Update listing and promote to closed testing
